@@ -1,6 +1,7 @@
-name: 'Lab Migration'
+name: 'FreeCad Lab Migration'
 description: 'IIT Bombay Lab Migration project'
 package: IITB
 core: 8.x
+core_version_requirement: ^8 || ^9
 type: module
 dependencies: {  }

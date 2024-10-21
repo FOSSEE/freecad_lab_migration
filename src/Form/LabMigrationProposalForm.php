@@ -23,7 +23,7 @@ class LabMigrationProposalForm extends FormBase {
   public function buildForm(array $form, \Drupal\Core\Form\FormStateInterface $form_state) {
     $user = \Drupal::currentUser();
     $form = [];
-    $state = _lab_migration_list_of_states();
+    $state = \Drupal::service("lab_migration_global")->_lab_migration_list_of_states();
     $selected_state = !$form_state->getValue(['all_state'])?$form_state->getValue([
       'all_state'
       ]):key($state);

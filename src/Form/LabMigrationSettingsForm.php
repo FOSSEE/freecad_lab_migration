@@ -21,6 +21,7 @@ class LabMigrationSettingsForm extends FormBase {
   }
 
   public function buildForm(array $form, \Drupal\Core\Form\FormStateInterface $form_state) {
+    $config = $this->config('lab_migration:settings');
     $form['emails'] = [
       '#type' => 'textfield',
       '#title' => t('(Bcc) Notification emails'),

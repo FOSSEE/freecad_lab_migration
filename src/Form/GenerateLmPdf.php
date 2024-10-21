@@ -366,5 +366,7 @@ class GenerateLmPdf extends FormBase {
     }
   }
 
+  public function submitForm(array &$form, \Drupal\Core\Form\FormStateInterface $form_state){
+  }
 }
 ?>
