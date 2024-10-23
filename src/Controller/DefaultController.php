@@ -16,7 +16,7 @@ class DefaultController extends ControllerBase {
     /* get pending proposals to be approved */
     $pending_rows = [];
     //$pending_q = $injected_database->query("SELECT * FROM {lab_migration_proposal} WHERE approval_status = 0 ORDER BY id DESC");
-    $query = $injected_database->select('lab_migration_proposal');
+    $query =\Drupal::database()->select('lab_migration_proposal');
     $query->fields('lab_migration_proposal');
     $query->condition('approval_status', 0);
     $query->orderBy('id', 'DESC');
@@ -32,7 +32,7 @@ class DefaultController extends ControllerBase {
     }
     /* check if there are any pending proposals */
     if (!$pending_rows) {
-      add_message(t('There are no pending proposals.'), 'status');
+      \Drupal::messenger()->addMessage($this->t('There are no pending proposals.'), 'status');
       return '';
     }
     $pending_header = [
@@ -69,7 +69,7 @@ class DefaultController extends ControllerBase {
     }
     /* check if there are any pending proposals */
     if (!$pending_rows) {
-      add_message(t('There are no pending solution proposals.'), 'status');
+      \Drupal::messenger()->addMessage(t('There are no pending solution proposals.'), 'status');
       return '';
     }
     $pending_header = [
@@ -105,8 +105,8 @@ class DefaultController extends ControllerBase {
     }
     /* check if there are any pending proposals */
     if (!$pending_rows) {
-      add_message(t('There are no proposals pending for solutions.'), 'status');
-      return '';
+      \Drupal::messenger()->addMessage(t('There are no proposals pending for solutions.'), 'status');
+      return new Response('');
     }
     $pending_header = [
       'Date of Submission',
@@ -164,7 +164,7 @@ class DefaultController extends ControllerBase {
     }
     /* check if there are any pending proposals */
     if (!$proposal_rows) {
-      add_message(t('There are no proposals.'), 'status');
+      \Drupal::messenger()->addMessage(t('There are no proposals.'), 'status');
       return '';
     }
     $proposal_header = [
@@ -259,7 +259,7 @@ class DefaultController extends ControllerBase {
     $query->condition('approval_status', 0);
     $pending_solution_q = $query->execute();
     if (!$pending_solution_q) {
-      add_message(t('There are no pending code approvals.'), 'status');
+      \Drupal::messenger()->addMessage(t('There are no pending code approvals.'), 'status');
       return '';
     }
     $pending_solution_rows = [];
@@ -298,7 +298,7 @@ class DefaultController extends ControllerBase {
     }
     /* check if there are any pending solutions */
     if (!$pending_solution_rows) {
-      add_message(t('There are no pending solutions'), 'status');
+      \Drupal::messenger()->addMessage(t('There are no pending solutions'), 'status');
       return '';
     }
     $header = [
@@ -481,14 +481,14 @@ class DefaultController extends ControllerBase {
           }
         else
           {
-            add_message(t('Invalid proposal selected. Please try again.'), 'error');
+            \Drupal::messenger()->addMessage(t('Invalid proposal selected. Please try again.'), 'error');
             RedirectResponse('lab-migration/manage-proposal');
             return;
           }
       }
     else
       {
-        add_message(t('Invalid proposal selected. Please try again.'), 'error');
+        \Drupal::messenger()->addMessage(t('Invalid proposal selected. Please try again.'), 'error');
         RedirectResponse('lab-migration/manage-proposal');
         return;
       }
@@ -740,12 +740,12 @@ class DefaultController extends ControllerBase {
     $solution_q = $query->execute();
     $solution_data = $solution_q->fetchObject();
     if (!$solution_data) {
-      add_message('Invalid solution.', 'error');
+      \Drupal::messenger()->addMessage('Invalid solution.', 'error');
       RedirectResponse('lab-migration/code');
       return;
     }
     if ($solution_data->approval_status != 0) {
-      add_message('You cannnot delete a solution after it has been approved. Please contact site administrator if you want to delete this solution.', 'error');
+      \Drupal::messenger()->addMessage('You cannnot delete a solution after it has been approved. Please contact site administrator if you want to delete this solution.', 'error');
       RedirectResponse('lab-migration/code');
       return;
     }
@@ -759,7 +759,7 @@ class DefaultController extends ControllerBase {
 
     $experiment_data = $experiment_q->fetchObject();
     if (!$experiment_data) {
-      add_message('You do not have permission to delete this solution.', 'error');
+      \Drupal::messenger()->addMessage('You do not have permission to delete this solution.', 'error');
       RedirectResponse('lab-migration/code');
       return;
     }
@@ -773,14 +773,14 @@ class DefaultController extends ControllerBase {
     $proposal_q = $query->execute();
     $proposal_data = $proposal_q->fetchObject();
     if (!$proposal_data) {
-      add_message('You do not have permission to delete this solution.', 'error');
+      \Drupal::messenger()->addMessage('You do not have permission to delete this solution.', 'error');
       RedirectResponse('lab-migration/code');
       return;
     }
 
     /* deleting solution files */
     if (lab_migration_delete_solution($solution_data->id)) {
-      add_message('Solution deleted.', 'status');
+      \Drupal::messenger()->addMessage('Solution deleted.', 'status');
 
       /* sending email */
       $email_to = $user->mail;
@@ -805,11 +805,11 @@ class DefaultController extends ControllerBase {
       ];
 
       if (!drupal_mail('lab_migration', 'solution_deleted_user', $email_to, language_default(), $param, $from, TRUE)) {
-        add_message('Error sending email message.', 'error');
+        \Drupal::messenger()->addMessage('Error sending email message.', 'error');
       }
     }
     else {
-      add_message('Error deleting example.', 'status');
+      \Drupal::messenger()->addMessage('Error deleting example.', 'status');
     }
 
     RedirectResponse('lab-migration/code');
@@ -899,7 +899,7 @@ class DefaultController extends ControllerBase {
       unlink($zip_filename);
     }
     else {
-      add_message("There are no files in this solutions to download", 'error');
+      \Drupal::messenger()->addMessage("There are no files in this solutions to download", 'error');
       RedirectResponse('lab-migration/lab-migration-run');
     }
   }
@@ -971,7 +971,7 @@ class DefaultController extends ControllerBase {
       unlink($zip_filename);
     }
     else {
-      add_message("There are no solutions in this experiment to download", 'error');
+      \Drupal::messenger()->addMessage("There are no solutions in this experiment to download", 'error');
       RedirectResponse('lab-migration/lab-migration-run');
     }
   }
@@ -1069,7 +1069,7 @@ class DefaultController extends ControllerBase {
       }
     }
     else {
-      add_message("There are no solutions in this Lab to download", 'error');
+      \Drupal::messenger()->addMessage("There are no solutions in this Lab to download", 'error');
       RedirectResponse('lab-migration/lab-migration-run');
     }
   }
@@ -1180,7 +1180,7 @@ class DefaultController extends ControllerBase {
       unlink($zip_filename);
     }
     else {
-      add_message("There are no solutions in this experiment to download", 'error');
+      \Drupal::messenger()->addMessage("There are no solutions in this experiment to download", 'error');
       RedirectResponse('lab-migration/code-approval/bulk');
     }
   }
@@ -1303,7 +1303,7 @@ class DefaultController extends ControllerBase {
       unlink($zip_filename);
     }
     else {
-      add_message("There are no solutions in this lab to download", 'error');
+      \Drupal::messenger()->addMessage("There are no solutions in this lab to download", 'error');
       RedirectResponse('lab-migration/code-approval/bulk');
     }
   }
@@ -1391,7 +1391,7 @@ class DefaultController extends ControllerBase {
   public function lab_migration_delete_lab_pdf() {
     $lab_id = arg(3);
     lab_migration_del_lab_pdf($lab_id);
-    add_message(t('Lab schedule for regeneration.'), 'status');
+    \Drupal::messenger()->addMessage(t('Lab schedule for regeneration.'), 'status');
     RedirectResponse('lab_migration/code_approval/bulk');
     return;
   }

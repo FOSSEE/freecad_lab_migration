@@ -2,3 +2,8 @@
 services:
   lab_migration_global:
     class: '\Drupal\lab_migration\Services\LabMigrationGlobalfunction'
+
+  lab_migration_email:
+    class:  '\Drupal\lab_migration\Services\LabMigrationEmailFunction'
+
+  
