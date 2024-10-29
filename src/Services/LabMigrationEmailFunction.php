@@ -65,10 +65,10 @@ public function lab_migration_mail($key, &$message, $params)
               }
             $user_data = User::load($params['proposal_received']['user_id']);
             $message['headers'] = $params['proposal_received']['headers'];
-            $message['subject'] = t('[!site_name] Your Lab migration proposal has been received', array(
+            $message['subject'] = $this->t('[!site_name] Your Lab migration proposal has been received', array(
                 '!site_name' => \Drupal::config('site_name', '')
             ), array(
-                'language' => $language->language
+                'language' => 'en'
             ));
             $message['body'] = array(
                 'body' => t('
@@ -98,7 +98,7 @@ FOSSEE, IIT Bombay', array(
                     '!site_name' => \Drupal::config('site_name', ''),
                     '!user_name' => $user_data->name
                 ), array(
-                    'language' => $language->language
+                    'language' => 'en'
                 ))
             );
             break;

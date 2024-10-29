@@ -146,6 +146,91 @@ function lm_ucname($string)
     return $name;
   
   }
+  function lab_migration_path()
+  {
+    return $_SERVER['DOCUMENT_ROOT'] . base_path() . 'freecad_uploads/lab_migration_uploads/';
+  }
+  function _bulk_list_of_labs()
+  {
+    $lab_titles = array(
+        '0' => 'Please select...'
+    );
+    //$lab_titles_q = db_query("SELECT * FROM {lab_migration_proposal} WHERE solution_display = 1 ORDER BY lab_title ASC");
+    $query = \Drupal::database()->select('lab_migration_proposal');
+    $query->fields('lab_migration_proposal');
+    $query->condition('solution_display', 1);
+    $query->orderBy('lab_title', 'ASC');
+    $lab_titles_q = $query->execute();
+    while ($lab_titles_data = $lab_titles_q->fetchObject())
+      {
+        $lab_titles[$lab_titles_data->id] = $lab_titles_data->lab_title . ' (Proposed by ' . $lab_titles_data->name . ')';
+      }
+    return $lab_titles;
+  }
+  function _ajax_bulk_get_experiment_list($lab_default_value = '')
+  {
+    $experiments = array(
+        '0' => 'Please select...'
+    );
+    //$experiments_q = db_query("SELECT * FROM {lab_migration_experiment} WHERE proposal_id = %d ORDER BY number ASC", $proposal_id);
+    $query = \Drupal::database()->select('lab_migration_experiment');
+    $query->fields('lab_migration_experiment');
+    $query->condition('proposal_id', $lab_default_value);
+    $query->orderBy('number', 'ASC');
+    $experiments_q = $query->execute();
+    while ($experiments_data = $experiments_q->fetchObject())
+      {
+        $experiments[$experiments_data->id] = $experiments_data->number . '. ' . $experiments_data->title;
+      }
+    return $experiments;
+  }
+  function _ajax_get_experiment_list($lab_default_value = '')
+  {
+    $experiments = array(
+        '0' => 'Please select...'
+    );
+    //$experiments_q = db_query("SELECT * FROM {lab_migration_experiment} WHERE proposal_id = %d ORDER BY number ASC", $proposal_id);
+    $query = \Drupal::database()->select('lab_migration_experiment');
+    $query->fields('lab_migration_experiment');
+    $query->condition('proposal_id', $lab_default_value);
+    $query->orderBy('number', 'ASC');
+    $experiments_q = $query->execute();
+    while ($experiments_data = $experiments_q->fetchObject())
+      {
+        $experiments[$experiments_data->id] = $experiments_data->number . '. ' . $experiments_data->title;
+      }
+    return $experiments;
+  }
+  function _ajax_get_solution_list($lab_experiment_list = '')
+  {
+    $solutions = array(
+        '0' => 'Please select...'
+    );
+    // $solutions_q = db_query("SELECT * FROM {lab_migration_solution} WHERE experiment_id = %d ORDER BY
+    //  CAST(SUBSTRING_INDEX(code_number, '.', 1) AS BINARY) ASC,
+    //   CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(code_number , '.', 2), '.', -1) AS UNSIGNED) ASC,
+    //  CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(code_number , '.', -1), '.', 1) AS UNSIGNED) ASC", $experiment_id);
+    $query = \Drupal::database()->select('lab_migration_solution');
+    $query->fields('lab_migration_solution');
+    $query->condition('experiment_id', $lab_experiment_list);
+    //$query->orderBy("CAST(SUBSTRING_INDEX(code_number, '.', 1) AS BINARY", "ASC");
+    // $query->orderBy("CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(code_number , '.', 2), '.', -1) AS UNSIGNED", "ASC");
+    // $query->orderBy("CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(code_number , '.', -1), '.', 1) AS UNSIGNED", "ASC");
+    $solutions_q = $query->execute();
+    while ($solutions_data = $solutions_q->fetchObject())
+      {
+        $solutions[$solutions_data->id] = $solutions_data->code_number . ' (' . $solutions_data->caption . ')';
+      }
+    return $solutions;
+  
+  }
+
+  function _latex_copy_script_file()
+  {
+    exec("cp ./" . drupal_get_path('module', 'lab_migration') . "/latex/* " . lab_migration_path() . "latex");
+    exec("chmod u+x ./uploads/latex/*.sh");
+  }
+
   
  }
 

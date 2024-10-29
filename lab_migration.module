@@ -3,6 +3,7 @@
 /**
  * Implements a helper function to capitalize words, handling delimiters.
  */
+use Drupal\user\Entity\User;
 function lm_ucname($string) {
   $string = ucwords(strtolower($string));
   foreach (array('-', '\'') as $delimiter) {
@@ -16,7 +17,14 @@ function lm_ucname($string) {
 function lab_migration_mail($key, &$message, $params)
 {
   global $user;
-  $language = $message['language'];
+  $language = \Drupal::currentUser()->getPreferredLangcode();
+
+  // If the language key is set in the params, use it, otherwise fallback to 'en' or any other default.
+  $language = isset($params['language']) ? $params['language'] : $language;
+
+  // Set the language for the message
+  $message['langcode'] = $language;
+  // $language = $message['$language'];
   //$language = user_preferred_language($user);
   switch ($key)
    {
@@ -25,7 +33,7 @@ function lab_migration_mail($key, &$message, $params)
           /* initializing data */
           // $proposal_q = $db->query("SELECT * FROM {lab_migration_proposal} WHERE id = %d LIMIT 1", $params['proposal_received']['proposal_id']);
           // $proposal_data = $proposal_q->fetchObject();
-          $query = $this::database()->select('lab_migration_proposal');
+          $query = \Drupal::database()->select('lab_migration_proposal');
           $query->fields('lab_migration_proposal');
           $query->condition('id', $params['proposal_received']['proposal_id']);
           $query->range(0, 1);
@@ -61,7 +69,7 @@ function lab_migration_mail($key, &$message, $params)
             }
           // $experiment_q = $db->query("SELECT * FROM {lab_migration_experiment} WHERE proposal_id = %d ORDER BY number",
           //  $params['proposal_received']['proposal_id'], 1);
-          $query = $this::database()->select('lab_migration_experiment');
+          $query = \Drupal::database()->select('lab_migration_experiment');
           $query->fields('lab_migration_experiment');
           $query->condition('proposal_id', $params['proposal_received']['proposal_id']);
           $query->orderBy('number', 'ASC');
@@ -75,14 +83,15 @@ function lab_migration_mail($key, &$message, $params)
               $experiment_list .= '</p>';
             }
           $user_data = User::load($params['proposal_received']['user_id']);
+          var_dump($user_data);die;
           $message['headers'] = $params['proposal_received']['headers'];
-          $message['subject'] = t('[!site_name] Your Lab migration proposal has been received', array(
+          $message['subject'] = $this->t('[!site_name] Your Lab migration proposal has been received', array(
               '!site_name' => \Drupal::config('site_name', '')
           ), array(
-              'language' => $language->language
+              'language' => '$language'
           ));
           $message['body'] = array(
-              'body' => t('
+              'body' => $this->t('
 Dear ' . $proposal_data->name . ',
 
 We have received your proposal for lab migration with the following details:
@@ -109,7 +118,7 @@ FOSSEE, IIT Bombay', array(
                   '!site_name' => \Drupal::config('site_name', ''),
                   '!user_name' => $user_data->name
               ), array(
-                  'language' => $language->language
+                  'language' => '$language'
               ))
           );
           break;

@@ -108,26 +108,29 @@ class LabMigrationSettingsForm extends ConfigFormBase {
       '#type' => 'submit',
       '#value' => $this->t('Submit'),
     ];
-    return $form;
+    return parent::buildForm($form, $form_state);
+    // return $form;
   }
 
   public function validateForm(array &$form, FormStateInterface $form_state) {
+    parent::validateForm($form, $form_state);
     return;
   }
 
   public function submitForm(array &$form, FormStateInterface $form_state) {
+    parent::submitForm($form, $form_state);
    $this->config('lab_migration.settings')
-    ->set('lab_migration_emails', $form_state->getValue(['emails']))
-    ->set('lab_migration_cc_emails', $form_state->getValue(['cc_emails']))
-    ->set('lab_migration_from_email', $form_state->getValue(['from_email']))
-    ->set('lab_migration_source_extensions', $form_state->getValue(['source']))
-    ->set('lab_migration_dependency_extensions', $form_state->getValue(['dependency']))
-    ->set('lab_migration_result_extensions', $form_state->getValue(['result']))
-    ->set('lab_migration_xcos_extensions', $form_state->getValue(['xcos']))
-    ->set('lab_migration_pdf_extensions', $form_state->getValue(['pdf']))
-    ->set('lab_migration_syllabus_file_extensions', $form_state->getValue(['syllabus']))
+    ->set('lab_migration_emails', $form_state->getValue('emails'))
+    ->set('lab_migration_cc_emails', $form_state->getValue('cc_emails'))
+    ->set('lab_migration_from_email', $form_state->getValue('from_email'))
+    ->set('lab_migration_source_extensions', $form_state->getValue('source'))
+    ->set('lab_migration_dependency_extensions', $form_state->getValue('dependency'))
+    ->set('lab_migration_result_extensions', $form_state->getValue('result'))
+    ->set('lab_migration_xcos_extensions', $form_state->getValue('xcos'))
+    ->set('lab_migration_pdf_extensions', $form_state->getValue('pdf'))
+    ->set('lab_migration_syllabus_file_extensions', $form_state->getValue('syllabus'))
    ->save();
-    $this->messenger()->addMessage($this->t('Settings updated'), 'status');
+    \Drupal::messenger()->addMessage($this->t('Settings updated'), 'status');
   }
   protected function getEditableConfigNames() {
     return [

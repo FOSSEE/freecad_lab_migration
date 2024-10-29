@@ -21,14 +21,26 @@ class LabMigrationCertificateEditForm extends FormBase {
   }
 
   public function buildForm(array $form, \Drupal\Core\Form\FormStateInterface $form_state) {
-    $type = arg(2);
-    $action = arg(4);
-    $proposal_id = arg(5);
-    $certi_id = arg(6);
+    // $type = arg(2);
+    $route_match = \Drupal::routeMatch();
+
+$type = (int) $route_match->getParameter('type');
+    // $action = arg(4);
+    $route_match = \Drupal::routeMatch();
+
+$action = (int) $route_match->getParameter('action');
+    // $proposal_id = arg(5);
+    $route_match = \Drupal::routeMatch();
+
+$proposal_id = (int) $route_match->getParameter('proposal_id');
+    // $certi_id = arg(6);
+    $route_match = \Drupal::routeMatch();
+
+$certi_id = (int) $route_match->getParameter('certi_id');
     //var_dump($type. "--".$action."--".$proposal_id."--".$certi_id);
     //die;
     if ($type == "lm-proposer" && $action == "edit") {
-      $query = $injected_database->query("SELECT * FROM lab_migration_certificate WHERE proposal_id=:prop_id AND id=:certi_id", [
+      $query = \Drupal::database()->query("SELECT * FROM lab_migration_certificate WHERE proposal_id=:prop_id AND id=:certi_id", [
         ":prop_id" => $proposal_id,
         ":certi_id" => $certi_id,
       ]);
@@ -148,7 +160,7 @@ class LabMigrationCertificateEditForm extends FormBase {
       ":creation_date" => time(),
       ":certi_id" => $v['certi_id'],
     ];
-    $proposal_id = $injected_database->query($result, $args);
+    $proposal_id = \Drupal::database()->query($result, $args);
     RedirectResponse('lab-migration/certificate');
   }
 

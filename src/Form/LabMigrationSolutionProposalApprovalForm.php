@@ -10,7 +10,7 @@ namespace Drupal\lab_migration\Form;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Render\Element;
-
+use Drupal\Core\Routing\RouteMatchInterface;
 class LabMigrationSolutionProposalApprovalForm extends FormBase {
 
   /**
@@ -23,7 +23,10 @@ class LabMigrationSolutionProposalApprovalForm extends FormBase {
   public function buildForm(array $form, \Drupal\Core\Form\FormStateInterface $form_state) {
     $user = \Drupal::currentUser();
     /* get current proposal */
-    $proposal_id = (int) arg(3);
+    // $proposal_id = (int) arg(3);
+    $route_match = \Drupal::routeMatch();
+
+$proposal_id = (int) $route_match->getParameter('proposal_id');
     // $proposal_q = $injected_database->query("SELECT * FROM {lab_migration_proposal} WHERE id = %d", $proposal_id);
     $query = $injected_database->select('lab_migration_proposal');
     $query->fields('lab_migration_proposal');
@@ -34,13 +37,13 @@ class LabMigrationSolutionProposalApprovalForm extends FormBase {
         /* everything ok */
       }
       else {
-        add_message(t('Invalid proposal selected. Please try again.'), 'error');
+        \Drupal::messenger()->add_message($this->t('Invalid proposal selected. Please try again.'), 'error');
         RedirectResponse('lab-migration/manage-proposal/pending-solution-proposal');
         return;
       }
     }
     else {
-      add_message(t('Invalid proposal selected. Please try again.'), 'error');
+      \Drupal::messenger()->add_message($this->t('Invalid proposal selected. Please try again.'), 'error');
       RedirectResponse('lab-migration/manage-proposal/pending-solution-proposal');
       return;
     }
@@ -184,7 +187,11 @@ class LabMigrationSolutionProposalApprovalForm extends FormBase {
   }
 
   public function validateForm(array &$form, \Drupal\Core\Form\FormStateInterface $form_state) {
-    $proposal_id = (int) arg(3);
+    // $proposal_id = (int) arg(3);
+    $route_match = \Drupal::routeMatch();
+
+$proposal_id = (int) $route_match->getParameter('proposal_id');
+
     // $solution_provider_q = $injected_database->query("SELECT * FROM {lab_migration_proposal} WHERE id = %d", $proposal_id);
     $query = $injected_database->select('lab_migration_proposal');
     $query->fields('lab_migration_proposal');
@@ -210,7 +217,11 @@ class LabMigrationSolutionProposalApprovalForm extends FormBase {
   public function submitForm(array &$form, \Drupal\Core\Form\FormStateInterface $form_state) {
     $user = \Drupal::currentUser();
     /* get current proposal */
-    $proposal_id = (int) arg(3);
+    // $proposal_id = (int) arg(3);
+    $route_match = \Drupal::routeMatch();
+
+$proposal_id = (int) $route_match->getParameter('proposal_id');
+
     //$proposal_q = $injected_database->query("SELECT * FROM {lab_migration_proposal} WHERE id = %d", $proposal_id);
     $query = $injected_database->select('lab_migration_proposal');
     $query->fields('lab_migration_proposal');

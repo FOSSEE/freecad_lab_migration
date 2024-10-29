@@ -48,8 +48,8 @@ lab_migration.category_edit_form:
     _form: \Drupal\lab_migration\Form\LabMigrationCategoryEditForm
   requirements:
     _permission: 'lab migration edit proposal'
-lab_migration.proposal_approval_form:
-  path: /lab_migration/manage-proposal/approve
+lab_migration.manage_proposal_approve:
+  path: /lab_migration/manage-proposal/approve/{id}
   defaults:
     _title: 'Approve Proposal'
     _form: \Drupal\lab_migration\Form\LabMigrationProposalApprovalForm
@@ -63,7 +63,7 @@ lab_migration.solution_proposal_approval_form:
   requirements:
     _permission: 'lab migration manage proposal'
 lab_migration.proposal_edit_form:
-  path: /lab_migration/manage-proposal/edit
+  path: /lab_migration/manage-proposal/edit/{id}
   defaults:
     _title: 'Edit Proposal'
     _form: \Drupal\lab_migration\Form\LabMigrationProposalEditForm
@@ -292,3 +292,10 @@ lab_migration.download_syllabus_copy:
     _controller: '\Drupal\lab_migration\Controller\DefaultController::lab_migration_download_syllabus_copy'
   requirements:
     _permission: 'lab migration bulk manage code'
+# lab_migration.manage_proposal_approve:
+# path: /lab_migration/manage_proposal
+# defaults:
+# _title: 'Manage Proposal' 
+# _controller:  '\Drupal\lab_migration\Controller\DefaultController::lab_migration_manage_proposal_approve'
+# requirements:
+# _permission:  'lab migration manage proposal approve'

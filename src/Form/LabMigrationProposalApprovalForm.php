@@ -10,6 +10,12 @@ namespace Drupal\lab_migration\Form;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Render\Element;
+use Symfony\Component\HttpFoundation\RedirectResponse;
+use Drupal\Core\Url;
+use Drupal\Core\Link;
+
+use Symfony\Component\HttpFoundation\Response;
+use Drupal\Core\Routing\RouteMatchInterface;
 
 class LabMigrationProposalApprovalForm extends FormBase {
 
@@ -23,9 +29,13 @@ class LabMigrationProposalApprovalForm extends FormBase {
   public function buildForm(array $form, \Drupal\Core\Form\FormStateInterface $form_state) {
     $user = \Drupal::currentUser();
     /* get current proposal */
-    $proposal_id = (int) arg(3);
+    // $proposal_id = (int) arg(3);
+    $route_match = \Drupal::routeMatch();
+
+$proposal_id = (int) $route_match->getParameter('id');
+// var_dump($proposal_id);die;
     //$proposal_q = $injected_database->query("SELECT * FROM {lab_migration_proposal} WHERE id = %d", $proposal_id);
-    $query = $injected_database->select('lab_migration_proposal');
+    $query = \Drupal::database()->select('lab_migration_proposal');
     $query->fields('lab_migration_proposal');
     $query->condition('id', $proposal_id);
     $proposal_q = $query->execute();
@@ -34,26 +44,32 @@ class LabMigrationProposalApprovalForm extends FormBase {
         /* everything ok */
       }
       else {
-        add_message(t('Invalid proposal selected. Please try again.'), 'error');
-        RedirectResponse('lab-migration/manage-proposal');
+        \Drupal::messenger()->addMessage(t('Invalid proposal selected. Please try again.'), 'error');
+        // RedirectResponse('lab-migration/manage-proposal');
+       $url = Url::fromRoute('lab_migration.manage_proposal_approve')->toString();
+     \Drupal::service('request_stack')->getCurrentRequest()->query->set('destination', $url); 
         return;
       }
     }
     else {
-      add_message(t('Invalid proposal selected. Please try again.'), 'error');
-      RedirectResponse('lab-migration/manage-proposal');
+      \Drupal::messenger()->addMessage(t('Invalid proposal selected. Please try again.'), 'error');
+      // RedirectResponse('lab-migration.manage-proposal_approve');
+
+      $url = Url::fromRoute('lab_migration.manage_proposal_approve')->toString();
+     \Drupal::service('request_stack')->getCurrentRequest()->query->set('destination', $url);
+
       return;
     }
     // var_dump($proposal_data->name_title);
     //    die;
     $form['name'] = [
       '#type' => 'item',
-      '#markup' => Link::fromTextAndUrl($proposal_data->name_title . ' ' . $proposal_data->name, 'user/' . $proposal_data->uid),
+      // '#markup' => Link::fromTextAndUrl($proposal_data->name_title . ' ' . $proposal_data->name, 'user/' . $proposal_data->uid),
       '#title' => t('Name'),
     ];
     $form['email_id'] = [
       '#type' => 'item',
-      '#markup' => loadMultiple($proposal_data->uid)->mail,
+      // '#markup' => loadMultiple($proposal_data->uid)->mail,
       '#title' => t('Email'),
     ];
     $form['contact_ph'] = [
@@ -114,7 +130,7 @@ class LabMigrationProposalApprovalForm extends FormBase {
     /* get experiment details */
     $experiment_list = '<ul>';
     //$experiment_q = $injected_database->query("SELECT * FROM {lab_migration_experiment} WHERE proposal_id = %d ORDER BY id ASC", $proposal_id);
-    $query = $injected_database->select('lab_migration_experiment');
+    $query = \Drupal::database()->select('lab_migration_experiment');
     $query->fields('lab_migration_experiment');
     $query->condition('proposal_id', $proposal_id);
     $query->orderBy('id', 'ASC');
@@ -131,7 +147,7 @@ class LabMigrationProposalApprovalForm extends FormBase {
     if ($proposal_data->syllabus_copy_file_path != "None") {
       $form['syllabus_copy_file_path'] = [
         '#type' => 'markup',
-        '#markup' => Link::fromTextAndUrl('Click here to download uploaded syllabus copy', 'lab-migration/download/syllabus-copy-file/' . $proposal_id) . "<br><br>",
+        // '#markup' => Link::fromTextAndUrl('Click here to download uploaded syllabus copy', 'lab-migration/download/syllabus-copy-file/' . $proposal_id) ,
       ];
     } //$row->samplefilepath != "None"
     if ($proposal_data->solution_provider_uid == 0) {
@@ -190,11 +206,14 @@ class LabMigrationProposalApprovalForm extends FormBase {
       '#type' => 'submit',
       '#value' => t('Submit'),
     ];
+    $cancel= 'lab-migration/manage-proposal';
     $form['cancel'] = [
-      '#type' => 'item',
-      '#markup' => Link::fromTextAndUrl(t('Cancel'), 'lab-migration/manage-proposal'),
+      '#type' => 'markup',
+      // '#markup' =>Link::fromTextAndUrl($this->t('Cancel'), $cancel),
     ];
     return $form;
+    // var_dump(Link::fromTextAndUrl(t('Cancel'), 'lab-migration/manage-proposal'));die;
+
   }
 
   public function validateForm(array &$form, \Drupal\Core\Form\FormStateInterface $form_state) {
@@ -219,14 +238,21 @@ class LabMigrationProposalApprovalForm extends FormBase {
         /* everything ok */
       }
       else {
-        add_message(t('Invalid proposal selected. Please try again.'), 'error');
-        RedirectResponse('lab-migration/manage-proposal');
+        \Drupal::messenger()->addMessage(t('Invalid proposal selected. Please try again.'), 'error');
+        // RedirectResponse('lab-migration/manage-proposal');
+        $url = Url::fromRoute('lab_migration.manage_proposal_approve')->toString();
+       
+     \Drupal::service('request_stack')->getCurrentRequest()->query->set('destination', $url);
+
         return;
       }
     }
     else {
-      add_message(t('Invalid proposal selected. Please try again.'), 'error');
-      RedirectResponse('lab-migration/manage-proposal');
+      \Drupal::messenger()->addMessage(t('Invalid proposal selected. Please try again.'), 'error');
+      // RedirectResponse('lab-migration/manage-proposal');
+      $url = Url::fromRoute('lab_migration.manage_proposal_approve')->toString();
+      \Drupal::service('request_stack')->getCurrentRequest()->query->set('destination', $url);
+
       return;
     }
     if ($form_state->getValue(['approval']) == 1) {
@@ -236,7 +262,7 @@ class LabMigrationProposalApprovalForm extends FormBase {
         ":date" => time(),
         ":proposal_id" => $proposal_id,
       ];
-      $injected_database->query($query, $args);
+      \Drupal::database()->query($query, $args);
       /* sending email */
       $user_data = loadMultiple($proposal_data->uid);
       $email_to = $user_data->mail;
@@ -255,10 +281,12 @@ class LabMigrationProposalApprovalForm extends FormBase {
         'Bcc' => $bcc,
       ];
       if (!drupal_mail('lab_migration', 'proposal_approved', $email_to, language_default(), $param, $from, TRUE)) {
-        add_message('Error sending email message.', 'error');
+        \Drupal::messenger()->add_message('Error sending email message.', 'error');
       }
-      add_message('Lab migration proposal No. ' . $proposal_id . ' approved. User has been notified of the approval.', 'status');
-      RedirectResponse('lab-migration/manage-proposal');
+      \Drupal::messenger()->add_message('Lab migration proposal No. ' . $proposal_id . ' approved. User has been notified of the approval.', 'status');
+      // RedirectResponse('lab-migration/manage-proposal');
+      $url = Url::fromRoute('lab_migration.manage_proposal_approve')->toString();
+      \Drupal::service('request_stack')->getCurrentRequest()->query->set('destination', $url);
       return;
     }
     else {
@@ -270,7 +298,7 @@ class LabMigrationProposalApprovalForm extends FormBase {
           ":message" => $form_state->getValue(['message']),
           ":proposal_id" => $proposal_id,
         ];
-        $result = $injected_database->query($query, $args);
+        $result = \Drupal::database()->query($query, $args);
         /* sending email */
         $user_data = loadMultiple($proposal_data->uid);
         $email_to = $user_data->mail;
@@ -289,10 +317,12 @@ class LabMigrationProposalApprovalForm extends FormBase {
           'Bcc' => $bcc,
         ];
         if (!drupal_mail('lab_migration', 'proposal_disapproved', $email_to, language_default(), $param, $from, TRUE)) {
-          add_message('Error sending email message.', 'error');
+          \Drupal::messenger()->add_message('Error sending email message.', 'error');
         }
-        add_message('Lab migration proposal No. ' . $proposal_id . ' dis-approved. User has been notified of the dis-approval.', 'error');
+        \Drupal::messenger()->add_message('Lab migration proposal No. ' . $proposal_id . ' dis-approved. User has been notified of the dis-approval.', 'error');
         RedirectResponse('lab-migration/manage-proposal');
+        $url = Url::fromRoute('lab_migration.manage_proposal_approve')->toString();
+      \Drupal::service('request_stack')->getCurrentRequest()->query->set('destination', $url);
         return;
       }
     }

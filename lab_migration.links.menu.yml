@@ -57,3 +57,6 @@ lab_migration.generate_lm_pdf:
 lab_migration.verify_lab_migration_certificates:
   route_name: lab_migration.verify_lab_migration_certificates
   title: 'Lab Migration Certificate Verification'
+# lab_migration.manage_proposal_approve:
+#   route_name: lab_migration.manage_proposal_approve
+#   title:  'Lab Migration Proposal Approve'

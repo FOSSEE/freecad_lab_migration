@@ -21,8 +21,8 @@ class LabMigrationBulkApprovalForm extends FormBase {
   }
 
   public function buildForm(array $form, \Drupal\Core\Form\FormStateInterface $form_state) {
-    $options_first = _bulk_list_of_labs();
-    $options_two = _ajax_bulk_get_experiment_list();
+    $options_first = \Drupal::service("lab_migration_global")->_bulk_list_of_labs();
+    $options_two =Drupal::service("lab_migration_global")->_ajax_bulk_get_experiment_list();
     $selected = !$form_state->getValue(['lab']) ? $form_state->getValue(['lab']) : key($options_first);
     $select_two = !$form_state->getValue(['lab_experiment_list']) ? $form_state->getValue([
       'lab_experiment_list'
@@ -31,7 +31,7 @@ class LabMigrationBulkApprovalForm extends FormBase {
     $form['lab'] = [
       '#type' => 'select',
       '#title' => t('Title of the lab'),
-      '#options' => _bulk_list_of_labs(),
+      '#options' => \Drupal::service("lab_migration_global")->_bulk_list_of_labs(),
       '#default_value' => $selected,
       '#ajax' => [
         'callback' => 'ajax_bulk_experiment_list_callback'
@@ -56,7 +56,7 @@ class LabMigrationBulkApprovalForm extends FormBase {
     $form['lab_experiment_list'] = [
       '#type' => 'select',
       '#title' => t('Titile of the experiment'),
-      '#options' => _ajax_bulk_get_experiment_list($selected),
+      '#options' => \Drupal::service("lab_migration_global")->_ajax_bulk_get_experiment_list($selected),
       '#default_value' => !$form_state->getValue([
         'lab_experiment_list'
         ]) ? $form_state->getValue(['lab_experiment_list']) : '',

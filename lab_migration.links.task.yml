@@ -43,3 +43,8 @@ lab_migration.upload_code_form:
   title: 'Code Submission'
   weight: 2
   base_route: lab_migration.code_approval
+# lab_migration.manage_proposal_approve:
+#   route_name: lab_migration.manage_proposal_approve
+#   title: 'Approve Proposal'
+#   weight: 2
+#   base_route: lab_migration.proposal_approval

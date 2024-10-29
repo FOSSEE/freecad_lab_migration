@@ -18,7 +18,8 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Database\Database;
-
+use Drupal\Core\Messenger\MessengerInterface;
+use Drupal\Core\Mail\MailManager;
 
 class LabMigrationProposalForm extends FormBase {
 
@@ -33,21 +34,25 @@ class LabMigrationProposalForm extends FormBase {
     $user = \Drupal::currentUser();
     $form = [];
     $state = \Drupal::service("lab_migration_global")->_lab_migration_list_of_states();
-    $selected_state = !$form_state->getValue(['all_state']) ? $form_state->getValue([
-      'all_state'
-      ]):key($state);
+    $selected_state = $form_state->getValue('all_state') ?: key($state);
+    // $selected_state = !$form_state->getValue(['all_state']) ? $form_state->getValue([
+      // 'all_state'
+      // :key($state);
       $district = \Drupal::service("lab_migration_global")->_lab_migration_list_of_district();
-        $selected_district = !$form_state->getValue(['district']) ? $form_state->getValue([
-      'district'
-      ]):key($district);
+      $selected_district = $form_state->getValue('district') ?: key($district); 
+      // $selected_district = !$form_state->getValue(['district']) ? $form_state->getValue([
+      // 'district'
+      // ]):key($district);
       $city = \Drupal::service("lab_migration_global")->_lm_list_of_cities();
-    $selected_city = !$form_state->getValue(['city']) ? $form_state->getValue([
-      'city'
-      ]):key($city);
+      $selected_city = $form_state->getValue('city') ?: key($city);
+    // $selected_city = !$form_state->getValue(['city']) ? $form_state->getValue([
+      // 'city'
+      // ]):key($city);
       $pincode = \Drupal::service("lab_migration_global")->_lab_migration_list_of_city_pincode();
-      $selected_pincode = !$form_state->getValue(['picode'])?$form_state->getValue([
-      'pincode'
-      ]):key($pincode);
+      $selected_pincode= $form_state->getValue('pincode') ?: key($pincode);
+      // $selected_pincode = !$form_state->getValue(['picode'])?$form_state->getValue([
+      // 'pincode'
+      // ]):key($pincode);
     /************************ start approve book details ************************/
   //   if ($user->uid == 0) {
   //     // $msg = \Drupal::messenger()->addError(t('This is an error message, red in color'));
@@ -79,7 +84,7 @@ class LabMigrationProposalForm extends FormBase {
     $form['#attributes'] = ['enctype' => "multipart/form-data"];
     $form['name_title'] = [
       '#type' => 'select',
-      '#title' => t('Title'),
+      '#title' => $this->t('Title'),
       '#options' => [
         'Dr' => 'Dr',
         'Prof' => 'Prof',
@@ -88,10 +93,10 @@ class LabMigrationProposalForm extends FormBase {
     ];
     $form['name'] = [
       '#type' => 'textfield',
-      '#title' => t('Name of the Proposer'),
+      '#title' => $this->t('Name of the Proposer'),
       '#size' => 200,
       '#attributes' => [
-        'placeholder' => t('Enter your full name')
+        'placeholder' => $this->t('Enter your full name')
         ],
       '#maxlength' => 200,
       '#required' => TRUE,
@@ -105,7 +110,7 @@ class LabMigrationProposalForm extends FormBase {
     ];
     $form['contact_ph'] = [
       '#type' => 'textfield',
-      '#title' => t('Contact No.'),
+      '#title' => $this->t('Contact No.'),
       '#size' => 30,
       '#attributes' => [
         'placeholder' => t('Enter your contact number')
@@ -115,13 +120,13 @@ class LabMigrationProposalForm extends FormBase {
     ];
     $form['department'] = [
       '#type' => 'select',
-      '#title' => t('Department/Branch'),
+      '#title' => $this->t('Department/Branch'),
       '#options' => \Drupal::service("lab_migration_global")->_lm_list_of_departments(),
       '#required' => TRUE,
     ];
     $form['university'] = [
       '#type' => 'textfield',
-      '#title' => t('University/ Institute'),
+      '#title' => $this->t('University/ Institute'),
       '#size' => 80,
       '#maxlength' => 200,
       '#required' => TRUE,
@@ -131,7 +136,7 @@ class LabMigrationProposalForm extends FormBase {
     ];
     $form['country'] = [
       '#type' => 'select',
-      '#title' => t('Country'),
+      '#title' => $this->t('Country'),
       '#options' => [
         'India' => 'India',
         'Others' => 'Others',
@@ -142,10 +147,10 @@ class LabMigrationProposalForm extends FormBase {
     ];
     $form['other_country'] = [
       '#type' => 'textfield',
-      '#title' => t('Other than India'),
+      '#title' => $this->t('Other than India'),
       '#size' => 100,
       '#attributes' => [
-        'placeholder' => t('Enter your country name')
+        'placeholder' => $this->t('Enter your country name')
         ],
       '#states' => [
         'visible' => [
@@ -172,10 +177,10 @@ class LabMigrationProposalForm extends FormBase {
     ];
     $form['other_city'] = [
       '#type' => 'textfield',
-      '#title' => t('City other than India'),
+      '#title' => $this->t('City other than India'),
       '#size' => 100,
       '#attributes' => [
-        'placeholder' => t('Enter your city name')
+        'placeholder' => $this->t('Enter your city name')
         ],
       '#states' => [
         'visible' => [
@@ -220,6 +225,7 @@ class LabMigrationProposalForm extends FormBase {
         'placeholder' => 'Enter pincode....'
         ],
     ];
+    
     /***************************************************************************/
     $form['hr'] = [
       '#type' => 'item',
@@ -281,7 +287,7 @@ class LabMigrationProposalForm extends FormBase {
     ];
     $first_experiemnt = TRUE;
     for ($counter = 1; $counter <= 15; $counter++) {
-      if ($counter <= 5) {
+      if ($counter <= 2) {
         $form['lab_experiment-' . $counter] = [
           '#type' => 'textfield',
           '#title' => $this->t('Title of the Experiment ') . $counter,
@@ -519,40 +525,46 @@ class LabMigrationProposalForm extends FormBase {
      :version, :syllabus_link, :lab_title, :approval_status, :solution_status, :solution_provider_uid, :solution_display, :creation_date, 
      :approval_date, :solution_date, :solution_provider_name_title, :solution_provider_name,
       :solution_provider_contact_ph, :solution_provider_department, :solution_provider_university, :directory_name,:syllabus_copy_file_path)";
-    $args = [
-      ":uid" => $user->get('uid')->value,
-      ":approver_uid" => 0,
-      ":name_title" => $v['name_title'],
-      ":name" => $v['name'],
-      ":contact_ph" => $v['contact_ph'],
-      ":department" => $v['department'],
-      ":university" => $v['university'],
-      ":city" => $v['city'],
-      ":pincode" => $v['pincode'],
-      ":state" => $v['all_state'],
-      ":country" => $v['country'],
-      ":operating_system" => $v['operating_system'],
-      ":version" => $form_state->getValue(['version']),
-      ":syllabus_link" => $v['syllabus_link'],
-      ":lab_title" => $v['lab_title'],
-      ":approval_status" => 0,
-      ":solution_status" => $solution_status,
-      ":solution_provider_uid" => $solution_provider_uid,
-      ":solution_display" => $solution_display,
-      ":creation_date" => time(),
-      ":approval_date" => 0,
-      ":solution_date" => 0,
-      ":solution_provider_name_title" => $solution_provider_name_title,
-      ":solution_provider_name" => $solution_provider_name,
-      ":solution_provider_contact_ph" => $solution_provider_contact_ph,
-      ":solution_provider_department" => $solution_provider_department,
-      ":solution_provider_university" => $solution_provider_university,
-      ":directory_name" => $directory_name,
-      ":syllabus_copy_file_path" => "",
-    ];
-    $proposal_insert = \Drupal::database()->query($result, $args);
-    $proposal_id= \Drupal::database()->lastInsertId('lab_migration_proposal');
-    $root_path = lab_migration_path();
+   $args = [
+    'uid' => $user->get('uid')->value,
+    'approver_uid' => 0,
+    'name_title' => $v['name_title'],
+    'name' => $v['name'],
+    'contact_ph' => $v['contact_ph'],
+    'department' => $v['department'],
+    'university' => $v['university'],
+    'city' => $v['city'],
+    'pincode' => $v['pincode'],
+    'state' => $v['all_state'],
+    'country' => $v['country'],
+    'operating_system' => $v['operating_system'],
+    'version' => $form_state->getValue(['version']),
+    'syllabus_link' => $v['syllabus_link'],
+    'lab_title' => $v['lab_title'],
+    'approval_status' => 0,
+    'solution_status' => $solution_status,
+    'solution_provider_uid' => $solution_provider_uid,
+    'solution_display' => $solution_display,
+    'creation_date' => time(),
+    'approval_date' => 0,
+    'solution_date' => 0,
+    'solution_provider_name_title' => $solution_provider_name_title,
+    'solution_provider_name' => $solution_provider_name,
+    'solution_provider_contact_ph' => $solution_provider_contact_ph,
+    'solution_provider_department' => $solution_provider_department,
+    'solution_provider_university' => $solution_provider_university,
+    'directory_name' => $directory_name,
+    'syllabus_copy_file_path' => "",
+  ];
+    
+    // $connection = \Drupal::database();
+// $proposal_id = $connection->insert('lab_migration_proposal');
+$connection = Database::getConnection();
+$proposal_id= $connection->insert('lab_migration_proposal')->fields($args)->execute();
+    // $proposal_insert = \Drupal::database()->query($result, $args);
+    //  $proposal_id= $connection->lastInsertId('lab_migration_proposal');
+    
+    $root_path = \Drupal::service("lab_migration_global")->lab_migration_path();
     $dest_path = $proposal_id . '/';
     if (!is_dir($root_path . $dest_path)) {
       mkdir($root_path . $dest_path);
@@ -584,7 +596,7 @@ class LabMigrationProposalForm extends FormBase {
       } //$file_name
     } //$_FILES['files']['name'] as $file_form_name => $file_name
     if (!$proposal_id) {
-      \Drupal::messenger()->addError(t('Error receiving your proposal. Please try again.'));
+      \Drupal::messenger()->addError($this->t('Error receiving your proposal. Please try again.'));
       return;
     }
     /* proposal id */
@@ -604,13 +616,30 @@ class LabMigrationProposalForm extends FormBase {
           ":experiment_field_name" => trim($form_state->getValue([$experiment_field_name])),
           ":description" => trim($form_state->getValue([$experiment_description])),
         ];
-        $result = \Drupal::database()->query($query, $args);
-        if (!$result) {
-          \Drupal::messenger()->addError(t('Could not insert Title of the Experiment : ') . trim($form_state->getValue([$experiment_field_name])));
-        }
-        else {
-          $number++;
-        }
+        // $connection = \Drupal::database();
+        // $result = $connection->query($query, $args);
+        // // $result = $this::database()->query($query, $args);
+        // if (!$result) {
+        //   \Drupal::messenger()->addError($this->t('Could not insert Title of the Experiment : ') . trim($form_state->getValue([$experiment_field_name])));
+        // }
+        // else {
+        //   $number++;
+        // }
+        try {
+          $connection = \Drupal::database();
+          $result = $connection->query($query, $args);
+      
+          if ($result) {
+              $number++;
+          }
+          else {
+              \Drupal::messenger()->addError($this->t('Could not insert Title of the Experiment: ') . trim($form_state->getValue($experiment_field_name)));
+          }
+      }
+      catch (\Exception $e) {
+          \Drupal::messenger()->addError($this->t('Database query failed: ') . $e->getMessage());
+      }
+      
       }
     }
     /* sending email */
@@ -629,11 +658,15 @@ class LabMigrationProposalForm extends FormBase {
       'Cc' => $cc,
       'Bcc' => $bcc,
     ];
-    // if (!\Drupal::service('plugin.manager.mail')->mail('lab_migration', 'proposal_received', $email_to, user_preferred_language($user), $param, $from, TRUE)) {
+    // if (!\Drupal::service('plugin.manager.mail')->mail('lab_migration', 'proposal_received', $email_to, 'en', $param, $from )) {
     //   \Drupal::messenger()->addError('Error sending email message.');
-    // }
-    \Drupal::messenger()->addStatus(t('We have received you Lab migration proposal. We will get back to you soon.'));
-    RedirectResponse('');
+    //  }
+    \Drupal::messenger()->addStatus($this->t('We have received you Lab migration proposal. We will get back to you soon.'));
+    // RedirectResponse('');
+    // Generate the URL and redirect
+// $url = Url::fromRoute('<front>')->toString();
+$response = new RedirectResponse('lab_migration.setting');
+$response->send();
   }
 
 }

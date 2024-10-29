@@ -10,6 +10,9 @@ namespace Drupal\lab_migration\Form;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Render\Element;
+use Drupal\Core\Routing\TrustedRedirectResponse;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 
 class LabMigrationCertificateForm extends FormBase {
 
@@ -89,7 +92,7 @@ class LabMigrationCertificateForm extends FormBase {
     (uid, name_title, name, email_id, institute_name, institute_address, lab_name, department, semester_details,proposal_id,type,creation_date) VALUES
     (:uid, :name_title, :name, :email_id, :institute_name, :institute_address, :lab_name, :department, :semester_details,:proposal_id,:type,:creation_date)";
     $args = [
-      ":uid" => $user->uid,
+      ":uid" => \Drupal::currentUser()->id(),//$user->uid,
       ":name_title" => trim($v['name_title']),
       ":name" => trim($v['name']),
       ":email_id" => trim($v['email_id']),
@@ -102,8 +105,10 @@ class LabMigrationCertificateForm extends FormBase {
       ":type" => "Proposer",
       ":creation_date" => time(),
     ];
-    $proposal_id = $injected_database->query($result, $args);
-    RedirectResponse('lab-migration/certificate');
+    $proposal_id = \Drupal::database()->query($result, $args);
+    // RedirectResponse('lab-migration/certificate');
+    $response = new RedirectResponse('lab_migration/certificate');
+$response->send();
   }
 
 }

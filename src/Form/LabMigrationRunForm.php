@@ -23,9 +23,12 @@ class LabMigrationRunForm extends FormBase {
   public function buildForm(array $form, \Drupal\Core\Form\FormStateInterface $form_state) {
     $options_first = \Drupal::service("lab_migration_global")->_list_of_labs();
     var_dump($options);
-    $options_two = _ajax_get_experiment_list();
+    $options_two = \Drupal::service("lab_migration_global")->_ajax_get_experiment_list();
     $select_two = !$form_state->getValue(['lab_experiment_list']) ? $form_state->getValue(['lab_experiment_list']) : key($options_two);
-    $url_lab_id = (int) arg(2);
+    // $url_lab_id = (int) arg(2);
+    $route_match = \Drupal::routeMatch();
+
+$url_lab_id = (int) $route_match->getParameter('url_lab_id');
     if (!$url_lab_id) {
       $selected = !$form_state->getValue(['lab']) ? $form_state->getValue(['lab']) : key($options_first);
     }
@@ -40,7 +43,7 @@ class LabMigrationRunForm extends FormBase {
     $form['lab'] = [
       '#type' => 'select',
       '#title' => t('Title of the lab'),
-      '#options' => _list_of_labs(),
+      '#options' => \Drupal::service("lab_migration_global")->_list_of_labs(),
       '#default_value' => $selected,
       '#ajax' => [
         'callback' => 'ajax_experiment_list_callback'
@@ -66,7 +69,7 @@ class LabMigrationRunForm extends FormBase {
       $form['lab_experiment_list'] = [
         '#type' => 'select',
         '#title' => t('Titile of the experiment'),
-        '#options' => _ajax_get_experiment_list($selected),
+        '#options' => \Drupal::service("lab_migration_global")->_ajax_get_experiment_list($selected),
         //'#default_value' => isset($form_state['values']['lab_experiment_list']) ? $form_state['values']['lab_experiment_list'] : '',
             '#ajax' => [
           'callback' => 'ajax_solution_list_callback'
@@ -88,7 +91,7 @@ class LabMigrationRunForm extends FormBase {
       $form['lab_solution_list'] = [
         '#type' => 'select',
         '#title' => t('Solution'),
-        '#options' => _ajax_get_solution_list($select_two),
+        '#options' => \Drupal::service("lab_migration_global")->_ajax_get_solution_list($select_two),
         //'#default_value' => isset($form_state['values']['lab_solution_list']) ? 
         //$form_state['values']['lab_solution_list'] : '',
             '#ajax' => [
@@ -150,7 +153,7 @@ class LabMigrationRunForm extends FormBase {
       $form['lab_experiment_list'] = [
         '#type' => 'select',
         '#title' => t('Titile of the experiment'),
-        '#options' => _ajax_get_experiment_list($selected),
+        '#options' =>  \Drupal::service("lab_migration_global")->_ajax_get_experiment_list($selected),
         // '#default_value' => isset($form_state['values']['lab_experiment_list']) ? $form_state['values']['lab_experiment_list'] : '',
             '#ajax' => [
           'callback' => 'ajax_solution_list_callback'
@@ -172,7 +175,7 @@ class LabMigrationRunForm extends FormBase {
       $form['lab_solution_list'] = [
         '#type' => 'select',
         '#title' => t('Solution'),
-        '#options' => _ajax_get_solution_list($select_two),
+        '#options' =>  \Drupal::service("lab_migration_global")->_ajax_get_solution_list($select_two),
         '#default_value' => !$form_state->getValue(['lab_solution_list']) ? $form_state->getValue(['lab_solution_list']) : '',
         '#ajax' => [
           'callback' => 'ajax_solution_files_callback'
