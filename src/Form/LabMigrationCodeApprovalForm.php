@@ -10,6 +10,9 @@ namespace Drupal\lab_migration\Form;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Render\Element;
+use Drupal\Core\Url;
+use Symfony\Component\HttpFoundation\RedirectResponse;
+use Symfony\Component\HttpFoundation\Response;
 
 class LabMigrationCodeApprovalForm extends FormBase {
 
@@ -21,7 +24,10 @@ class LabMigrationCodeApprovalForm extends FormBase {
   }
 
   public function buildForm(array $form, FormStateInterface $form_state) {
-    $solution_id = (int) arg(3);
+    // $solution_id = (int) arg(3);
+    $route_match = \Drupal::routeMatch();
+
+    $proposal_id = (int) $route_match->getParameter('id');
     $injected_database = \Drupal::database();
     /* get solution details */
     //$solution_q = $injected_database->query("SELECT * FROM {lab_migration_solution} WHERE id = %d", $solution_id);
@@ -33,7 +39,12 @@ class LabMigrationCodeApprovalForm extends FormBase {
     if (!$solution_data) {
       \Drupal::messenger()->addStatus(t('Invalid solution selected.'));
 
-      RedirectResponse('lab-migration/code-approval');
+      // RedirectResponse('lab-migration/code-approval');
+      $url = Url::fromRoute('lab_migration.code_approval'); // Replace with the actual route name
+$response = new RedirectResponse($url);
+
+// Return the redirect response
+return $response;
     }
     if ($solution_data->approval_status == 1) {
       add_message(t('This solution has already been approved. Are you sure you want to change the approval status?'), 'error');

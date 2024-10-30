@@ -230,7 +230,42 @@ function lm_ucname($string)
     exec("cp ./" . drupal_get_path('module', 'lab_migration') . "/latex/* " . lab_migration_path() . "latex");
     exec("chmod u+x ./uploads/latex/*.sh");
   }
-
+  function lab_migration_solution_proposal_pending()
+  {
+    /* get list of solution proposal where the solution_provider_uid is set to some userid except 0 and solution_status is also 1 */
+    $pending_rows = array();
+    //$pending_q = db_query("SELECT * FROM {lab_migration_proposal} WHERE solution_provider_uid != 0 AND solution_status = 1 ORDER BY id DESC");
+    $query = \Drupal::database()->select('lab_migration_proposal');
+    $query->fields('lab_migration_proposal');
+    $query->condition('solution_provider_uid', 0, '!=');
+    $query->condition('solution_status', 1);
+    $query->orderBy('id', 'DESC');
+    $pending_q = $query->execute();
+    while ($pending_data = $pending_q->fetchObject())
+      {
+        $pending_rows[$pending_data->id] = array(
+            l($pending_data->name, 'user/' . $pending_data->uid),
+            $pending_data->lab_title,
+            l('Approve', 'lab-migration/manage-proposal/solution-proposal-approve/' . $pending_data->id)
+        );
+      }
+    /* check if there are any pending proposals */
+    if (!$pending_rows)
+      {
+        drupal_set_message(t('There are no pending solution proposals.'), 'status');
+        return '';
+      }
+    $pending_header = array(
+        'Proposer Name',
+        'Title of the Lab',
+        'Action'
+    );
+    $output = theme('table', array(
+        'header' => $pending_header,
+        'rows' => $pending_rows
+    ));
+    return $output;
+  }
   
  }
 

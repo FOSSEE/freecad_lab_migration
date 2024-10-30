@@ -11,6 +11,9 @@ use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Render\Element;
 use Drupal\Core\Routing\RouteMatchInterface;
+use Drupal\Core\Url;
+use Symfony\Component\HttpFoundation\RedirectResponse;
+
 class LabMigrationSolutionProposalApprovalForm extends FormBase {
 
   /**
@@ -28,7 +31,7 @@ class LabMigrationSolutionProposalApprovalForm extends FormBase {
 
 $proposal_id = (int) $route_match->getParameter('proposal_id');
     // $proposal_q = $injected_database->query("SELECT * FROM {lab_migration_proposal} WHERE id = %d", $proposal_id);
-    $query = $injected_database->select('lab_migration_proposal');
+    $query = \Drupal::database()->select('lab_migration_proposal');
     $query->fields('lab_migration_proposal');
     $query->condition('id', $proposal_id);
     $proposal_q = $query->execute();
@@ -37,8 +40,13 @@ $proposal_id = (int) $route_match->getParameter('proposal_id');
         /* everything ok */
       }
       else {
-        \Drupal::messenger()->add_message($this->t('Invalid proposal selected. Please try again.'), 'error');
-        RedirectResponse('lab-migration/manage-proposal/pending-solution-proposal');
+        \Drupal::messenger()->addmessage($this->t('Invalid proposal selected. Please try again.'), 'error');
+        // RedirectResponse('lab-migration/manage-proposal/pending-solution-proposal');
+        $url = Url::fromRoute('lab_migration.manage_proposal_pending_solution');
+    $response = new RedirectResponse($url->toString());
+    
+    // Send the response back to the client
+    return $response;
         return;
       }
     }

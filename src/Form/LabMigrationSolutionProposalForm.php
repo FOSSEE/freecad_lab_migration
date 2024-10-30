@@ -10,6 +10,8 @@ namespace Drupal\lab_migration\Form;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Render\Element;
+use Drupal\Core\Url;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 
 class LabMigrationSolutionProposalForm extends FormBase {
 
@@ -22,16 +24,24 @@ class LabMigrationSolutionProposalForm extends FormBase {
 
   public function buildForm(array $form, \Drupal\Core\Form\FormStateInterface $form_state) {
     $user = \Drupal::currentUser();
-    $proposal_id = (int) arg(2);
+    // $proposal_id = (int) arg(2);
+    $route_match = \Drupal::routeMatch();
+
+    $proposal_id = (int) $route_match->getParameter('id');
     //$proposal_q = $injected_database->query("SELECT * FROM {lab_migration_proposal} WHERE id = %d", $proposal_id);
-    $query = $injected_database->select('lab_migration_proposal');
+    $query = \Drupal::database()->select('lab_migration_proposal');
     $query->fields('lab_migration_proposal');
     $query->condition('id', $proposal_id);
     $proposal_q = $query->execute();
     $proposal_data = $proposal_q->fetchObject();
     if (!$proposal_data) {
-      add_message("Invalid proposal.", 'error');
-      RedirectResponse('');
+      \Drupal::messenger()->addmessage("Invalid proposal.", 'error');
+      // RedirectResponse('');
+      $url = Url::fromRoute('lab_migration.proposal_pending'); // Replace with your actual route name
+$response = new RedirectResponse($url->toString());
+
+// Return the response
+return $response;
     }
     //var_dump($proposal_data->name); die;
     $form['name'] = [
@@ -294,7 +304,10 @@ class LabMigrationSolutionProposalForm extends FormBase {
 
   public function submitForm(array &$form, \Drupal\Core\Form\FormStateInterface $form_state) {
     $user = \Drupal::currentUser();
-    $proposal_id = (int) arg(2);
+    // $proposal_id = (int) arg(2);
+    $route_match = \Drupal::routeMatch();
+
+    $proposal_id = (int) $route_match->getParameter('id');
     if ($form_state->getValue(['version']) == 'olderversion') {
       $form_state->setValue(['version'], $form_state->getValue(['older']));
     }

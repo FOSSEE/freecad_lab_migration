@@ -14,6 +14,7 @@ use Drupal\Core\Database\Database;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Drupal\Core\File\FileSystemInterface;
 use Drupal\Service;
+
 /**
  * Default controller for the lab_migration module.
  */
@@ -180,10 +181,12 @@ class DefaultController extends ControllerBase {
       $pending_rows[$pending_data->id] = [
         date('d-m-Y', $pending_data->creation_date),
         date('d-m-Y', $pending_data->approval_date),
-        Link::fromTextAndUrl($pending_data->name, 'user/' . $pending_data->uid),
+        // Link::fromTextAndUrl($pending_data->name, 'user/' . $pending_data->uid),
+        $link = Link::fromTextAndUrl($pending_data->name, Url::fromRoute('entity.user.canonical', ['user' => $pending_data->uid])),
         $pending_data->lab_title,
         $pending_data->department,
-        Link::fromTextAndUrl('Status', 'lab-migration/manage-proposal/status/' . $pending_data->id),
+        $link = Link::fromTextAndUrl('Status', Url::fromRoute('lab_migration.manage_proposal_status', ['id' => $pending_data->id])),
+        // Link::fromTextAndUrl('Status', 'lab-migration/manage-proposal/status/' . $pending_data->id),
       ];
     }
     /* check if there are any pending proposals */
@@ -199,10 +202,11 @@ class DefaultController extends ControllerBase {
       'Department',
       'Action',
     ];
-    $output = \Drupal::service("renderer")->render('table', [
+    $output =  [
+      '#type' => 'table',
       'header' => $pending_header,
       'rows' => $pending_rows,
-    ]);
+    ];
     return $output;
   }
 
@@ -309,6 +313,7 @@ class DefaultController extends ControllerBase {
     $query->condition('solution_provider_uid', 0);
     $proposal_q = $query->execute();
     $proposal_q_count = $proposal_q->rowCount();
+  
     if ($proposal_q_count != 0) {
       while ($proposal_data = $proposal_q->fetchObject()) {
         $proposal_rows[] = [
@@ -320,10 +325,11 @@ class DefaultController extends ControllerBase {
         'Title of the Lab',
         'Actions',
       ];
-      $return_html = \Drupal::service("renderer")->render('table', [
+      $return_html = [
+        '#table' => type,
         'header' => $proposal_header,
         'rows' => $proposal_rows,
-      ]);
+      ];
 
 
     }
