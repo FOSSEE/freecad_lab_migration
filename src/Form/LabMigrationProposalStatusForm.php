@@ -10,6 +10,8 @@ namespace Drupal\lab_migration\Form;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Render\Element;
+use Symfony\Component\HttpFoundation\RedirectResponse;
+use Drupal\Core\Routing\TrustedRedirectResponse;
 
 class LabMigrationProposalStatusForm extends FormBase {
 
@@ -23,9 +25,12 @@ class LabMigrationProposalStatusForm extends FormBase {
   public function buildForm(array $form, \Drupal\Core\Form\FormStateInterface $form_state) {
     $user = \Drupal::currentUser();
     /* get current proposal */
-    $proposal_id = (int) arg(3);
+    // $proposal_id = (int) arg(3);
+    $route_match = \Drupal::routeMatch();
+
+$proposal_id = (int) $route_match->getParameter('proposal_id');
     //$proposal_q = $injected_database->query("SELECT * FROM {lab_migration_proposal} WHERE id = %d", $proposal_id);
-    $query = $injected_database->select('lab_migration_proposal');
+    $query = \Drupal::database()->select('lab_migration_proposal');
     $query->fields('lab_migration_proposal');
     $query->condition('id', $proposal_id);
     $proposal_q = $query->execute();
@@ -34,14 +39,16 @@ class LabMigrationProposalStatusForm extends FormBase {
         /* everything ok */
       }
       else {
-        add_message(t('Invalid proposal selected. Please try again.'), 'error');
-        RedirectResponse('lab-migration/manage-proposal');
+        \Drupal::messenger()->addmessage(t('Invalid proposal selected. Please try again.'), 'error');
+        // RedirectResponse('lab-migration/manage-proposal');
+        return new TrustedRedirectResponse('/lab-migration/manage-proposal');
         return;
       }
     }
     else {
       add_message(t('Invalid proposal selected. Please try again.'), 'error');
-      RedirectResponse('lab-migration/manage-proposal');
+      // RedirectResponse('lab-migration/manage-proposal');
+      return new RedirectResponse('/lab-migration/manage-proposal');
       return;
     }
     $form['name'] = [
@@ -258,9 +265,12 @@ class LabMigrationProposalStatusForm extends FormBase {
   public function submitForm(array &$form, \Drupal\Core\Form\FormStateInterface $form_state) {
     $user = \Drupal::currentUser();
     /* get current proposal */
-    $proposal_id = (int) arg(3);
+    // $proposal_id = (int) arg(3);
+    $route_match = \Drupal::routeMatch();
+
+$proposal_id = (int) $route_match->getParameter('proposal_id');
     //$proposal_q = $injected_database->query("SELECT * FROM {lab_migration_proposal} WHERE id = %d", $proposal_id);
-    $query = $injected_database->select('lab_migration_proposal');
+    $query = \Drupal::database()->select('lab_migration_proposal');
     $query->fields('lab_migration_proposal');
     $query->condition('id', $proposal_id);
     $proposal_q = $query->execute();

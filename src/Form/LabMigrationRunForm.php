@@ -22,7 +22,7 @@ class LabMigrationRunForm extends FormBase {
 
   public function buildForm(array $form, \Drupal\Core\Form\FormStateInterface $form_state) {
     $options_first = \Drupal::service("lab_migration_global")->_list_of_labs();
-    var_dump($options);
+    // var_dump($options);
     $options_two = \Drupal::service("lab_migration_global")->_ajax_get_experiment_list();
     $select_two = !$form_state->getValue(['lab_experiment_list']) ? $form_state->getValue(['lab_experiment_list']) : key($options_two);
     // $url_lab_id = (int) arg(2);

@@ -492,7 +492,7 @@ class LabMigrationProposalForm extends FormBase {
     $solution_provider_university = '';
     $syllabus_copy_file_path = '';
     if ($form_state->getValue(['solution_provider_uid']) == "1") {
-      $solution_provider_uid = $user->uid;
+      $solution_provider_uid = $user->get('uid')->value;
       $solution_status = 1;
       $solution_provider_name_title = $form_state->getValue(['name_title']);
       $solution_provider_name = $form_state->getValue(['name']);
@@ -665,7 +665,7 @@ $proposal_id= $connection->insert('lab_migration_proposal')->fields($args)->exec
     // RedirectResponse('');
     // Generate the URL and redirect
 // $url = Url::fromRoute('<front>')->toString();
-$response = new RedirectResponse('lab_migration.setting');
+$response = new RedirectResponse('lab_migration.manage_proposal');
 $response->send();
   }
 

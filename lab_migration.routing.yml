@@ -137,7 +137,7 @@ lab_migration.upload_code_form:
   defaults:
     _title: 'Code Submission'
     _form: \Drupal\lab_migration\Form\LabMigrationUploadCodeForm
-  requiremenssts:
+  requirements:
     _permission: 'lab migration upload code'
 lab_migration.upload_code_delete:
   path: /lab_migration/code/delete

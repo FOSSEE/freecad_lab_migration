@@ -20,7 +20,7 @@ class LabMigrationCertificateForm extends FormBase {
    * {@inheritdoc}
    */
   public function getFormId() {
-    return 'lab_migration_certificate_form';
+    return 'lab_migration.certificate_form';
   }
 
   public function buildForm(array $form, \Drupal\Core\Form\FormStateInterface $form_state) {

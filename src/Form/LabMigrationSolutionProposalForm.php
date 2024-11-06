@@ -12,7 +12,7 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Render\Element;
 use Drupal\Core\Url;
 use Symfony\Component\HttpFoundation\RedirectResponse;
-
+use Symfony\Component\HttpFoundation\Response;
 class LabMigrationSolutionProposalForm extends FormBase {
 
   /**
@@ -56,7 +56,7 @@ return $response;
     ];
     $experiment_html = '';
     //$experiment_q = $injected_database->query("SELECT * FROM {lab_migration_experiment} WHERE proposal_id = %d", $proposal_id);
-    $query = $injected_database->select('lab_migration_experiment');
+    $query = \Drupal::database()->select('lab_migration_experiment');
     $query->fields('lab_migration_experiment');
     $query->condition('proposal_id', $proposal_id);
     $experiment_q = $query->execute();
@@ -173,7 +173,7 @@ return $response;
     $form['all_state'] = [
       '#type' => 'select',
       '#title' => t('State'),
-      '#options' => _lm_list_of_states(),
+      '#options' => \Drupal::service("lab_migration_global")->_lm_list_of_states(),
       '#validated' => TRUE,
       '#states' => [
         'visible' => [
@@ -186,7 +186,7 @@ return $response;
     $form['city'] = [
       '#type' => 'select',
       '#title' => t('City'),
-      '#options' => _lm_list_of_cities(),
+      '#options' => \Drupal::service("lab_migration_global")->_lm_list_of_cities(),
       '#states' => [
         'visible' => [
           ':input[name="country"]' => [
@@ -208,7 +208,7 @@ return $response;
     $form['version'] = [
       '#type' => 'select',
       '#title' => t('Version'),
-      '#options' => _list_of_software_version(),
+      '#options' => \Drupal::service("lab_migration_global")->_list_of_software_version(),
       '#required' => TRUE,
     ];
     $form['older'] = [
@@ -283,7 +283,7 @@ return $response;
     }
     return;
     //$solution_provider_q = $injected_database->query("SELECT * FROM {lab_migration_proposal} WHERE solution_provider_uid = ".$user->uid." AND approval_status IN (0, 1) AND solution_status IN (0, 1, 2)");
-    $query = $injected_database->select('lab_migration_proposal');
+    $query = \Drupal::database()->select('lab_migration_proposal');
     $query->fields('lab_migration_proposal');
     $query->condition('solution_provider_uid', $user->uid);
     $query->condition('approval_status', [
@@ -312,17 +312,17 @@ return $response;
       $form_state->setValue(['version'], $form_state->getValue(['older']));
     }
     //$proposal_q = $injected_database->query("SELECT * FROM {lab_migration_proposal} WHERE id = %d", $proposal_id);
-    $query = $injected_database->select('lab_migration_proposal');
+    $query = \Drupal::database()->select('lab_migration_proposal');
     $query->fields('lab_migration_proposal');
     $query->condition('id', $proposal_id);
     $proposal_q = $query->execute();
     $proposal_data = $proposal_q->fetchObject();
     if (!$proposal_data) {
-      add_message("Invalid proposal.", 'error');
+      \Drupal::messenger()->addmessage("Invalid proposal.", 'error');
       RedirectResponse('lab-migration/open-proposal');
     }
     if ($proposal_data->solution_provider_uid != 0) {
-      add_message("Someone has already applied for solving this Lab.", 'error');
+      \Drupal::messenger()->addmessage("Someone has already applied for solving this Lab.", 'error');
       RedirectResponse('lab-migration/open-proposal');
     }
     $query = "UPDATE {lab_migration_proposal} set solution_provider_uid = :uid, solution_status = :solution_status, solution_provider_name_title = :solution_provider_name_title, solution_provider_name = :solution_provider_contact_name, solution_provider_contact_ph = :solution_provider_contact_ph, solution_provider_department = :solution_provider_department, solution_provider_university = :solution_provider_university , solution_provider_city = :solution_provider_city, solution_provider_pincode = :solution_provider_pincode, solution_provider_state = :solution_provider_state,solution_provider_country = :solution_provider_country, r_version = :r_version WHERE id = :proposal_id";
@@ -343,7 +343,7 @@ return $response;
     ];
 
     $result = $injected_database->query($query, $args);
-    add_message("We have received your application. We will get back to you soon.", 'status');
+    \Drupal::messenger()->addmessage("We have received your application. We will get back to you soon.", 'status');
     /* sending email */
     $email_to = $user->mail;
     $from = $config->get('lab_migration_from_email', '');
@@ -361,12 +361,12 @@ return $response;
       'Bcc' => $bcc,
     ];
     if (!drupal_mail('lab_migration', 'solution_proposal_received', $email_to, language_default(), $param, $from, TRUE)) {
-      add_message('Error sending email message.', 'error');
+      \Drupal::messenger()->addmessage('Error sending email message.', 'error');
     }
     /* sending email */
     /* $email_to = $config->get('lab_migration_emails', '');
     if (!drupal_mail('lab_migration', 'solution_proposal_received', $email_to , language_default(), $param, $config->get('lab_migration_from_email', NULL), TRUE))
-    add_message('Error sending email message.', 'error');*/
+    \Drupal::messenger()->addmessage('Error sending email message.', 'error');*/
     RedirectResponse('lab-migration/open-proposal');
   }
 

@@ -27,8 +27,16 @@ class GenerateLmPdf extends FormBase {
     require($mpath . '/pdf/phpqrcode/qrlib.php');
     $user = \Drupal::currentUser();
     $x = $user->uid;
-    $proposal_id = arg(3); // proposal id of lab
-    $lab_certi_id = arg(4);
+    // $proposal_id = arg(3); // proposal id of 
+    $route_match = \Drupal::routeMatch();
+
+$proposal_id = (int) $route_match->getParameter('proposal_id');
+
+    // $lab_certi_id = arg(4);
+    $route_match = \Drupal::routeMatch();
+
+$lab_certi_id = (int) $route_match->getParameter('lab_certi_id');
+
     if ($proposal_id != NULL && $lab_certi_id != NULL) {
       $query3 = $injected_database->query("SELECT * FROM lab_migration_certificate WHERE proposal_id= :prop_id AND id=:certi_id", [
         ':prop_id' => $proposal_id,
@@ -362,7 +370,7 @@ class GenerateLmPdf extends FormBase {
       }
     } //$proposal_id != NULL && $lab_certi_id !== NULL
     else {
-      add_message('Your lab Is Still Under Review.', 'status');
+      \Drupal::messenger()->addmessage('Your lab Is Still Under Review.', 'status');
     }
   }
 

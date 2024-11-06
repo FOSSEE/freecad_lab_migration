@@ -10,6 +10,8 @@ namespace Drupal\lab_migration\Form;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Render\Element;
+use Drupal\Core\Url;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 
 class LabMigrationBulkUploadCodeForm extends FormBase {
 
@@ -22,16 +24,22 @@ class LabMigrationBulkUploadCodeForm extends FormBase {
 
   public function buildForm(array $form, \Drupal\Core\Form\FormStateInterface $form_state) {
     $user = \Drupal::currentUser();
-    $proposal_id = (int) arg(3);
+    // $proposal_id = (int) arg(3);
+    $route_match = \Drupal::routeMatch();
+
+$proposal_id = (int) $route_match->getParameter('proposal_id');
     //$proposal_q = $injected_database->query("SELECT * FROM {lab_migration_proposal} WHERE id = %d", $proposal_id);
-    $query = $injected_database->select('lab_migration_proposal');
+    $query = \Drupal::database()->select('lab_migration_proposal');
     $query->fields('lab_migration_proposal');
     $query->condition('id', $proposal_id);
     $proposal_q = $query->execute();
     $proposal_data = $proposal_q->fetchObject();
     if (!$proposal_data) {
-      add_message("Invalid proposal selected", 'error');
-      RedirectResponse('lab_migration/code_approval/bulk');
+      \Drupal::messenger()->addmessage("Invalid proposal selected", 'error');
+      // RedirectResponse('lab_migration/code_approval/bulk');
+      $url = Url::fromRoute('lab_migration/code_approval/bulk')->toString();
+$response = new RedirectResponse($url);
+$response->send();
     }
     /* add javascript for dependency selection effects */
     $dep_selection_js = "(function ($) {

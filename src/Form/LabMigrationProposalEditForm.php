@@ -10,6 +10,7 @@ namespace Drupal\lab_migration\Form;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Render\Element;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 
 class LabMigrationProposalEditForm extends FormBase {
 
@@ -23,9 +24,12 @@ class LabMigrationProposalEditForm extends FormBase {
   public function buildForm(array $form, \Drupal\Core\Form\FormStateInterface $form_state) {
     $user = \Drupal::currentUser();
     /* get current proposal */
-    $proposal_id = (int) arg(3);
-    //$proposal_q = $injected_database->query("SELECT * FROM {lab_migration_proposal} WHERE id = %d", $proposal_id);
-    $query = $injected_database->select('lab_migration_proposal');
+    // $proposal_id = (int) arg(3);
+    $route_match = \Drupal::routeMatch();
+
+$proposal_id = (int) $route_match->getParameter('proposal_id');
+    //$proposal_q = \Drupal::database()->query("SELECT * FROM {lab_migration_proposal} WHERE id = %d", $proposal_id);
+    $query = \Drupal::database()->select('lab_migration_proposal');
     $query->fields('lab_migration_proposal');
     $query->condition('id', $proposal_id);
     $proposal_q = $query->execute();
@@ -34,8 +38,12 @@ class LabMigrationProposalEditForm extends FormBase {
         /* everything ok */
       }
       else {
-        add_message(t('Invalid proposal selected. Please try again.'), 'error');
-        RedirectResponse('lab-migration/manage-proposal');
+        \Drupal::messenger()->addmessage(t('Invalid proposal selected. Please try again.'), 'error');
+        // RedirectResponse('lab-migration/manage-proposal');
+        
+
+return new RedirectResponse('/lab-migration/manage-proposal');
+
         return;
       }
     }
@@ -216,8 +224,8 @@ class LabMigrationProposalEditForm extends FormBase {
       '#default_value' => $proposal_data->lab_title,
     ];
     /* get experiment details */
-    // $experiment_q = $injected_database->query("SELECT * FROM {lab_migration_experiment} WHERE proposal_id = %d ORDER BY id ASC", $proposal_id);
-    $query = $injected_database->select('lab_migration_experiment');
+    // $experiment_q = \Drupal::database()->query("SELECT * FROM {lab_migration_experiment} WHERE proposal_id = %d ORDER BY id ASC", $proposal_id);
+    $query = \Drupal::database()->select('lab_migration_experiment');
     $query->fields('lab_migration_experiment');
     $query->condition('proposal_id', $proposal_id);
     $query->orderBy('id', 'ASC');
@@ -342,14 +350,14 @@ class LabMigrationProposalEditForm extends FormBase {
     $proposal_id = (int) arg(3);
     /* check before delete proposal */
     if ($form_state->getValue(['delete_proposal']) == 1) {
-      //$experiment_q = $injected_database->query("SELECT * FROM {lab_migration_experiment} WHERE proposal_id = %d", $proposal_id);
-      $query = $injected_database->select('lab_migration_experiment');
+      //$experiment_q = \Drupal::database()->query("SELECT * FROM {lab_migration_experiment} WHERE proposal_id = %d", $proposal_id);
+      $query = \Drupal::database()->select('lab_migration_experiment');
       $query->fields('lab_migration_experiment');
       $query->condition('proposal_id', $proposal_id);
       $experiment_q = $query->execute();
       while ($experiment_data = $experiment_q->fetchObject()) {
-        //$solution_q = $injected_database->query("SELECT * FROM {lab_migration_solution} WHERE experiment_id = %d", $experiment_data->id);
-        $query = $injected_database->select('lab_migration_solution');
+        //$solution_q = \Drupal::database()->query("SELECT * FROM {lab_migration_solution} WHERE experiment_id = %d", $experiment_data->id);
+        $query = \Drupal::database()->select('lab_migration_solution');
         $query->fields('lab_migration_solution');
         $query->condition('experiment_id', $experiment_data->id);
         $solution_q = $query->execute();
@@ -365,8 +373,8 @@ class LabMigrationProposalEditForm extends FormBase {
     $user = \Drupal::currentUser();
     /* get current proposal */
     $proposal_id = (int) arg(3);
-    // $proposal_q = $injected_database->query("SELECT * FROM {lab_migration_proposal} WHERE id = %d", $proposal_id);
-    $query = $injected_database->select('lab_migration_proposal');
+    // $proposal_q = \Drupal::database()->query("SELECT * FROM {lab_migration_proposal} WHERE id = %d", $proposal_id);
+    $query = \Drupal::database()->select('lab_migration_proposal');
     $query->fields('lab_migration_proposal');
     $query->condition('id', $proposal_id);
     $proposal_q = $query->execute();
@@ -387,12 +395,12 @@ class LabMigrationProposalEditForm extends FormBase {
     }
     /* delete proposal */
     if ($form_state->getValue(['delete_proposal']) == 1) {
-      //$injected_database->query("DELETE FROM {lab_migration_proposal} WHERE id = %d", $proposal_id);
-      $query = $injected_database->delete('lab_migration_proposal');
+      //\Drupal::database()->query("DELETE FROM {lab_migration_proposal} WHERE id = %d", $proposal_id);
+      $query = \Drupal::database()->delete('lab_migration_proposal');
       $query->condition('id', $proposal_id);
       $num_deleted = $query->execute();
-      //$injected_database->query("DELETE FROM {lab_migration_experiment} WHERE proposal_id = %d", $proposal_id);
-      $query = $injected_database->delete('lab_migration_experiment');
+      //\Drupal::database()->query("DELETE FROM {lab_migration_experiment} WHERE proposal_id = %d", $proposal_id);
+      $query = \Drupal::database()->delete('lab_migration_experiment');
       $query->condition('proposal_id', $proposal_id);
       $num_deleted = $query->execute();
       add_message(t('Proposal Delete'), 'status');
@@ -406,8 +414,8 @@ class LabMigrationProposalEditForm extends FormBase {
         //    ":solution_status" => 0,
         //    ":proposal_id" => $proposal_id,
         // );
-        // $result = $injected_database->query($query, $args);
-      $result = $injected_database->update('lab_migration_proposal')->fields([
+        // $result = \Drupal::database()->query($query, $args);
+      $result = \Drupal::database()->update('lab_migration_proposal')->fields([
         'solution_provider_uid' => 0,
         'solution_status' => 0,
         'solution_provider_name_title' => '',
@@ -453,7 +461,7 @@ class LabMigrationProposalEditForm extends FormBase {
       return;
     }
 
-    $query = $injected_database->update('lab_migration_proposal')->fields([
+    $query = \Drupal::database()->update('lab_migration_proposal')->fields([
       'name_title' => $v['name_title'],
       'name' => $v['name'],
       'contact_ph' => $v['contact_ph'],
@@ -469,9 +477,9 @@ class LabMigrationProposalEditForm extends FormBase {
       'directory_name' => $directory_name,
     ])->condition('id', $proposal_id);
     $result1 = $query->execute();
-    //$result=$injected_database->query($query, $args);
+    //$result=\Drupal::database()->query($query, $args);
     /* updating existing experiments */
-    $query = $injected_database->select('lab_migration_experiment');
+    $query = \Drupal::database()->select('lab_migration_experiment');
     $query->fields('lab_migration_experiment');
     $query->condition('proposal_id', $proposal_id);
     $query->orderBy('id', 'ASC');
@@ -488,7 +496,7 @@ class LabMigrationProposalEditForm extends FormBase {
             ":description" => trim($form_state->getValue([$experiment_description])),
             ":id" => $experiment_data->id,
           ];
-          $result2 = $injected_database->query($query, $args);
+          $result2 = \Drupal::database()->query($query, $args);
           if (!$result2) {
             add_message(t('Could not update Title of the Experiment : ') . trim($form_state->getValue([$experiment_field_name])), 'error');
           }
@@ -496,7 +504,7 @@ class LabMigrationProposalEditForm extends FormBase {
         else {
           $query = "DELETE FROM {lab_migration_experiment} WHERE id = :id LIMIT 1";
           $args = [":id" => $experiment_data->id];
-          $result3 = $injected_database->query($query, $args);
+          $result3 = \Drupal::database()->query($query, $args);
         }
       }
     }
@@ -509,7 +517,7 @@ class LabMigrationProposalEditForm extends FormBase {
     ":description"=>trim($description),
     ":id"=> $update_id,
     );
-    $result2 = $injected_database->query($query, $args);
+    $result2 = \Drupal::database()->query($query, $args);
     if (!$result2)
     {
     add_message(t('Could not update Title of the Experiment : ') . trim($update_value), 'error');
@@ -519,11 +527,11 @@ class LabMigrationProposalEditForm extends FormBase {
     $args = array( 
     ":id" => $update_id
     );
-    $result3 = $injected_database->query($query, $args);
+    $result3 = \Drupal::database()->query($query, $args);
     }
     }*/
     /* inserting new experiments */
-    $query = $injected_database->select('lab_migration_experiment');
+    $query = \Drupal::database()->select('lab_migration_experiment');
     $query->fields('lab_migration_experiment');
     $query->condition('proposal_id', $proposal_id);
     $query->orderBy('number', 'DESC');
@@ -547,7 +555,7 @@ class LabMigrationProposalEditForm extends FormBase {
           ":title" => trim($form_state->getValue([$lab_experiment_insert])),
           ":description" => trim($form_state->getValue([$lab_experiment_description_insert])),
         ];
-        $result4 = $injected_database->query($query, $args);
+        $result4 = \Drupal::database()->query($query, $args);
         if (!$result4) {
           add_message(t('Could not insert Title of the Experiment : ') . trim($form_state->getValue([$lab_experiment_insert])), 'error');
         }
@@ -556,7 +564,7 @@ class LabMigrationProposalEditForm extends FormBase {
         }
       }
     }
-    /* $query = $injected_database->select('lab_migration_experiment');
+    /* $query = \Drupal::database()->select('lab_migration_experiment');
     $query->fields('lab_migration_experiment');
     $query->condition('proposal_id', $proposal_id);
     $query->orderBy('number', 'DESC');
@@ -583,7 +591,7 @@ class LabMigrationProposalEditForm extends FormBase {
     ":title" => trim($insert_value),
     ":description"=>""
     );
-    $result4 = $injected_database->query($query, $args);
+    $result4 = \Drupal::database()->query($query, $args);
     if (!$result4)
     {
     add_message(t('Could not insert Title of the Experiment : ') . trim($insert_value), 'error');

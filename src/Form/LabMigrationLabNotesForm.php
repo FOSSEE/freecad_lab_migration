@@ -10,6 +10,8 @@ namespace Drupal\lab_migration\Form;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Render\Element;
+use Drupal\Core\Url;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 
 class LabMigrationLabNotesForm extends FormBase {
 
@@ -23,17 +25,28 @@ class LabMigrationLabNotesForm extends FormBase {
   public function buildForm(array $form, \Drupal\Core\Form\FormStateInterface $form_state) {
     $user = \Drupal::currentUser();
     /* get current proposal */
-    $proposal_id = (int) arg(3);
+    // $proposal_id = (int) arg(3);
+    $route_match = \Drupal::routeMatch();
+
+$proposal_id = (int) $route_match->getParameter('proposal_id');
     //$proposal_q = $injected_database->query("SELECT * FROM {lab_migration_proposal} WHERE id = %d LIMIT 1", $proposal_id);
-    $query = $injected_database->select('lab_migration_proposal');
+    $query = \Drupal::database()->select('lab_migration_proposal');
     $query->fields('lab_migration_proposal');
     $query->condition('id', $proposal_id);
     $query->range(0, 1);
     $proposal_q = $query->execute();
     $proposal_data = $proposal_q->fetchObject();
     if (!$proposal_data) {
-      add_message(t('Invalid lab selected. Please try again.'), 'error');
-      RedirectResponse('lab-migration/code-approval');
+      \Drupal::messenger()->addmessage(t('Invalid lab selected. Please try again.'), 'error');
+      // RedirectResponse('lab-migration/code-approval');// Generate the URL from the route.
+$url = Url::fromRoute('lab_migration.code_approval')->toString();
+
+// Create the redirect response.
+$response = new RedirectResponse($url);
+
+// Send the response.
+$response->send();
+
       return;
     }
     /* get current notes */
