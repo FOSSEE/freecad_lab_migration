@@ -295,27 +295,27 @@ $proposal_id = (int) $route_match->getParameter('id');
       \Drupal::database()->query($query, $args);
       /* sending email */
       // $user_data = loadMultiple($proposal_data->uid);
-      $user_data = User::load($proposal_data->uid);
-      $email_to = $user_data->mail;
+      // $user_data = User::load($proposal_data->uid);
+      // $email_to = $user_data->mail;
       // $from = $config->get('lab_migration_from_email', '');
       // Load the configuration object for your module.
 $config = \Drupal::config('Lab_migration.settings');
 
-      $from = $config->get('lab_migration_from_email') ?: '';
-      // $bcc = $user->mail . ', ' . $config->get('lab_migration_emails', '');
-      $bcc = trim($user_email . ', ' . $lab_migration_emails, ', ');
-      $cc = $config->get('lab_migration_cc_emails', '');
-      $param['proposal_approved']['proposal_id'] = $proposal_id;
-      $param['proposal_approved']['user_id'] = $proposal_data->uid;
-      $param['proposal_approved']['headers'] = [
-        'From' => $from,
-        'MIME-Version' => '1.0',
-        'Content-Type' => 'text/plain; charset=UTF-8; format=flowed; delsp=yes',
-        'Content-Transfer-Encoding' => '8Bit',
-        'X-Mailer' => 'Drupal',
-        'Cc' => $cc,
-        'Bcc' => $bcc,
-      ];
+      // $from = $config->get('lab_migration_from_email') ?: '';
+      // // $bcc = $user->mail . ', ' . $config->get('lab_migration_emails', '');
+      // $bcc = trim($user_email . ', ' . $lab_migration_emails, ', ');
+      // $cc = $config->get('lab_migration_cc_emails', '');
+      // $param['proposal_approved']['proposal_id'] = $proposal_id;
+      // $param['proposal_approved']['user_id'] = $proposal_data->uid;
+      // $param['proposal_approved']['headers'] = [
+      //   'From' => $from,
+      //   'MIME-Version' => '1.0',
+      //   'Content-Type' => 'text/plain; charset=UTF-8; format=flowed; delsp=yes',
+      //   'Content-Transfer-Encoding' => '8Bit',
+      //   'X-Mailer' => 'Drupal',
+      //   'Cc' => $cc,
+      //   'Bcc' => $bcc,
+      // ];
       // if (!drupal_mail('lab_migration', 'proposal_approved', $email_to, language_default(), $param, $from, TRUE)) {
       //   \Drupal::messenger()->add_message('Error sending email message.', 'error');
       // }

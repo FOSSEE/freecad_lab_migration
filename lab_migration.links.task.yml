@@ -37,12 +37,8 @@ lab_migration.list_experiments:
   route_name: lab_migration.list_experiments
   title: 'List Experiments'
   weight: 1
-  base_route: lab_migration_list_experiments
-lab_migration.upload_code_form:
-  route_name: lab_migration.upload_code_form
-  title: 'Code Submission'
-  weight: 2
-  base_route: lab_migration.code_approval
+  base_route: lab_migration_upload_code_form
+
 # lab_migration.manage_proposal_approve:
 #   route_name: lab_migration.manage_proposal_approve
 #   title: 'Approve Proposal'

@@ -12,7 +12,9 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Render\Element;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Drupal\Core\Url;
-
+use Drupal\Core\Link;
+use Drupal\Core\Config\ConfigFactoryInterface;
+use Drupal\Core\Database\Database;
 class LabMigrationUploadCodeForm extends FormBase {
 
   /**
@@ -23,15 +25,16 @@ class LabMigrationUploadCodeForm extends FormBase {
   }
 
   public function buildForm(array $form, \Drupal\Core\Form\FormStateInterface $form_state) {
-
+    $config = \Drupal::config('lab_migration.settings'); // Load the configuration
     $user = \Drupal::currentUser();
 
     $proposal_data = \Drupal::service("lab_migration_global")->lab_migration_get_proposal();
     if (!$proposal_data) {
       // RedirectResponse('');
-      $response = new RedirectResponse(Url::fromRoute('lab_migration_proposal')->toString());
+      $response = new RedirectResponse(Url::fromRoute('lab_migration.proposal')->toString());
 $response->send();
       return;
+      // var_dump($response);die;
     }
 
     /* add javascript for dependency selection effects */
@@ -87,6 +90,7 @@ $response->send();
     while ($experiment_data = $experiment_q->fetchObject()) {
       $experiment_rows[$experiment_data->id] = $experiment_data->number . '. ' . $experiment_data->title;
     }
+    
     $form['experiment'] = [
       '#type' => 'select',
       '#title' => t('Title of the Experiment'),
@@ -122,10 +126,10 @@ $response->send();
       ],
       '#required' => TRUE,
     ];
-    $form['r_version'] = [
+    $form['version'] = [
       '#type' => 'select',
       '#title' => t('R version used'),
-      '#options' => _lm_list_of_software_version(),
+      '#options' => \Drupal::service("lab_migration_global")->_lm_list_of_software_version(),
       '#required' => TRUE,
     ];
     $form['toolbox_used'] = [
@@ -145,11 +149,13 @@ $response->send();
       '#collapsible' => FALSE,
       '#collapsed' => FALSE,
     ];
+    $extensions = $config->get('lab_migration_source_extensions') ?? '';
     $form['sourcefile']['sourcefile1'] = [
       '#type' => 'file',
       '#title' => t('Upload main or source file'),
       '#size' => 48,
-      '#description' => t('Only alphabets and numbers are allowed as a valid filename.') . '<br />' . t('Allowed file extensions: ') . $config->get('lab_migration_source_extensions', ''),
+      '#description' => t('Only alphabets and numbers are allowed as a valid filename.') . '<br />' . t('Allowed file extensions: ') .$extensions
+,
     ];
 
     /* $form['dep_files'] = array(
@@ -246,19 +252,27 @@ $response->send();
       '#value' => t('Submit'),
     ];
 
-    $form['cancel'] = [
-      '#type' => 'markup',
-      '#value' => Link::fromTextAndUrl(t('Cancel'), 'lab-migration/code'),
-    ];
-    return $form;
-  }
 
-  public function validateForm(array &$form, \Drupal\Core\Form\FormStateInterface $form_state) {
-    if (!lab_migration_check_code_number($form_state->getValue(['code_number']))) {
+$form['cancel_link'] = [
+  '#type' => 'markup',
+  '#markup' => Link::fromTextAndUrl(t('Cancel'), Url::fromRoute('lab_migration.list_experiments'))->toString(),
+];
+    return $form;
+    
+  }
+  private function lab_migration_check_code_number($code_number) {
+    return preg_match('/^[0-9]+$/', $code_number); // Example regex for numeric-only check
+  }
+  private function lab_migration_check_name($caption) {
+    // Allows only alphabets, numbers, and spaces
+    return preg_match('/^[a-zA-Z0-9 ]+$/', $caption);
+  }
+  public function validateForm(array &$form , FormStateInterface $form_state) {
+    if (!$this->lab_migration_check_code_number($form_state->getValue(['code_number']))) {
       $form_state->setErrorByName('code_number', t('Invalid Code Number. Code Number can contain only numbers.'));
     }
 
-    if (!lab_migration_check_name($form_state->getValue(['code_caption']))) {
+    if (!$this->lab_migration_check_name($form_state->getValue(['code_caption']))) {
       $form_state->setErrorByName('code_caption', t('Caption can contain only alphabets, numbers and spaces.'));
     }
 
@@ -266,8 +280,8 @@ $response->send();
       $form_state->setErrorByName('os_used', t('Please select the operating system used.'));
     }
 
-    if (!$form_state->getValue(['r_version'])) {
-      $form_state->setErrorByName('r_version', t('Please select the R version used.'));
+    if (!$form_state->getValue(['version'])) {
+      $form_state->setErrorByName('version', t('Please select the version used.'));
     }
 
     if (isset($_FILES['files'])) {
@@ -296,17 +310,17 @@ $response->send();
               }
             }
           }
-
+          $config = $this->config('lab_migration.settings');
           $allowed_extensions_str = '';
           switch ($file_type) {
             case 'S':
-              $allowed_extensions_str = $config->get('lab_migration_source_extensions', '');
+              $allowed_extensions_str = $config->get('lab_migration_source_extensions') ?? '';
               break;
             case 'R':
-              $allowed_extensions_str = $config->get('lab_migration_result_extensions', '');
+              $allowed_extensions_str = $config->get('lab_migration_result_extensions') ?? '';
               break;
             case 'X':
-              $allowed_extensions_str = $config->get('lab_migration_xcos_extensions', '');
+              $allowed_extensions_str = $config->get('lab_migration_xcos_extensions' ) ?? '';
               break;
           }
           $allowed_extensions = explode(',', $allowed_extensions_str);
@@ -318,14 +332,15 @@ $response->send();
           if ($_FILES['files']['size'][$file_form_name] <= 0) {
             $form_state->setErrorByName($file_form_name, t('File size cannot be zero.'));
           }
+          $config = $this->config('lab_migration.settings');
 
           /* check if valid file name */
-          if (!lab_migration_check_valid_filename($_FILES['files']['name'][$file_form_name])) {
-            $form_state->setErrorByName($file_form_name, t('Invalid file name specified. Only alphabets and numbers are allowed as a valid filename.'));
-          }
+          // if (!lab_migration_check_valid_filename($_FILES['files']['name'][$file_form_name])) {
+          //   $form_state->setErrorByName($file_form_name, t('Invalid file name specified. Only alphabets and numbers are allowed as a valid filename.'));
+          // }
         }
       }
-    }
+    
 
     /* add javascript dependency selection effects */
     $dep_selection_js = " (function ($) {
@@ -359,15 +374,17 @@ $response->send();
     // #attached('jQuery(document).ready(function () { alert("Hello!"); });', 'inline');
     // drupal_static_reset('#attached') ;
   }
+}
 
   public function submitForm(array &$form, \Drupal\Core\Form\FormStateInterface $form_state) {
     $user = \Drupal::currentUser();
 
-    $root_path = lab_migration_path();
+    $root_path =  \Drupal::service("lab_migration_global")->lab_migration_path();
 
-    $proposal_data = lab_migration_get_proposa\Drupal\Core\Link;
+    $proposal_data = \Drupal::service("lab_migration_global")->lab_migration_get_proposal();
     if (!$proposal_data) {
-      RedirectResponse('');
+      // RedirectResponse('');
+      return new RedirectResponse(Url::fromRoute('lab_migration.proposal_form')->toString());
       return;
     }
 
@@ -386,7 +403,9 @@ $response->send();
     $experiment_data = $experiment_q->fetchObject();
     if (!$experiment_data) {
       \Drupal::messenger()->addmessage("Invalid experiment seleted", 'error');
-      RedirectResponse('lab-migration/code');
+      // RedirectResponse('lab-migration/code');
+      $response = new RedirectResponse(Url::fromRoute('lab_migration.list_experiments')->toString());
+$response->send();
     }
 
     /* create proposal folder if not present */
@@ -412,12 +431,13 @@ $response->send();
       }
       else {
         if ($cur_solution_d->approval_status == 0) {
-          \Drupal::database()->addmessage(t("Solution is under pending review. Delete the solution and reupload it."), 'error');
-          RedirectResponse('lab-migration/code');
+          \Drupal::messenger()->addmessage(t("Solution is under pending review. Delete the solution and reupload it."), 'error');
+          // RedirectResponse('lab-migration/code');
+          return new RedirectResponse(Url::fromUserInput('/lab-migration/code')->toString());
           return;
         }
         else {
-          \Drupal::database()->addmessage(t("Error uploading solution. Please contact administrator."), 'error');
+          \Drupal::messenger()->addmessage(t("Error uploading solution. Please contact administrator."), 'error');
           RedirectResponse('lab-migration/code');
           return;
         }
@@ -438,7 +458,7 @@ $response->send();
     /* creating file path */
     $file_path = 'EXP' . $experiment_data->number . '/' . 'CODE' . $experiment_data->number . '.' . $form_state->getValue(['code_number']) . '/';
     /* creating solution database entry */
-    $query = "INSERT INTO {lab_migration_solution} (experiment_id, approver_uid, code_number, caption, approval_date, approval_status, timestamp, os_used, r_version, toolbox_used) VALUES (:experiment_id, :approver_uid, :code_number, :caption, :approval_date, :approval_status, :timestamp, :os_used, :r_version, :toolbox_used)";
+    $query = "INSERT INTO {lab_migration_solution} (experiment_id, approver_uid, code_number, caption, approval_date, approval_status, timestamp, os_used, version, toolbox_used) VALUES (:experiment_id, :approver_uid, :code_number, :caption, :approval_date, :approval_status, :timestamp, :os_used, :version, :toolbox_used)";
     $args = [
       ":experiment_id" => $experiment_id,
       ":approver_uid" => 0,
@@ -448,13 +468,13 @@ $response->send();
       ":approval_status" => 0,
       ":timestamp" => time(),
       ":os_used" => $form_state->getValue(['os_used']),
-      ":version" => $form_state->getValue(['r_version']),
+      ":version" => $form_state->getValue(['version']),
       ":toolbox_used" => $form_state->getValue(['toolbox_used']),
     ];
     $solution_id = \Drupal::database()->query($query, $args, [
       'return' => Database::RETURN_INSERT_ID
       ]);
-    //var_dump('solution id= '.$solution_id.  '&&& dep file = '.array_filter($form_state['values']['existing_depfile']['dep_experiment_files']));
+    // var_dump('solution id= '.$solution_id.  '&&& dep file = '.array_filter($form_state['values']['existing_depfile']['dep_experiment_files']));
 
     //die;
   /* linking existing dependencies */
@@ -516,14 +536,14 @@ $response->send();
             ":timestamp" => time(),
           ];
           \Drupal::database()->query($query, $args);
-          \Drupal::database()->addmessage($file_name . ' uploaded successfully.', 'status');
+          \Drupal::messenger()->addmessage($file_name . ' uploaded successfully.', 'status');
         }
         else {
-          \Drupal::database()->addmessage('Error uploading file: ' . $dest_path . $file_name, 'error');
+          \Drupal::messenger()->addmessage('Error uploading file: ' . $dest_path . $file_name, 'error');
         }
       }
     }
-    \Drupal::database()->addmessage('Solution uploaded successfully.', 'status');
+    \Drupal::messenger()->addmessage('Solution uploaded successfully.', 'status');
 
     /* sending email */
     $email_to = $user->mail;
