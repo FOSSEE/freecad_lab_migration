@@ -391,177 +391,6 @@ class DefaultController extends ControllerBase {
     return $output;
   }
 
-//   public function lab_migration_list_experiments() {
-//     $user = \Drupal::currentUser();
-// // $user = $user->get('uid')->value;
-// // $user = User::load($current_user_id);
-
-//     $proposal_data = \Drupal::service("lab_migration_global")->lab_migration_get_proposal();
-//     if (!$proposal_data) {
-//       RedirectResponse('');
-//       return;
-//     }
-//     //var_dump($proposal_data->lab_title);die;
-//     $return_html = '<strong>Title of the Lab:</strong><br />' . $proposal_data->lab_title . '<br /><br />';
-//     $return_html .= '<strong>Proposer Name:</strong><br />' . $proposal_data->name_title . ' ' . $proposal_data->name . '<br /><br />';
-//     // $return_html .= Link::fromTextAndUrl('Upload Solution', 'lab-migration/code/upload') . '<br />';
-//     $return_html .= Link::fromTextAndUrl(
-//       'Upload Solution', 
-//       Url::fromUri('internal:/lab-migration/code/upload')
-//   )->toString() . '<br />';
-//     /* get experiment list */
-//     $experiment_rows = [];
-//     //$experiment_q = \Drupal::database()->query("SELECT * FROM {lab_migration_experiment} WHERE proposal_id = %d ORDER BY number ASC", $proposal_data->id);
-//     $query = \Drupal::database()->select('lab_migration_experiment');
-//     $query->fields('lab_migration_experiment');
-//     $query->condition('proposal_id', $proposal_data->id);
-//     $query->orderBy('number', 'ASC');
-//     $experiment_q = $query->execute();
-
-   
-
-//     while ($experiment_data = $experiment_q->fetchObject()) {
-
-
-//       $experiment_rows[] = [
-//         $experiment_data->number . ')&nbsp;&nbsp;&nbsp;&nbsp;' . $experiment_data->title,
-//         '',
-//         '',
-//         '',
-//       ];
-//       /* get solution list */
-//       //$solution_q = \Drupal::database()->query("SELECT * FROM {lab_migration_solution} WHERE experiment_id = %d ORDER BY id ASC", $experiment_data->id);
-//       $query = \Drupal::database()->select('lab_migration_solution');
-//       $query->fields('lab_migration_solution');
-//       $query->condition('experiment_id', $experiment_data->id);
-//       $query->orderBy('id', 'ASC');
-//       $solution_q = $query->execute();
-//       if ($solution_q) {
-//         while ($solution_data = $solution_q->fetchObject()) {
-//           $solution_status = '';
-//           switch ($solution_data->approval_status) {
-//             case 0:
-//               $solution_status = "Pending";
-//               break;
-//             case 1:
-//               $solution_status = "Approved";
-//               break;
-//             default:
-//               $solution_status = "Unknown";
-//               break;
-//           }
-//           if ($solution_data->approval_status == 0) {
-//             $experiment_rows[] = [
-//               "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" . $solution_data->code_number . "   " . $solution_data->caption,
-//               '',
-//               $solution_status,
-//               Link::fromTextAndUrl('Delete', 'lab-migration/code/delete/' . $solution_data->id),
-//             ];
-//           }
-//           else {
-//             $experiment_rows[] = [
-//               "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" . $solution_data->code_number . "   " . $solution_data->caption,
-//               '',
-//               $solution_status,
-//               '',
-//             ];
-//           }
-//           /* get solution files */
-//           //$solution_files_q = \Drupal::database()->query("SELECT * FROM {lab_migration_solution_files} WHERE solution_id = %d ORDER BY id ASC", $solution_data->id);
-//           $query = database::getConnection()->select('lab_migration_solution_files');
-//           $query->fields('lab_migration_solution_files');
-//           $query->condition('solution_id', $solution_data->id);
-//           $query->orderBy('id', 'ASC');
-//           $solution_files_q = $query->execute();
-
-//           if ($solution_files_q) {
-//             while ($solution_files_data = $solution_files_q->fetchObject()) {
-//               $code_file_type = '';
-//               switch ($solution_files_data->filetype) {
-//                 case 'S':
-//                   $code_file_type = 'Source';
-//                   break;
-//                 case 'R':
-//                   $code_file_type = 'Result';
-//                   break;
-//                 case 'X':
-//                   $code_file_type = 'Xcox';
-//                   break;
-//                 case 'U':
-//                   $code_file_type = 'Unknown';
-//                   break;
-//                 default:
-//                   $code_file_type = 'Unknown';
-//                   break;
-//               }
-//               $experiment_rows[] = [
-//                 "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" . Link::fromTextAndUrl($solution_files_data->filename, 'lab-migration/download/file/' . $solution_files_data->id),
-//                 $code_file_type,
-//                 '',
-//                 '',
-//               ];
-//             }
-//           }
-//           /* get dependencies files */
-//           //$dependency_q = \Drupal::database()->query("SELECT * FROM {lab_migration_solution_dependency} WHERE solution_id = %d ORDER BY id ASC", $solution_data->id);
-//           $query = \Drupal::database()->select('lab_migration_solution_dependency');
-//           $query->fields('lab_migration_solution_dependency');
-//           $query->condition('solution_id', $solution_data->id);
-//           $query->orderBy('id', 'ASC');
-//           $dependency_q = $query->execute();
-//           while ($dependency_data = $dependency_q->fetchObject()) {
-//             //$dependency_files_q = \Drupal::database()->query("SELECT * FROM {lab_migration_dependency_files} WHERE id = %d", $dependency_data->dependency_id);
-//             $query = \Drupal::database()->select('lab_migration_dependency_files');
-//             $query->fields('lab_migration_dependency_files');
-//             $query->condition('id', $dependency_data->dependency_id);
-//             $dependency_files_q = $query->execute();
-//             $dependency_files_data = $dependency_files_q->fetchObject();
-//             $experiment_rows[] = [
-//               "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" . Link::fromTextAndUrl($dependency_files_data->filename, 'lab-migration/download/dependency/' . $dependency_files_data->id),
-//               'Dependency',
-//               '',
-//               '',
-//             ];
-//           }
-//         }
-//       }
-//     }
-
-//     $experiment_header = [
-//       'No. Title of the Experiment',
-//       'Type',
-//       'Status',
-//       'Actions'
-//     ];
-//     // $return_html .= drupal_render()_table($experiment_header, $experiment_rows);
-
-//     // $return_html .= \Drupal::service("renderer")->render('table', [
-//     //   'header' => $experiment_header,
-//     //   'rows' => $experiment_rows,
-//     // ]);
-//     $return_html = '<strong>Title of the Lab:</strong><br /><br /><br />';
-// $return_html .= '<strong>Proposer Name:</strong><br /><br /><br />';
-// $return_html .= '<a href="/test_module_upgradtion/lab-migration/code/upload">Upload Solution</a><br />';
-// // Add your table or any other HTML content here
-// // var_dump($return_html);die;
-
-//     $table = [
-//       '#type' => 'table',
-//       '#header' => $experiment_header,  // The headers for the table
-//       '#rows' => $experiment_rows,      // The rows for the table
-      
-//     ];
-  
-    
-//    // $return_html .= \Drupal::service('renderer')->render($table);
-//     //return $return_html;
-
-//     return [
-//       '#markup' => $return_html, // First, display HTML content
-//       '#type' => $table,   // Then, display the table below
-//      '#empty' => 'row not found'
-//     ];
-//   }
 
   function lab_migration_proposal_approval_form($form, $form_state)
   {
@@ -1954,141 +1783,261 @@ $proposal_id = (int) $route_match->getParameter('proposal_id');
   
 }
 
-function lab_migration_list_experiments()
-{
-  $user = \Drupal::currentUser();
+// public function lab_migration_list_experiments()
+// {
+//   $user = \Drupal::currentUser();
 
-  $proposal_data = \Drupal::service("lab_migration_global")->lab_migration_get_proposal();
-  // if (!$proposal_data) {
-  //     RedirectResponse('');
-  //     return;
-  // }
+//   $proposal_data = \Drupal::service("lab_migration_global")->lab_migration_get_proposal();
+//   // if (!$proposal_data) {
+//   //     RedirectResponse('');
+//   //     return;
+//   // }
 
-//   $return_html = '<strong>Title of the Lab:</strong><br />' . $proposal_data->lab_title . '<br /><br />';
-//   $return_html .= '<strong>Proposer Name:</strong><br />' . $proposal_data->name_title . ' ' . $proposal_data->name . '<br /><br />';
-//   // @FIXME
+// //   $return_html = '<strong>Title of the Lab:</strong><br />' . $proposal_data->lab_title . '<br /><br />';
+// //   $return_html .= '<strong>Proposer Name:</strong><br />' . $proposal_data->name_title . ' ' . $proposal_data->name . '<br /><br />';
+// //   // @FIXME
+// // // \Drupal\Core\Link expects a Url object, created from a route name or external URI.
+// // // $return_html .= l('Upload Solution', 'lab-migration/code/upload') . '<br />';
+// $return_html = '<strong>Title of the Lab:</strong><br />' . $proposal_data->lab_title . '<br /><br />';
+// $return_html .= '<strong>Proposer Name:</strong><br />' . $proposal_data->name_title . ' ' . $proposal_data->name . '<br /><br />';
+
+// // Create the "Upload Solution" link
+// $upload_link = Link::fromTextAndUrl(
+//     'Upload Solution', 
+//     Url::fromRoute('lab_migration.upload_code_form')
+// )->toString();
+
+// // Append the link to the HTML content
+// $return_html .= $upload_link . '<br />';
+
+// // Return as a render array
+// return [
+//     '#markup' => $return_html,
+// ];
+
+//   /* get experiment list */
+//   $experiment_rows = array();
+//   //$experiment_q = $injected_database->query("SELECT * FROM {lab_migration_experiment} WHERE proposal_id = %d ORDER BY number ASC", $proposal_data->id);
+//           	$query = \Drupal::database()->select('lab_migration_experiment');
+// 							$query->fields('lab_migration_experiment');
+// 							$query->condition('proposal_id', $proposal_data->id);
+// 							$query->orderBy('number', 'ASC');
+//                      $experiment_q = $query->execute();
+
+// //var_dump($experiment_q->fetchObject());
+// //die;
+
+//   while ($experiment_data = $experiment_q->fetchObject())
+//   {
+
+
+//     $experiment_rows[] = array($experiment_data->number . ')&nbsp;&nbsp;&nbsp;&nbsp;' . $experiment_data->title, '', '', '');
+//     /* get solution list */
+//     //$solution_q = $injected_database->query("SELECT * FROM {lab_migration_solution} WHERE experiment_id = %d ORDER BY id ASC", $experiment_data->id);
+//     $query = \Drupal::database()->select('lab_migration_solution');
+//                 $query->fields('lab_migration_solution');
+//                 $query->condition('experiment_id', $experiment_data->id);
+//                 $query->orderBy('id', 'ASC');
+//                 $solution_q  = $query->execute();
+//     if ($solution_q) {
+//     	while ($solution_data = $solution_q->fetchObject()) {
+//     		$solution_status = '';
+//     		switch ($solution_data->approval_status) {
+//     		case 0: $solution_status = "Pending"; break;
+//     		case 1: $solution_status = "Approved"; break;
+//     		default: $solution_status = "Unknown"; break;
+//     		}
+//     		if ($solution_data->approval_status == 0) {
+//     			// @FIXME
 // // \Drupal\Core\Link expects a Url object, created from a route name or external URI.
-// // $return_html .= l('Upload Solution', 'lab-migration/code/upload') . '<br />';
-$return_html = '<strong>Title of the Lab:</strong><br />' . $proposal_data->lab_title . '<br /><br />';
-$return_html .= '<strong>Proposer Name:</strong><br />' . $proposal_data->name_title . ' ' . $proposal_data->name . '<br /><br />';
+// // $experiment_rows[] = array("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" . $solution_data->code_number . "   " . $solution_data->caption, '', $solution_status, l('Delete', 'lab-migration/code/delete/' . $solution_data->id));
 
-// Create the "Upload Solution" link
-$upload_link = Link::fromTextAndUrl(
-    'Upload Solution', 
-    Url::fromRoute('lab_migration.upload_code_form')
-)->toString();
+//     		} else {
+//     			$experiment_rows[] = array("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" . $solution_data->code_number . "   " . $solution_data->caption, '', $solution_status, '');
+//     		}
+//     		/* get solution files */
+//     		//$solution_files_q = $injected_database->query("SELECT * FROM {lab_migration_solution_files} WHERE solution_id = %d ORDER BY id ASC", $solution_data->id);
+//         $query = \Drupal::database()->select('lab_migration_solution_files');
+//                   $query->fields('lab_migration_solution_files');
+//                   $query->condition('solution_id', $solution_data->id);
+//                   $query->orderBy('id', 'ASC');
+//                   $solution_files_q = $query->execute();
 
-// Append the link to the HTML content
-$return_html .= $upload_link . '<br />';
+//     		if ($solution_files_q) {
+//     			while ($solution_files_data = $solution_files_q->fetchObject()) {
+//     				$code_file_type = '';
+//     				switch ($solution_files_data->filetype) {
+//     				case 'S': $code_file_type = 'Source'; break;
+//     				case 'R': $code_file_type = 'Result'; break;
+//     				case 'X': $code_file_type = 'Xcox'; break;
+//     				case 'U': $code_file_type = 'Unknown'; break;
+//     				default: $code_file_type = 'Unknown'; break;
+//     				}
+//     				// @FIXME
+// // \Drupal\Core\Link expects a Url object, created from a route name or external URI.
+// // $experiment_rows[] = array("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" . l($solution_files_data->filename, 'lab-migration/download/file/' . $solution_files_data->id), $code_file_type, '', '');
 
-// Return as a render array
-return [
-    '#markup' => $return_html,
-];
+//     			}
+//     		}
+// 				/* get dependencies files */
+// 				//$dependency_q = $injected_database->query("SELECT * FROM {lab_migration_solution_dependency} WHERE solution_id = %d ORDER BY id ASC", $solution_data->id);
+//         $query = \Drupal::database()->select('lab_migration_solution_dependency');
+//                       $query->fields('lab_migration_solution_dependency');
+//                       $query->condition('solution_id', $solution_data->id);
+//                       $query->orderBy('id', 'ASC');
+//                       $dependency_q = $query->execute();
+// 				while ($dependency_data = $dependency_q->fetchObject())
+// 				{
+// 					//$dependency_files_q = $injected_database->query("SELECT * FROM {lab_migration_dependency_files} WHERE id = %d", $dependency_data->dependency_id);
+//           $query = \Drupal::database()->select('lab_migration_dependency_files');
+//                       $query->fields('lab_migration_dependency_files');
+//                       $query->condition('id', $dependency_data->dependency_id);
+//                       $dependency_files_q = $query->execute();
+// 					$dependency_files_data = $dependency_files_q->fetchObject();
+// 					// @FIXME
+// // \Drupal\Core\Link expects a Url object, created from a route name or external URI.
+// // $experiment_rows[] = array("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" . l($dependency_files_data->filename, 'lab-migration/download/dependency/' . $dependency_files_data->id), 'Dependency', '', '');
 
-  /* get experiment list */
-  $experiment_rows = array();
-  //$experiment_q = $injected_database->query("SELECT * FROM {lab_migration_experiment} WHERE proposal_id = %d ORDER BY number ASC", $proposal_data->id);
-          	$query = \Drupal::database()->select('lab_migration_experiment');
-							$query->fields('lab_migration_experiment');
-							$query->condition('proposal_id', $proposal_data->id);
-							$query->orderBy('number', 'ASC');
-                     $experiment_q = $query->execute();
+// 				}
+//     	}
+//     }
+//   }
 
-//var_dump($experiment_q->fetchObject());
-//die;
+//   $experiment_header = array('No. Title of the Experiment', 'Type', 'Status', 'Actions');
+//  // $return_html .= theme_table($experiment_header, $experiment_rows);
+ 
+//  // @FIXME
+// // _theme has been renamed to __theme and should NEVER be called directly.
+// // Calling __theme directly can alter the expected output and potentially
+// // introduce security issues (see https://www.drupal.org/node/2195739). You
+// // should use renderable arrays instead.
+// // 
+// // 
+// // @see https://www.drupal.org/node/2195739
+// // $return_html .= theme('table', array('header' => $experiment_header, 'rows' => $experiment_rows));
 
-  while ($experiment_data = $experiment_q->fetchObject())
-  {
+//   return $return_html;
+// }
 
+public function lab_migration_list_experiments() {
+  // Get proposal data.
+  $proposal_data = \Drupal::service("lab_migration_global")->lab_migration_get_proposal();
+  if (!$proposal_data) {
+    return new RedirectResponse(Url::fromRoute('<front>')->toString());
+  }
 
-    $experiment_rows[] = array($experiment_data->number . ')&nbsp;&nbsp;&nbsp;&nbsp;' . $experiment_data->title, '', '', '');
-    /* get solution list */
-    //$solution_q = $injected_database->query("SELECT * FROM {lab_migration_solution} WHERE experiment_id = %d ORDER BY id ASC", $experiment_data->id);
-    $query = \Drupal::database()->select('lab_migration_solution');
-                $query->fields('lab_migration_solution');
-                $query->condition('experiment_id', $experiment_data->id);
-                $query->orderBy('id', 'ASC');
-                $solution_q  = $query->execute();
+  // Prepare return HTML with lab and proposer information.
+  $return_html = [
+    '#markup' => '<strong>Title of the Lab:</strong><br />' . $proposal_data->lab_title . '<br /><br />' .
+                 '<strong>Proposer Name:</strong><br />' . $proposal_data->name_title . ' ' . $proposal_data->name . '<br /><br />'
+  ];
+
+  // Link to 'Upload Solution' page.
+  $upload_solution_url = Url::fromRoute('lab_migration.upload_code_form');
+  $return_html['#markup'] .= Link::fromTextAndUrl('Upload Solution', $upload_solution_url)->toString() . '<br />';
+
+  // Prepare experiment table header.
+  $experiment_header = ['No. Title of the Experiment', 'Type', 'Status', 'Actions'];
+  $experiment_rows = [];
+
+  // Get experiment list.
+  $query = \Drupal::database()->select('lab_migration_experiment', 'lme');
+  $query->fields('lme');
+  $query->condition('proposal_id', $proposal_data->id);
+  $query->orderBy('number', 'ASC');
+  $experiment_q = $query->execute();
+
+  while ($experiment_data = $experiment_q->fetchObject()) {
+    $experiment_rows[] = [
+      $experiment_data->number . ') ;' . $experiment_data->title,
+      '', '', ''
+    ];
+
+    // Get solutions related to each experiment.
+    $query = \Drupal::database()->select('lab_migration_solution', 'lms');
+    $query->fields('lms');
+    $query->condition('experiment_id', $experiment_data->id);
+    $query->orderBy('id', 'ASC');
+    $solution_q = $query->execute();
+
     if ($solution_q) {
-    	while ($solution_data = $solution_q->fetchObject()) {
-    		$solution_status = '';
-    		switch ($solution_data->approval_status) {
-    		case 0: $solution_status = "Pending"; break;
-    		case 1: $solution_status = "Approved"; break;
-    		default: $solution_status = "Unknown"; break;
-    		}
-    		if ($solution_data->approval_status == 0) {
-    			// @FIXME
-// \Drupal\Core\Link expects a Url object, created from a route name or external URI.
-// $experiment_rows[] = array("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" . $solution_data->code_number . "   " . $solution_data->caption, '', $solution_status, l('Delete', 'lab-migration/code/delete/' . $solution_data->id));
+      while ($solution_data = $solution_q->fetchObject()) {
+        $solution_status = ($solution_data->approval_status == 0) ? "Pending" : (($solution_data->approval_status == 1) ? "Approved" : "Unknown");
 
-    		} else {
-    			$experiment_rows[] = array("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" . $solution_data->code_number . "   " . $solution_data->caption, '', $solution_status, '');
-    		}
-    		/* get solution files */
-    		//$solution_files_q = $injected_database->query("SELECT * FROM {lab_migration_solution_files} WHERE solution_id = %d ORDER BY id ASC", $solution_data->id);
-        $query = \Drupal::database()->select('lab_migration_solution_files');
-                  $query->fields('lab_migration_solution_files');
-                  $query->condition('solution_id', $solution_data->id);
-                  $query->orderBy('id', 'ASC');
-                  $solution_files_q = $query->execute();
+        // Action link for 'Delete' if approval status is pending.
+        $action_link = '';
+        if ($solution_data->approval_status == 0) {
+          $delete_url = Url::fromRoute('lab_migration.upload_code_delete', ['id' => $solution_data->id]);
+          $action_link = Link::fromTextAndUrl('Delete', $delete_url)->toString();
+        }
 
-    		if ($solution_files_q) {
-    			while ($solution_files_data = $solution_files_q->fetchObject()) {
-    				$code_file_type = '';
-    				switch ($solution_files_data->filetype) {
-    				case 'S': $code_file_type = 'Source'; break;
-    				case 'R': $code_file_type = 'Result'; break;
-    				case 'X': $code_file_type = 'Xcox'; break;
-    				case 'U': $code_file_type = 'Unknown'; break;
-    				default: $code_file_type = 'Unknown'; break;
-    				}
-    				// @FIXME
-// \Drupal\Core\Link expects a Url object, created from a route name or external URI.
-// $experiment_rows[] = array("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" . l($solution_files_data->filename, 'lab-migration/download/file/' . $solution_files_data->id), $code_file_type, '', '');
+        $experiment_rows[] = [
+          // "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" . 
+          $solution_data->code_number . "   " . $solution_data->caption, 
+          '', 
+          $solution_status, 
+          $action_link
+        ];
 
-    			}
-    		}
-				/* get dependencies files */
-				//$dependency_q = $injected_database->query("SELECT * FROM {lab_migration_solution_dependency} WHERE solution_id = %d ORDER BY id ASC", $solution_data->id);
-        $query = \Drupal::database()->select('lab_migration_solution_dependency');
-                      $query->fields('lab_migration_solution_dependency');
-                      $query->condition('solution_id', $solution_data->id);
-                      $query->orderBy('id', 'ASC');
-                      $dependency_q = $query->execute();
-				while ($dependency_data = $dependency_q->fetchObject())
-				{
-					//$dependency_files_q = $injected_database->query("SELECT * FROM {lab_migration_dependency_files} WHERE id = %d", $dependency_data->dependency_id);
-          $query = \Drupal::database()->select('lab_migration_dependency_files');
-                      $query->fields('lab_migration_dependency_files');
-                      $query->condition('id', $dependency_data->dependency_id);
-                      $dependency_files_q = $query->execute();
-					$dependency_files_data = $dependency_files_q->fetchObject();
-					// @FIXME
-// \Drupal\Core\Link expects a Url object, created from a route name or external URI.
-// $experiment_rows[] = array("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" . l($dependency_files_data->filename, 'lab-migration/download/dependency/' . $dependency_files_data->id), 'Dependency', '', '');
+        // Get solution files related to each solution.
+        $query = \Drupal::database()->select('lab_migration_solution_files', 'lmsf');
+        $query->fields('lmsf');
+        $query->condition('solution_id', $solution_data->id);
+        $query->orderBy('id', 'ASC');
+        $solution_files_q = $query->execute();
 
-				}
-    	}
+        if ($solution_files_q) {
+          while ($solution_files_data = $solution_files_q->fetchObject()) {
+            $filetype_map = ['S' => 'Source', 'R' => 'Result', 'X' => 'Xcox', 'U' => 'Unknown'];
+            $code_file_type = $filetype_map[$solution_files_data->filetype] ?? 'Unknown';
+
+            $download_url = Url::fromRoute('lab_migration.download_solution_file', ['id' => $solution_files_data->id]);
+            $experiment_rows[] = [
+              // "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" .
+              Link::fromTextAndUrl($solution_files_data->filename, $download_url)->toString(),
+              $code_file_type,
+              '',
+              ''
+            ];
+          }
+        }
+
+        // Get dependency files related to each solution.
+        $query = \Drupal::database()->select('lab_migration_solution_dependency', 'lmsd');
+        $query->fields('lmsd');
+        $query->condition('solution_id', $solution_data->id);
+        $query->orderBy('id', 'ASC');
+        $dependency_q = $query->execute();
+
+        while ($dependency_data = $dependency_q->fetchObject()) {
+          $query = \Drupal::database()->select('lab_migration_dependency_files', 'lmf');
+          $query->fields('lmf');
+          $query->condition('id', $dependency_data->dependency_id);
+          $dependency_files_q = $query->execute();
+
+          if ($dependency_files_data = $dependency_files_q->fetchObject()) {
+            $dependency_url = Url::fromRoute('lab_migration.download_dependency', ['id' => $dependency_files_data->id]);
+            $experiment_rows[] = [
+              // "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" .
+              Link::fromTextAndUrl($dependency_files_data->filename, $dependency_url)->toString(),
+              'Dependency',
+              '',
+              ''
+            ];
+          }
+        }
+      }
     }
   }
 
-  $experiment_header = array('No. Title of the Experiment', 'Type', 'Status', 'Actions');
- // $return_html .= theme_table($experiment_header, $experiment_rows);
- 
- // @FIXME
-// _theme has been renamed to __theme and should NEVER be called directly.
-// Calling __theme directly can alter the expected output and potentially
-// introduce security issues (see https://www.drupal.org/node/2195739). You
-// should use renderable arrays instead.
-// 
-// 
-// @see https://www.drupal.org/node/2195739
-// $return_html .= theme('table', array('header' => $experiment_header, 'rows' => $experiment_rows));
+  // Build the table render array.
+  $return_html[] = [
+    '#theme' => 'table',
+    '#header' => $experiment_header,
+    '#rows' => $experiment_rows,
+  ];
 
   return $return_html;
 }
-
 
 }
