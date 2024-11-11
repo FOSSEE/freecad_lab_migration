@@ -1387,44 +1387,44 @@ $lab_id = (int) $route_match->getParameter('lab_id');
             
   
 
-  public function lab_migration_completed_labs_all() {
-    $output = "";
-    //$query = "SELECT * FROM {lab_migration_proposal} WHERE approval_status = 3";
-    $query = \Drupal::database()->select('lab_migration_proposal');
-    $query->fields('lab_migration_proposal');
-    $query->condition('approval_status', 3);
-    $query->orderBy('approval_date', DESC);
-    $result = $query->execute();
-    //$result = \Drupal::database()->query($query);
-    if ($result->rowCount() == 0) {
-      $output .= "We are in the process of updating the lab migration data. ";
-    }
-    else {
-      $preference_rows = [];
-      $i = $result->rowCount();
-      while ($row = $result->fetchObject()) {
-        $approval_date = date("Y", $row->approval_date);
-        $preference_rows[] = [
-          $i,
-          $row->university,
-          Link::fromTextAndUrl($row->lab_title, "lab-migration/lab-migration-run/" . $row->id),
-          $approval_date,
-        ];
-        $i--;
-      }
-      $preference_header = [
-        'No',
-        'Institute',
-        'Lab',
-        'Year',
-      ];
-      $output .= \Drupal::service("renderer")->render('table', [
-        'header' => $preference_header,
-        'rows' => $preference_rows,
-      ]);
-    }
-    return $output;
-  }
+  // public function lab_migration_completed_labs_all() {
+  //   $output = "";
+  //   //$query = "SELECT * FROM {lab_migration_proposal} WHERE approval_status = 3";
+  //   $query = \Drupal::database()->select('lab_migration_proposal');
+  //   $query->fields('lab_migration_proposal');
+  //   $query->condition('approval_status', 3);
+  //   $query->orderBy('approval_date', DESC);
+  //   $result = $query->execute();
+  //   //$result = \Drupal::database()->query($query);
+  //   if ($result->rowCount() == 0) {
+  //     $output .= "We are in the process of updating the lab migration data. ";
+  //   }
+  //   else {
+  //     $preference_rows = [];
+  //     $i = $result->rowCount();
+  //     while ($row = $result->fetchObject()) {
+  //       $approval_date = date("Y", $row->approval_date);
+  //       $preference_rows[] = [
+  //         $i,
+  //         $row->university,
+  //         Link::fromTextAndUrl($row->lab_title, "lab-migration/lab-migration-run/" . $row->id),
+  //         $approval_date,
+  //       ];
+  //       $i--;
+  //     }
+  //     $preference_header = [
+  //       'No',
+  //       'Institute',
+  //       'Lab',
+  //       'Year',
+  //     ];
+  //     $output .= \Drupal::service("renderer")->render('table', [
+  //       'header' => $preference_header,
+  //       'rows' => $preference_rows,
+  //     ]);
+  //   }
+  //   return $output;
+  // }
 
   public function lab_migration_labs_progress_proposal() {
     $page_content = "";
@@ -1481,48 +1481,6 @@ $response->send();
     return;
   }
 
-  public function _list_all_lm_certificates() {
-    $query = \Drupal::database()->query("SELECT * FROM lab_migration_certificate");
-    $search_rows = [];
-    $output = '';
-    $details_list = $query->fetchAl;
-    foreach ($details_list as $details) {
-      if ($details->type == "Proposer") {
-        $search_rows[] = [
-          $details->lab_name,
-          $details->institute_name,
-          $details->name,
-          $details->type,
-          Link::fromTextAndUrl('Download Certificate', 'lab-migration/certificate/generate-pdf/' . $details->proposal_id . '/' . $details->id),
-          Link::fromTextAndUrl('Edit Certificate', 'lab-migration/certificate/lm-proposer/form/edit/' . $details->proposal_id . '/' . $details->id),
-        ];
-      } //$details->type == "Proposer"
-      else {
-        $search_rows[] = [
-          $details->lab_name,
-          $details->institute_name,
-          $details->name,
-          $details->type,
-          Link::fromTextAndUrl('Download Certificate', 'lab-migration/certificate/generate-pdf/' . $details->proposal_id . '/' . $details->id),
-          Link::fromTextAndUrl('Edit Certificate', 'lab-migration/certificate/lm-participation/form/edit/' . $details->proposal_id . '/' . $details->id),
-        ];
-      }
-    } //$details_list as $details
-    $search_header = [
-      'Lab Name',
-      'Institute name',
-      'Name',
-      'Type',
-      'Download Certificates',
-      'Edit Certificates',
-    ];
-    $output .=  [
-      '#type' => 'table',
-    '#header' => $search_header,
-      '#rows' => $search_rows,
-    ];
-    return $output;
-  }
   function lab_migration_category_edit_form($form, $form_state)
   {
     /* get current proposal */
@@ -1603,22 +1561,42 @@ $proposal_id = (int) $route_match->getParameter('proposal_id');
   }
 
 
-  public function verify_lab_migration_certificates($qr_code = 0) {
+//   public function verify_lab_migration_certificates($qr_code = 0) {
     
-    $route_match = \Drupal::routeMatch();
+//     $route_match = \Drupal::routeMatch();
 
-$qr_code = (int) $route_match->getParameter('qr_code');
-    $page_content = "";
-    if ($qr_code) {
-      $page_content = verify_qrcode_lm_fromdb($qr_code);
-    } //$qr_code
-    else {
-      $verify_certificates_form = \Drupal::formBuilder()->getForm("verify_lab_migration_certificates");
-      $page_content = \Drupal::service("renderer")->render($verify_certificates_form);
+// $qr_code = (int) $route_match->getParameter('qr_code');
+//     $page_content = "";
+//     if ($qr_code) {
+//       $page_content = verify_qrcode_lm_fromdb($qr_code);
+//     } //$qr_code
+//     else {
+//       $verify_certificates_form = \Drupal::formBuilder()->getForm("verify_lab_migration_certificates");
+//       $page_content = \Drupal::service("renderer")->render($verify_certificates_form);
     
-    }
-    return $page_content;
+//     }
+//     return $page_content;
+//   }
+
+
+
+public function verify_lab_migration_certificates($qr_code = 0) {
+  $route_match = \Drupal::routeMatch();
+  $qr_code = (int) $route_match->getParameter('qr_code');
+  $page_content = '';
+
+  if ($qr_code) {
+    // Call the function to verify the QR code from the database.
+    $page_content = verify_qrcode_lm_fromdb($qr_code);
+  } else {
+    // Get the form for verifying certificates.
+    $verify_certificates_form = \Drupal::service('form_builder')->getForm('\Drupal\lab_migration\Form\LabMigrationCertificateForm');
+    $page_content = \Drupal::service('renderer')->renderRoot($verify_certificates_form);
   }
+
+  // Return the page content as a Response object.
+  return new Response($page_content);
+}
 
   public function lab_migration_download_syllabus_copy() {
    
@@ -1783,141 +1761,6 @@ $proposal_id = (int) $route_match->getParameter('proposal_id');
   
 }
 
-// public function lab_migration_list_experiments()
-// {
-//   $user = \Drupal::currentUser();
-
-//   $proposal_data = \Drupal::service("lab_migration_global")->lab_migration_get_proposal();
-//   // if (!$proposal_data) {
-//   //     RedirectResponse('');
-//   //     return;
-//   // }
-
-// //   $return_html = '<strong>Title of the Lab:</strong><br />' . $proposal_data->lab_title . '<br /><br />';
-// //   $return_html .= '<strong>Proposer Name:</strong><br />' . $proposal_data->name_title . ' ' . $proposal_data->name . '<br /><br />';
-// //   // @FIXME
-// // // \Drupal\Core\Link expects a Url object, created from a route name or external URI.
-// // // $return_html .= l('Upload Solution', 'lab-migration/code/upload') . '<br />';
-// $return_html = '<strong>Title of the Lab:</strong><br />' . $proposal_data->lab_title . '<br /><br />';
-// $return_html .= '<strong>Proposer Name:</strong><br />' . $proposal_data->name_title . ' ' . $proposal_data->name . '<br /><br />';
-
-// // Create the "Upload Solution" link
-// $upload_link = Link::fromTextAndUrl(
-//     'Upload Solution', 
-//     Url::fromRoute('lab_migration.upload_code_form')
-// )->toString();
-
-// // Append the link to the HTML content
-// $return_html .= $upload_link . '<br />';
-
-// // Return as a render array
-// return [
-//     '#markup' => $return_html,
-// ];
-
-//   /* get experiment list */
-//   $experiment_rows = array();
-//   //$experiment_q = $injected_database->query("SELECT * FROM {lab_migration_experiment} WHERE proposal_id = %d ORDER BY number ASC", $proposal_data->id);
-//           	$query = \Drupal::database()->select('lab_migration_experiment');
-// 							$query->fields('lab_migration_experiment');
-// 							$query->condition('proposal_id', $proposal_data->id);
-// 							$query->orderBy('number', 'ASC');
-//                      $experiment_q = $query->execute();
-
-// //var_dump($experiment_q->fetchObject());
-// //die;
-
-//   while ($experiment_data = $experiment_q->fetchObject())
-//   {
-
-
-//     $experiment_rows[] = array($experiment_data->number . ')&nbsp;&nbsp;&nbsp;&nbsp;' . $experiment_data->title, '', '', '');
-//     /* get solution list */
-//     //$solution_q = $injected_database->query("SELECT * FROM {lab_migration_solution} WHERE experiment_id = %d ORDER BY id ASC", $experiment_data->id);
-//     $query = \Drupal::database()->select('lab_migration_solution');
-//                 $query->fields('lab_migration_solution');
-//                 $query->condition('experiment_id', $experiment_data->id);
-//                 $query->orderBy('id', 'ASC');
-//                 $solution_q  = $query->execute();
-//     if ($solution_q) {
-//     	while ($solution_data = $solution_q->fetchObject()) {
-//     		$solution_status = '';
-//     		switch ($solution_data->approval_status) {
-//     		case 0: $solution_status = "Pending"; break;
-//     		case 1: $solution_status = "Approved"; break;
-//     		default: $solution_status = "Unknown"; break;
-//     		}
-//     		if ($solution_data->approval_status == 0) {
-//     			// @FIXME
-// // \Drupal\Core\Link expects a Url object, created from a route name or external URI.
-// // $experiment_rows[] = array("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" . $solution_data->code_number . "   " . $solution_data->caption, '', $solution_status, l('Delete', 'lab-migration/code/delete/' . $solution_data->id));
-
-//     		} else {
-//     			$experiment_rows[] = array("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" . $solution_data->code_number . "   " . $solution_data->caption, '', $solution_status, '');
-//     		}
-//     		/* get solution files */
-//     		//$solution_files_q = $injected_database->query("SELECT * FROM {lab_migration_solution_files} WHERE solution_id = %d ORDER BY id ASC", $solution_data->id);
-//         $query = \Drupal::database()->select('lab_migration_solution_files');
-//                   $query->fields('lab_migration_solution_files');
-//                   $query->condition('solution_id', $solution_data->id);
-//                   $query->orderBy('id', 'ASC');
-//                   $solution_files_q = $query->execute();
-
-//     		if ($solution_files_q) {
-//     			while ($solution_files_data = $solution_files_q->fetchObject()) {
-//     				$code_file_type = '';
-//     				switch ($solution_files_data->filetype) {
-//     				case 'S': $code_file_type = 'Source'; break;
-//     				case 'R': $code_file_type = 'Result'; break;
-//     				case 'X': $code_file_type = 'Xcox'; break;
-//     				case 'U': $code_file_type = 'Unknown'; break;
-//     				default: $code_file_type = 'Unknown'; break;
-//     				}
-//     				// @FIXME
-// // \Drupal\Core\Link expects a Url object, created from a route name or external URI.
-// // $experiment_rows[] = array("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" . l($solution_files_data->filename, 'lab-migration/download/file/' . $solution_files_data->id), $code_file_type, '', '');
-
-//     			}
-//     		}
-// 				/* get dependencies files */
-// 				//$dependency_q = $injected_database->query("SELECT * FROM {lab_migration_solution_dependency} WHERE solution_id = %d ORDER BY id ASC", $solution_data->id);
-//         $query = \Drupal::database()->select('lab_migration_solution_dependency');
-//                       $query->fields('lab_migration_solution_dependency');
-//                       $query->condition('solution_id', $solution_data->id);
-//                       $query->orderBy('id', 'ASC');
-//                       $dependency_q = $query->execute();
-// 				while ($dependency_data = $dependency_q->fetchObject())
-// 				{
-// 					//$dependency_files_q = $injected_database->query("SELECT * FROM {lab_migration_dependency_files} WHERE id = %d", $dependency_data->dependency_id);
-//           $query = \Drupal::database()->select('lab_migration_dependency_files');
-//                       $query->fields('lab_migration_dependency_files');
-//                       $query->condition('id', $dependency_data->dependency_id);
-//                       $dependency_files_q = $query->execute();
-// 					$dependency_files_data = $dependency_files_q->fetchObject();
-// 					// @FIXME
-// // \Drupal\Core\Link expects a Url object, created from a route name or external URI.
-// // $experiment_rows[] = array("&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" . l($dependency_files_data->filename, 'lab-migration/download/dependency/' . $dependency_files_data->id), 'Dependency', '', '');
-
-// 				}
-//     	}
-//     }
-//   }
-
-//   $experiment_header = array('No. Title of the Experiment', 'Type', 'Status', 'Actions');
-//  // $return_html .= theme_table($experiment_header, $experiment_rows);
- 
-//  // @FIXME
-// // _theme has been renamed to __theme and should NEVER be called directly.
-// // Calling __theme directly can alter the expected output and potentially
-// // introduce security issues (see https://www.drupal.org/node/2195739). You
-// // should use renderable arrays instead.
-// // 
-// // 
-// // @see https://www.drupal.org/node/2195739
-// // $return_html .= theme('table', array('header' => $experiment_header, 'rows' => $experiment_rows));
-
-//   return $return_html;
-// }
 
 public function lab_migration_list_experiments() {
   // Get proposal data.
@@ -1949,7 +1792,7 @@ public function lab_migration_list_experiments() {
 
   while ($experiment_data = $experiment_q->fetchObject()) {
     $experiment_rows[] = [
-      $experiment_data->number . ') ;' . $experiment_data->title,
+      $experiment_data->number . ') ' . $experiment_data->title,
       '', '', ''
     ];
 
@@ -1960,16 +1803,16 @@ public function lab_migration_list_experiments() {
     $query->orderBy('id', 'ASC');
     $solution_q = $query->execute();
 
-    if ($solution_q) {
-      while ($solution_data = $solution_q->fetchObject()) {
-        $solution_status = ($solution_data->approval_status == 0) ? "Pending" : (($solution_data->approval_status == 1) ? "Approved" : "Unknown");
+    // if ($solution_q) {
+    //   while ($solution_data = $solution_q->fetchObject()) {
+    //     $solution_status = ($solution_data->approval_status == 0) ? "Pending" : (($solution_data->approval_status == 1) ? "Approved" : "Unknown");
 
         // Action link for 'Delete' if approval status is pending.
         $action_link = '';
-        if ($solution_data->approval_status == 0) {
-          $delete_url = Url::fromRoute('lab_migration.upload_code_delete', ['id' => $solution_data->id]);
-          $action_link = Link::fromTextAndUrl('Delete', $delete_url)->toString();
-        }
+        // if ($solution_data->approval_status == 0) {
+        //   $delete_url = Url::fromRoute('lab_migration.upload_code_delete', ['id' => $solution_data->id]);
+        //   $action_link = Link::fromTextAndUrl('Delete', $delete_url)->toString();
+        // }
 
         $experiment_rows[] = [
           // "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" . 
@@ -1986,22 +1829,22 @@ public function lab_migration_list_experiments() {
         $query->orderBy('id', 'ASC');
         $solution_files_q = $query->execute();
 
-        if ($solution_files_q) {
-          while ($solution_files_data = $solution_files_q->fetchObject()) {
-            $filetype_map = ['S' => 'Source', 'R' => 'Result', 'X' => 'Xcox', 'U' => 'Unknown'];
-            $code_file_type = $filetype_map[$solution_files_data->filetype] ?? 'Unknown';
+        // if ($solution_files_q) {
+        //   while ($solution_files_data = $solution_files_q->fetchObject()) {
+        //     $filetype_map = ['S' => 'Source', 'R' => 'Result', 'X' => 'Xcox', 'U' => 'Unknown'];
+        //     $code_file_type = $filetype_map[$solution_files_data->filetype] ?? 'Unknown';
 
-            $download_url = Url::fromRoute('lab_migration.download_solution_file', ['id' => $solution_files_data->id]);
-            $experiment_rows[] = [
-              // "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" .
-              Link::fromTextAndUrl($solution_files_data->filename, $download_url)->toString(),
-              $code_file_type,
-              '',
-              ''
-            ];
-          }
-        }
-
+        //     $download_url = Url::fromRoute('lab_migration.download_solution_file', ['id' => $solution_files_data->id]);
+        //     $experiment_rows[] = [
+             
+        //       Link::fromTextAndUrl($solution_files_data->filename, $download_url)->toString(),
+        //       $code_file_type,
+        //       '',
+        //       ''
+        //     ];
+        //   }
+        // }
+      
         // Get dependency files related to each solution.
         $query = \Drupal::database()->select('lab_migration_solution_dependency', 'lmsd');
         $query->fields('lmsd');
@@ -2018,14 +1861,13 @@ public function lab_migration_list_experiments() {
           if ($dependency_files_data = $dependency_files_q->fetchObject()) {
             $dependency_url = Url::fromRoute('lab_migration.download_dependency', ['id' => $dependency_files_data->id]);
             $experiment_rows[] = [
-              // "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" .
-              Link::fromTextAndUrl($dependency_files_data->filename, $dependency_url)->toString(),
+          Link::fromTextAndUrl($dependency_files_data->filename, $dependency_url)->toString(),
               'Dependency',
               '',
               ''
             ];
-          }
-        }
+          // }
+        // }
       }
     }
   }
@@ -2040,4 +1882,96 @@ public function lab_migration_list_experiments() {
   return $return_html;
 }
 
+public function lab_migration_completed_labs_all() {
+  $output = [];
+
+  // Prepare the database query to fetch approved lab migration proposals.
+  $query = Database::getConnection()->select('lab_migration_proposal', 'lmp');
+  $query->fields('lmp');
+  $query->condition('approval_status', 3);
+  $query->orderBy('approval_date', 'DESC');
+  $result = $query->execute();
+
+  // Fetch all rows into an array for easy counting and iteration.
+  $rows = $result->fetchAll();
+
+  if (empty($rows)) {
+    $output['content'] = [
+      '#markup' => 'We are in the process of updating the lab migration data.',
+    ];
+  } else {
+    $preference_rows = [];
+    $i = count($rows);
+    foreach ($rows as $row) {
+      $approval_date = date("Y", $row->approval_date);
+
+      // Create a URL for the lab title link.
+      $url = Url::fromUri('internal:/lab-migration/lab-migration-run/' . $row->id);
+      $link = Link::fromTextAndUrl($row->lab_title, $url)->toString();
+
+      $preference_rows[] = [
+        $i,
+        $row->university,
+        Markup::create($link),
+        $approval_date,
+      ];
+      $i--;
+    }
+
+    // Define table headers.
+    $preference_header = [
+      'No',
+      'Institute',
+      'Lab',
+      'Year',
+    ];
+
+    // Define the table render array.
+    $output['table'] = [
+      '#type' => 'table',
+      '#header' => $preference_header,
+      '#rows' => $preference_rows,
+    ];
+  }
+  return $output;
+
+  // Ensure the output is rendered and returned as a Response object.
+  // $rendered_output = \Drupal::service('renderer')->renderRoot($output);
+  // return new Response($rendered_output);
+}
+public function _list_all_lm_certificates() {
+  $query = Database::getConnection()->query("SELECT * FROM {lab_migration_certificate}");
+  $search_rows = [];
+
+  $details_list = $query->fetchAll();
+  foreach ($details_list as $details) {
+      $download_url = Url::fromUri('internal:/lab-migration/certificate/generate-pdf/' . $details->proposal_id . '/' . $details->id);
+      $edit_url = Url::fromUri('internal:/lab-migration/certificate/' . ($details->type == "Proposer" ? 'lm-proposer' : 'lm-participation') . '/form/edit/' . $details->proposal_id . '/' . $details->id);
+      
+      $search_rows[] = [
+          $details->lab_name,
+          $details->institute_name,
+          $details->name,
+          $details->type,
+          Link::fromTextAndUrl('Download Certificate', $download_url),
+          Link::fromTextAndUrl('Edit Certificate', $edit_url),
+      ];
+  }
+
+  $search_header = [
+      'Lab Name',
+      'Institute Name',
+      'Name',
+      'Type',
+      'Download Certificates',
+      'Edit Certificates',
+  ];
+
+  return [
+      '#type' => 'table',
+      '#header' => $search_header,
+      '#rows' => $search_rows,
+      '#empty' => t('No certificates found.'),
+  ];
+}
 }
