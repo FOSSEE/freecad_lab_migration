@@ -1,5 +1,4 @@
-<?php
-
+<?php 
 /**
  * @file
  * Contains \Drupal\lab_migration\Form\LabMigrationSettingsForm.
@@ -20,12 +19,18 @@ class LabMigrationSettingsForm extends ConfigFormBase {
   public function getFormId() {
     return 'lab_migration_settings_form';
   }
+  protected function getEditableConfigNames() {
+    return [
+      'lab_migration.settings',
+    ];
+  }
 
   public function buildForm(array $form, \Drupal\Core\Form\FormStateInterface $form_state) {
     $config = $this->config('lab_migration.settings');
     $form['emails'] = [
       '#type' => 'textfield',
-      '#title' => $this->t('(Bcc) Notification emails'),
+      '#attributes' => array('class' => array('form-control')),
+'#title' => $this->t('(Bcc) Notification emails'),
       '#description' => $this->t('Specify emails id for Bcc option of mail system with comma separated'),
       '#size' => 50,
       '#maxlength' => 255,
@@ -34,7 +39,8 @@ class LabMigrationSettingsForm extends ConfigFormBase {
     ];
     $form['cc_emails'] = [
       '#type' => 'textfield',
-      '#title' => $this->t('(Cc) Notification emails'),
+      '#attributes' => array('class' => array('form-control')),
+'#title' => $this->t('(Cc) Notification emails'),
       '#description' => $this->t('Specify emails id for Cc option of mail system with comma separated'),
       '#size' => 50,
       '#maxlength' => 255,
@@ -43,7 +49,8 @@ class LabMigrationSettingsForm extends ConfigFormBase {
     ];
     $form['from_email'] = [
       '#type' => 'textfield',
-      '#title' => $this->t('Outgoing from email address'),
+      '#attributes' => array('class' => array('form-control')),
+'#title' => $this->t('Outgoing from email address'),
       '#description' => $this->t('Email address to be display in the from field of all outgoing messages'),
       '#size' => 50,
       '#maxlength' => 255,
@@ -52,7 +59,8 @@ class LabMigrationSettingsForm extends ConfigFormBase {
     ];
     $form['extensions']['source'] = [
       '#type' => 'textfield',
-      '#title' => $this->t('Allowed source file extensions'),
+      '#attributes' => array('class' => array('form-control')),
+'#title' => $this->t('Allowed source file extensions'),
       '#description' =>$this->t('A comma separated list WITHOUT SPACE of source file extensions that are permitted to be uploaded on the server'),
       '#size' => 50,
       '#maxlength' => 255,
@@ -61,7 +69,8 @@ class LabMigrationSettingsForm extends ConfigFormBase {
     ];
     $form['extensions']['dependency'] = [
       '#type' => 'textfield',
-      '#title' => $this->t('Allowed dependency file extensions'),
+      '#attributes' => array('class' => array('form-control')),
+'#title' => $this->t('Allowed dependency file extensions'),
       '#description' => $this->t('A comma separated list WITHOUT SPACE of dependency file extensions that are permitted to be uploaded on the server'),
       '#size' => 50,
       '#maxlength' => 255,
@@ -70,7 +79,8 @@ class LabMigrationSettingsForm extends ConfigFormBase {
     ];
     $form['extensions']['result'] = [
       '#type' => 'textfield',
-      '#title' => $this->t('Allowed result file extensions'),
+      '#attributes' => array('class' => array('form-control')),
+'#title' => $this->t('Allowed result file extensions'),
       '#description' => $this->t('A comma separated list WITHOUT SPACE of result file extensions that are permitted to be uploaded on the server'),
       '#size' => 50,
       '#maxlength' => 255,
@@ -79,7 +89,8 @@ class LabMigrationSettingsForm extends ConfigFormBase {
     ];
     $form['extensions']['xcos'] = [
       '#type' => 'textfield',
-      '#title' => $this->t('Allowed xcos file extensions'),
+      '#attributes' => array('class' => array('form-control')),
+'#title' => $this->t('Allowed xcos file extensions'),
       '#description' => $this->t('A comma separated list WITHOUT SPACE of xcos file extensions that are permitted to be uploaded on the server'),
       '#size' => 50,
       '#maxlength' => 255,
@@ -88,7 +99,8 @@ class LabMigrationSettingsForm extends ConfigFormBase {
     ];
     $form['extensions']['pdf'] = [
       '#type' => 'textfield',
-      '#title' => $this->t('Allowed pdf file extensions'),
+      '#attributes' => array('class' => array('form-control')),
+'#title' => $this->t('Allowed pdf file extensions'),
       '#description' => $this->t('A comma separated list WITHOUT SPACE of pdf file extensions that are permitted to be uploaded on the server'),
       '#size' => 50,
       '#maxlength' => 255,
@@ -97,7 +109,8 @@ class LabMigrationSettingsForm extends ConfigFormBase {
     ];
     $form['extensions']['syllabus'] = [
       '#type' => 'textfield',
-      '#title' => $this->t('Allowed syllabus file extensions'),
+      '#attributes' => array('class' => array('form-control')),
+'#title' => $this->t('Allowed syllabus file extensions'),
       '#description' =>$this->t('A comma separated list WITHOUT SPACE of xcos file extensions that are permitted to be uploaded on the server'),
       '#size' => 50,
       '#maxlength' => 255,
@@ -132,12 +145,6 @@ class LabMigrationSettingsForm extends ConfigFormBase {
    ->save();
     \Drupal::messenger()->addMessage($this->t('Settings updated'), 'status');
   }
-  protected function getEditableConfigNames() {
-    return [
-      'lab_migration.settings',
-    ];
-  }
+
 }
-
-
 ?>

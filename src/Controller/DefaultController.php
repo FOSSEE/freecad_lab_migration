@@ -44,7 +44,7 @@ class DefaultController extends ControllerBase {
         
        // Create the link with the user's name as the link text.
        Link::fromTextAndUrl($pending_data->name, Url::fromRoute('entity.user.canonical', ['user' => $pending_data->uid])),
-
+      
 
         // Link::fromTextAndUrl($pending_data->name, 'user/' . $pending_data->uid),
         $pending_data->lab_title,
@@ -83,6 +83,7 @@ class DefaultController extends ControllerBase {
   }
   
       
+
 
 
   public function lab_migration_solution_proposal_pending() {
@@ -367,7 +368,11 @@ class DefaultController extends ControllerBase {
         $experiment_data->title,
         $proposal_data->name,
         $proposal_data->solution_provider_name,
-        //Link::fromTextAndUrl('Edit', 'lab-migration/code-approval/approve/' . $pending_solution_data->id),
+        $url = Url::fromRoute('lab_migration.code_approval_form', ['solution_id' => $pending_solution_data->id]),
+
+// Create the link with Link::fromTextAndUrl.
+$link = Link::fromTextAndUrl(t('Edit'), $url)->toString(),
+        // Link::fromTextAndUrl('Edit', 'lab-migration/code-approval/approve/' . $pending_solution_data->id),
       ];
     }
     /* check if there are any pending solutions */
@@ -808,7 +813,7 @@ $link = Link::fromTextAndUrl('Edit Category', $url),
     $query->range(0, 1);
     $solution_files_q = $query->execute();*/
     $solution_file_data = $solution_files_q->fetchObject();
-    header('Content-Type: ' . $solution_file_data->filemime);
+    header('Content-Type: ' . $solution_file_data->filename);
     header('Content-disposition: attachment; filename="' . str_replace(' ', '_', ($solution_file_data->filename)) . '"');
     header('Content-Length: ' . filesize($root_path . $solution_file_data->directory_name . '/' . $solution_file_data->filepath));
     ob_clean();
@@ -1803,16 +1808,16 @@ public function lab_migration_list_experiments() {
     $query->orderBy('id', 'ASC');
     $solution_q = $query->execute();
 
-    // if ($solution_q) {
-    //   while ($solution_data = $solution_q->fetchObject()) {
-    //     $solution_status = ($solution_data->approval_status == 0) ? "Pending" : (($solution_data->approval_status == 1) ? "Approved" : "Unknown");
+    if ($solution_q) {
+      while ($solution_data = $solution_q->fetchObject()) {
+        $solution_status = ($solution_data->approval_status == 0) ? "Pending" : (($solution_data->approval_status == 1) ? "Approved" : "Unknown");
 
         // Action link for 'Delete' if approval status is pending.
         $action_link = '';
-        // if ($solution_data->approval_status == 0) {
-        //   $delete_url = Url::fromRoute('lab_migration.upload_code_delete', ['id' => $solution_data->id]);
-        //   $action_link = Link::fromTextAndUrl('Delete', $delete_url)->toString();
-        // }
+        if ($solution_data->approval_status == 0) {
+          $delete_url = Url::fromRoute('lab_migration.upload_code_delete', ['id' => $solution_data->id]);
+          $action_link = Link::fromTextAndUrl('Delete', $delete_url)->toString();
+        }
 
         $experiment_rows[] = [
           // "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" . 
@@ -1829,21 +1834,21 @@ public function lab_migration_list_experiments() {
         $query->orderBy('id', 'ASC');
         $solution_files_q = $query->execute();
 
-        // if ($solution_files_q) {
-        //   while ($solution_files_data = $solution_files_q->fetchObject()) {
-        //     $filetype_map = ['S' => 'Source', 'R' => 'Result', 'X' => 'Xcox', 'U' => 'Unknown'];
-        //     $code_file_type = $filetype_map[$solution_files_data->filetype] ?? 'Unknown';
+        if ($solution_files_q) {
+          while ($solution_files_data = $solution_files_q->fetchObject()) {
+            $filetype_map = ['S' => 'Source', 'R' => 'Result', 'X' => 'Xcox', 'U' => 'Unknown'];
+            $code_file_type = $filetype_map[$solution_files_data->filetype] ?? 'Unknown';
 
-        //     $download_url = Url::fromRoute('lab_migration.download_solution_file', ['id' => $solution_files_data->id]);
-        //     $experiment_rows[] = [
+            $download_url = Url::fromRoute('lab_migration.download_solution_file', ['id' => $solution_files_data->id]);
+            $experiment_rows[] = [
              
-        //       Link::fromTextAndUrl($solution_files_data->filename, $download_url)->toString(),
-        //       $code_file_type,
-        //       '',
-        //       ''
-        //     ];
-        //   }
-        // }
+              Link::fromTextAndUrl($solution_files_data->filename, $download_url)->toString(),
+              $code_file_type,
+              '',
+              ''
+            ];
+          }
+        }
       
         // Get dependency files related to each solution.
         $query = \Drupal::database()->select('lab_migration_solution_dependency', 'lmsd');
@@ -1866,8 +1871,8 @@ public function lab_migration_list_experiments() {
               '',
               ''
             ];
-          // }
-        // }
+          }
+        }
       }
     }
   }
@@ -1974,4 +1979,66 @@ public function _list_all_lm_certificates() {
       '#empty' => t('No certificates found.'),
   ];
 }
+function ajax_get_lm_city_list_callback($form, $form_state)
+{
+    $state_default_value = $form_state['values']['all_state'];
+    $district_default_value = $form_state['values']['district'];
+    if ($district_default_value != '0')
+    {
+        $form['city']['#options'] = _lab_migration_list_of_cities($state_default_value, $district_default_value);
+        $commands[] = ajax_command_replace("#ajax-city-list-replace", drupal_render($form['city']));
+        $form['pincode']['#options'] =  array('0' => '- Select -');
+        $commands[] = ajax_command_replace("#ajax-pincode-list-replace", drupal_render($form['pincode']));
+    }else{
+        $form['city']['#options'] = array('0' => '- Select -');
+        $commands[] = ajax_command_replace("#ajax-city-list-replace", drupal_render($form['city']));
+    }
+    return array(
+        '#type' => 'ajax',
+        '#commands' => $commands
+    );
 }
+function ajax_get_lm_district_list_callback($form, $form_state)
+{
+    $state_default_value = $form_state['values']['all_state'];
+    if ($state_default_value != '0')
+    {
+        $form['district']['#options'] = _lab_migration_list_of_district($state_default_value);
+        $commands[] = ajax_command_replace("#ajax-district-list-replace", drupal_render($form['district']));
+        $form['pincode']['#options'] =  array('0' =>'- Select -');
+        $commands[] = ajax_command_replace("#ajax-pincode-list-replace", drupal_render($form['pincode']));
+        $form['city']['#options'] = array('0' => '- Select -');
+        $commands[] = ajax_command_replace("#ajax-city-list-replace", drupal_render($form['city']));
+    }else{
+        $form['district']['#options'] = array('0' => '- Select -');
+        $commands[] = ajax_command_replace("#ajax-district-list-replace", drupal_render($form['district']));
+        $form['pincode']['#options'] =  array('0' =>'- Select -');
+        $commands[] = ajax_command_replace("#ajax-pincode-list-replace", drupal_render($form['pincode']));
+        $form['city']['#options'] = array('0' => '- Select -');
+        $commands[] = ajax_command_replace("#ajax-city-list-replace", drupal_render($form['city']));
+    }
+    return array(
+        '#type' => 'ajax',
+        '#commands' => $commands
+    );
+}
+function ajax_get_lm_city_pincode_list_callback($form, $form_state)
+{
+    $city_default_value = $form_state['values']['city'];
+    $state_default_value = $form_state['values']['all_state'];
+    $district_default_value = $form_state['values']['district'];
+    if ($city_default_value != '0')
+    {
+        $form['pincode']['#options'] = _lab_migration_list_of_city_pincode($city_default_value,$state_default_value,$district_default_value);
+        $commands[] = ajax_command_replace("#ajax-pincode-list-replace", drupal_render($form['pincode']));
+    }else{
+        $form['pincode']['#options'] =  array('0' => '- Select -');
+        $commands[] = ajax_command_replace("#ajax-pincode-list-replace", drupal_render($form['pincode']));
+    }
+    return array(
+        '#type' => 'ajax',
+        '#commands' => $commands
+    );
+}
+}
+?>

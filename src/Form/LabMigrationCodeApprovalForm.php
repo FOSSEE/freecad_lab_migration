@@ -13,6 +13,8 @@ use Drupal\Core\Render\Element;
 use Drupal\Core\Url;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
+use Drupal\user\Entity\User;
+use Drupal\Core\Link;
 
 class LabMigrationCodeApprovalForm extends FormBase {
 
@@ -67,17 +69,17 @@ return $response;
     $proposal_q = $query->execute();
     $proposal_data = $proposal_q->fetchObject();
     /* get solution provider details */
-    $solution_provider_user_name = '';
+    $solution_provider_user_name = $proposal_data->solution_provider_name;
     // $user_data = loadMultiple($proposal_data->solution_provider_uid);
     
-    $user_data = User::load($proposal_data->solution_provider_uid);
-    
-    if ($user_data) {
-      $solution_provider_user_name = $user_data->name;
-    }
-    else {
-      $solution_provider_user_name = '';
-    }
+    // $user_data = User::load($proposal_data->solution_provider_uid);
+    // $user_data = \Drupal::entityTypeManager()->getStorage('user')->load($proposal_data->solution_provider_uid);
+    // if ($user_data) {
+    //   $solution_provider_user_name = $user_data->name;
+    // }
+    // else {
+      // $solution_provider_user_name = '';
+    // }
     $form['#tree'] = TRUE;
     $form['lab_title'] = [
       '#type' => 'item',
@@ -101,8 +103,11 @@ return $response;
     ];
     $form['back_to_list'] = [
       '#type' => 'item',
-      '#markup' => Link::fromTextAndUrl('Back to Code Approval List', 'lab-migration/code-approval'),
-    ];
+      // '#markup' => Link::fromTextAndUrl('Back to Code Approval List', 'lab-migration/code-approval'),
+    '#markup' => Link::fromTextAndUrl('Back to Code Approval List', Url::fromRoute('lab_migration.code_approval'))->toString(),
+   
+
+  ];
     $form['code_number'] = [
       '#type' => 'item',
       '#markup' => $solution_data->code_number,
@@ -141,7 +146,14 @@ return $response;
             $code_file_type = 'Unknown';
             break;
         }
-        $solution_files_html .= Link::fromTextAndUrl($solution_files_data->filename, 'lab-migration/download/file/' . $solution_files_data->id) . ' (' . $code_file_type . ')' . '<br/>';
+        $url = Url::fromRoute('lab_migration.download_solution_file', ['file_id' => $solution_files_data->id]);
+
+// Create the link with Link::fromTextAndUrl.
+$link = Link::fromTextAndUrl($solution_files_data->filename, $url)->toString();
+
+// Append the link and additional HTML.
+$solution_files_html .= $link . ' (' . $code_file_type . ')<br/>';
+       
         /*if(strlen($solution_files_data->pdfpath)>=5){
             $pdfname=substr($solution_files_data->pdfpath, strrpos($solution_files_data->pdfpath, '/') + 1);
             $solution_files_html .=l($pdfname, 'lab-migration/download/pdf/' . $solution_files_data->id). ' (PDF File)' . '<br/>';
@@ -149,22 +161,22 @@ return $response;
       }
     }
     /* get dependencies files */
-    //$dependency_q = $injected_database->query("SELECT * FROM {lab_migration_solution_dependency} WHERE solution_id = %d ORDER BY id ASC", $solution_id);
-    $query = \Drupal::database()->select('lab_migration_solution_dependency');
-    $query->fields('lab_migration_solution_dependency');
-    $query->condition('solution_id', $solution_id);
-    $query->orderBy('id', 'ASC');
-    $dependency_q = $query->execute();
-    while ($dependency_data = $dependency_q->fetchObject()) {
-      //$dependency_files_q = $injected_database->query("SELECT * FROM {lab_migration_dependency_files} WHERE id = %d", $dependency_data->dependency_id);
-      $query = \Drupal::database()->select('lab_migration_dependency_files');
-      $query->fields('lab_migration_dependency_files');
-      $query->condition('id', $dependency_data->dependency_id);
-      $dependency_files_q = $query->execute();
-      $dependency_files_data = $dependency_files_q->fetchObject();
-      $solution_file_type = 'Dependency file';
-      $solution_files_html .= Link::fromTextAndUrl($dependency_files_data->filename, 'lab-migration/download/dependency/' . $dependency_files_data->id) . ' (' . 'Dependency' . ')' . '<br/>';
-    }
+    // $dependency_q = $injected_database->query("SELECT * FROM {lab_migration_solution_dependency} WHERE solution_id = %d ORDER BY id ASC", $solution_id);
+    // $query = \Drupal::database()->select('lab_migration_solution_dependency');
+    // $query->fields('lab_migration_solution_dependency');
+    // $query->condition('solution_id', $solution_id);
+    // $query->orderBy('id', 'ASC');
+    // $dependency_q = $query->execute();
+    // while ($dependency_data = $dependency_q->fetchObject()) {
+    //   //$dependency_files_q = $injected_database->query("SELECT * FROM {lab_migration_dependency_files} WHERE id = %d", $dependency_data->dependency_id);
+    //   $query = \Drupal::database()->select('lab_migration_dependency_files');
+    //   $query->fields('lab_migration_dependency_files');
+    //   $query->condition('id', $dependency_data->dependency_id);
+    //   $dependency_files_q = $query->execute();
+    //   $dependency_files_data = $dependency_files_q->fetchObject();
+    //   $solution_file_type = 'Dependency file';
+    //   $solution_files_html .= Link::fromTextAndUrl($dependency_files_data->filename, 'lab-migration/download/dependency/' . $dependency_files_data->id) . ' (' . 'Dependency' . ')' . '<br/>';
+    // }
     $form['solution_files'] = [
       '#type' => 'item',
       '#markup' => $solution_files_html,
@@ -194,34 +206,16 @@ return $response;
     ];
     $form['submit'] = [
       '#type' => 'submit',
-      '#value' => t('Submit'),
+      '#value' => $this->t('Submit'),
     ];
     $form['cancel'] = [
       '#type' => 'markup',
-      '#markup' => Link::fromTextAndUrl(t('Cancel'), 'lab_migration/code_approval'),
+      // '#markup' => Link::fromTextAndUrl(t('Cancel'), 'lab_migration/code_approval'),
+      '#markup' => Link::fromTextAndUrl( t('Cancel'), 
+         Url::fromRoute('lab_migration.code_approval'))->toString(),
+
     ];
-    if (!$pending_solution_rows)
-      {
-        drupal_set_message(t('There are no pending solutions'), 'status');
-        return '';
-      }
-    $header = array(
-      'Title of the Lab',
-      'Experiment',
-      'Proposer',
-      'Solution Provider',
-      'Actions'
-  );
-  //$output = theme_table($header, $pending_solution_rows);
-  $output = [
-    '#type' => 'table',
-    '#header' => $header,
-    '#rows' => $pending_solution_rows
-  ];
-     
-  
-  return $output;
-    // return $form;
+    return $form;
   }
 
   public function validateForm(array &$form, \Drupal\Core\Form\FormStateInterface $form_state) {
@@ -235,10 +229,13 @@ return $response;
 
   public function submitForm(array &$form, \Drupal\Core\Form\FormStateInterface $form_state) {
     $user = \Drupal::currentUser();
+    // $user->get('uid')->value;
+
+
     // $solution_id = (int) arg(3);
     $route_match = \Drupal::routeMatch();
 
-$solution_id = (int) $route_match→getParameter('solution_id');
+$solution_id = (int) $route_match->getParameter('solution_id');
     /* get solution details */
     //$solution_q = $injected_database->query("SELECT * FROM {lab_migration_solution} WHERE id = %d", $solution_id);
     $query = \Drupal::database()->select('lab_migration_solution');
@@ -264,13 +261,16 @@ $solution_id = (int) $route_match→getParameter('solution_id');
     $query->condition('id', $experiment_data->proposal_id);
     $proposal_q = $query->execute();
     $proposal_data = $proposal_q->fetchObject();
-    $user_data = loadMultiple($proposal_data->uid);
-    $solution_prove_user_data = loadMultiple($proposal_data->solution_provider_uid);
+    // $user_data = loadMultiple($proposal_data->uid);
+
+    $user_data = User::loadMultiple([$proposal_data->uid]);   
+    //  $solution_prove_user_data =User::loadMultiple($proposal_data->solution_provider_uid);
     // **** TODO **** : del_lab_pdf($proposal_data->id);
     if ($form_state->getValue(['approved']) == "0") {
       $query = "UPDATE {lab_migration_solution} SET approval_status = 0, approver_uid = :approver_uid, approval_date = :approval_date WHERE id = :solution_id";
       $args = [
-        ":approver_uid" => $user->uid,
+        ":approver_uid" => $approver_uid,
+
         ":approval_date" => time(),
         ":solution_id" => $solution_id,
       ];
@@ -326,11 +326,12 @@ $solution_id = (int) $route_match→getParameter('solution_id');
       }
       else {
         if ($form_state->getValue(['approved']) == "2") {
-          if (lab_migration_delete_solution($solution_id)) {
+          if (\Drupal::service("lab_migration_global")->lab_migration_delete_solution($solution_id)) {
             /* sending email */
             $email_to = $user_data->mail;
-            $from = $config->get('lab_migration_from_email', '');
-            $bcc = $config->get('lab_migration_emails', '');
+            // $from = $config->get('lab_migration_from_email', '');
+            $from = \Drupal::config('lab_migration.settings')->get('lab_migration_from_email');
+            $bcc = \Drupal::config('lab_migration.settings')->get('lab_migration_emails', '');
             $cc = $config->get('lab_migration_cc_emails', '');
             $param['solution_disapproved']['solution_id'] = $proposal_data->id;
             $param['solution_disapproved']['experiment_number'] = $experiment_data->number;

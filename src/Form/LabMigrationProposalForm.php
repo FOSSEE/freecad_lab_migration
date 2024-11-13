@@ -84,18 +84,22 @@ class LabMigrationProposalForm extends FormBase {
     $form['#attributes'] = ['enctype' => "multipart/form-data"];
     $form['name_title'] = [
       '#type' => 'select',
-      '#title' => $this->t('Title'),
+      '#attributes' => array('class' => array('form-control')),
+'#title' => $this->t('Title'),
       '#options' => [
         'Dr' => 'Dr',
         'Prof' => 'Prof',
+        
       ],
       '#required' => TRUE,
     ];
     $form['name'] = [
       '#type' => 'textfield',
-      '#title' => $this->t('Name of the Proposer'),
-      '#size' => 200,
+      // '#attributes' => array('class' => array('form-control')),
+'#title' => $this->t('Name of the Proposer'),
+      '#size' => 100,
       '#attributes' => [
+  'class' => ['form-control'],
         'placeholder' => $this->t('Enter your full name')
         ],
       '#maxlength' => 200,
@@ -103,14 +107,16 @@ class LabMigrationProposalForm extends FormBase {
     ];
     $form['email_id'] = [
       '#type' => 'textfield',
-      '#title' => $this->t('Email'),
+      // '#attributes' => array('class' => array('form-control')),
+'#title' => $this->t('Email'),
       '#size' => 30,
       '#value' => $user ? $user->getEmail() : '',
       '#disabled' => TRUE,
     ];
     $form['contact_ph'] = [
       '#type' => 'textfield',
-      '#title' => $this->t('Contact No.'),
+      '#attributes' => array('class' => array('form-control')),
+'#title' => $this->t('Contact No.'),
       '#size' => 30,
       '#attributes' => [
         'placeholder' => t('Enter your contact number')
@@ -120,14 +126,17 @@ class LabMigrationProposalForm extends FormBase {
     ];
     $form['department'] = [
       '#type' => 'select',
-      '#title' => $this->t('Department/Branch'),
+      // '#attributes' => array('class' => array('form-control')),
+'#title' => $this->t('Department/Branch'),
       '#options' => \Drupal::service("lab_migration_global")->_lm_list_of_departments(),
       '#required' => TRUE,
+      
     ];
     $form['university'] = [
       '#type' => 'textfield',
-      '#title' => $this->t('University/ Institute'),
-      '#size' => 80,
+      // '#attributes' => array('class' => array('form-control')),
+'#title' => $this->t('University/ Institute'),
+      '#size' => 50,
       '#maxlength' => 200,
       '#required' => TRUE,
       '#attributes' => [
@@ -136,19 +145,22 @@ class LabMigrationProposalForm extends FormBase {
     ];
     $form['country'] = [
       '#type' => 'select',
-      '#title' => $this->t('Country'),
+      // '#attributes' => array('class' => array('form-control')),
+'#title' => $this->t('Country'),
       '#options' => [
         'India' => 'India',
         'Others' => 'Others',
       ],
       '#required' => TRUE,
+      // '#attributes' => ['class' => ['form-control']],
       '#tree' => TRUE,
       '#validated' => TRUE,
     ];
     $form['other_country'] = [
       '#type' => 'textfield',
-      '#title' => $this->t('Other than India'),
-      '#size' => 100,
+      // '#attributes' => array('class' => array('form-control')),
+'#title' => $this->t('Other than India'),
+      '#size' => 30,
       '#attributes' => [
         'placeholder' => $this->t('Enter your country name')
         ],
@@ -162,8 +174,9 @@ class LabMigrationProposalForm extends FormBase {
     ];
     $form['other_state'] = [
       '#type' => 'textfield',
-      '#title' => t('State other than India'),
-      '#size' => 100,
+      // '#attributes' => array('class' => array('form-control')),
+'#title' => t('State other than India'),
+      '#size' => 50,
       '#attributes' => [
         'placeholder' => t('Enter your state/region name')
         ],
@@ -177,8 +190,9 @@ class LabMigrationProposalForm extends FormBase {
     ];
     $form['other_city'] = [
       '#type' => 'textfield',
-      '#title' => $this->t('City other than India'),
-      '#size' => 100,
+      // '#attributes' => array('class' => array('form-control')),
+'#title' => $this->t('City other than India'),
+      '#size' => 50,
       '#attributes' => [
         'placeholder' => $this->t('Enter your city name')
         ],
@@ -192,7 +206,8 @@ class LabMigrationProposalForm extends FormBase {
     ];
     $form['all_state'] = [
       '#type' => 'select',
-      '#title' => t('State'),
+      '#attributes' => array('class' => array('form-control')),
+'#title' => t('State'),
       '#options' => \Drupal::service("lab_migration_global")->_lm_list_of_states(),
       '#validated' => TRUE,
       '#states' => [
@@ -205,7 +220,8 @@ class LabMigrationProposalForm extends FormBase {
     ];
     $form['city'] = [
       '#type' => 'select',
-      '#title' => t('City'),
+      '#attributes' => array('class' => array('form-control')),
+'#title' => t('City'),
       '#options' => \Drupal::service("lab_migration_global")->_lm_list_of_cities(),
       '#states' => [
         'visible' => [
@@ -217,7 +233,8 @@ class LabMigrationProposalForm extends FormBase {
     ];
     $form['pincode'] = [
       '#type' => 'textfield',
-      '#title' => t('Pincode'),
+      '#attributes' => array('class' => array('form-control')),
+'#title' => t('Pincode'),
       '#size' => 30,
       '#maxlength' => 6,
       '#required' => TRUE,
@@ -233,14 +250,16 @@ class LabMigrationProposalForm extends FormBase {
     ];
     $form['operating_system'] = [
       '#type' => 'textfield',
-      '#title' => t('Operating System'),
+      // '#attributes' => array('class' => array('form-control')),
+'#title' => t('Operating System'),
       '#size' => 30,
       '#maxlength' => 100,
       '#required' => TRUE,
     ];
     $form['version'] = [
       '#type' => 'select',
-      '#title' => $this->t('FreeCad Version'),
+      // '#attributes' => array('class' => array('form-control')),
+'#title' => $this->t('FreeCad Version'),
       '#options' =>\Drupal::service("lab_migration_global")->_lm_list_of_software_version(),
       '#required' => TRUE,
     ];
@@ -260,7 +279,8 @@ class LabMigrationProposalForm extends FormBase {
     ];
     $form['syllabus_link'] = [
       '#type' => 'textfield',
-      '#title' => $this->t('Syllabus Link'),
+      
+'#title' => $this->t('Syllabus Link'),
       '#required' => TRUE,
       '#attributes' => [
         'placeholder' => 'Add the syllabus link '
@@ -268,20 +288,29 @@ class LabMigrationProposalForm extends FormBase {
     ];
     $form['syllabus_copy'] = [
       '#type' => 'fieldset',
-      '#title' => $this->t('<span class="form-required form-item" title="This field is required.">Syllabus copy (PDF) Files *</span>'),
+      
+'#title' => $this->t('<span class="form-required form-item" title="This field is required.">Syllabus copy (PDF) Files *</span>'),
       '#collapsible' => FALSE,
       '#collapsed' => FALSE,
     ];
+//     $form['syllabus_copy']['syllabus_copy_file'] = [
+//       '#type' => 'file',
+//       $form['#attributes']['enctype'] = "multipart/form-data",
+// '#title' => $this->t('Upload pdf file'),
+//       '#size' => 48,
+//       '#description' => $this->t('Separate filenames with underscore. No spaces or any special characters allowed in filename.') . '<br />' . t('<span style="color:red;">Allowed file extensions : ') . \Drupal::config('lab_migration.settings')->get('lab_migration_syllabus_file_extensions') . '</span>',
+//     ];
     $form['syllabus_copy']['syllabus_copy_file'] = [
       '#type' => 'file',
       '#title' => $this->t('Upload pdf file'),
       '#size' => 48,
-      '#description' => $this->t('Separate filenames with underscore. No spaces or any special characters allowed in filename.') . '<br />' . t('<span style="color:red;">Allowed file extensions : ') . \Drupal::config('lab_migration.settings')->get('lab_migration_syllabus_file_extensions') . '</span>',
-    ];
+    '#description' => $this->t('Separate filenames with underscore. No spaces or any special characters allowed in filename.') . '<br />' . t('<span style="color:red;">Allowed file extensions : ') . \Drupal::config('lab_migration.settings')->get('lab_migration_syllabus_file_extensions') . '</span>',
 
+    ];
     $form['lab_title'] = [
       '#type' => 'textfield',
-      '#title' => $this->t('Title of the Lab'),
+      '#attributes' => array('class' => array('form-control')),
+'#title' => $this->t('Title of the Lab'),
       '#size' => 100,
       '#required' => TRUE,
     ];
@@ -290,7 +319,8 @@ class LabMigrationProposalForm extends FormBase {
       if ($counter <= 2) {
         $form['lab_experiment-' . $counter] = [
           '#type' => 'textfield',
-          '#title' => $this->t('Title of the Experiment ') . $counter,
+          '#attributes' => array('class' => array('form-control')),
+'#title' => $this->t('Title of the Experiment ') . $counter,
           '#size' => 100,
           '#required' => TRUE,
         ];
@@ -303,7 +333,8 @@ class LabMigrationProposalForm extends FormBase {
             'cols' => 50,
             'rows' => 4,
           ],
-          '#title' => t('Description for Experiment ') . $counter,
+          '#attributes' => array('class' => array('form-control')),
+'#title' => t('Description for Experiment ') . $counter,
           '#states' => [
             'invisible' => [
               ':input[name=' . $namefield . ']' => [
@@ -316,7 +347,8 @@ class LabMigrationProposalForm extends FormBase {
       else {
         $form['lab_experiment-' . $counter] = [
           '#type' => 'textfield',
-          '#title' => $this->t('Title of the Experiment ') . $counter,
+          '#attributes' => array('class' => array('form-control')),
+'#title' => $this->t('Title of the Experiment ') . $counter,
           '#size' => 100,
           '#required' => FALSE,
         ];
@@ -329,7 +361,8 @@ class LabMigrationProposalForm extends FormBase {
             'cols' => 50,
             'rows' => 4,
           ],
-          '#title' => $this->t('Description for Experiment ') . $counter,
+          '#attributes' => array('class' => array('form-control')),
+'#title' => $this->t('Description for Experiment ') . $counter,
           '#states' => [
             'invisible' => [
               ':input[name=' . $namefield . ']' => [
@@ -343,7 +376,8 @@ class LabMigrationProposalForm extends FormBase {
     }
     $form['solution_provider_uid'] = [
       '#type' => 'radios',
-      '#title' => $this->t('Do you want to provide the solution'),
+// '#attributes' => ['class' => ['form-control']],
+'#title' => $this->t('Do you want to provide the solution'),
       '#options' => [
         '1' => 'Yes',
         '2' => 'No',
@@ -354,7 +388,8 @@ class LabMigrationProposalForm extends FormBase {
     ];
     $form['solution_display'] = [
       '#type' => 'hidden',
-      '#title' => $this->t('Do you want to display the solution on the www.r.fossee.in website'),
+      // '#attributes' => array('class' => array('form-control')),
+'#title' => $this->t('Do you want to display the solution on the www.r.fossee.in website'),
       '#options' => [
         '1' => 'Yes'
         ],
@@ -365,7 +400,8 @@ class LabMigrationProposalForm extends FormBase {
     ];
     $form['sample_syllabus_file'] = [
       '#type' => 'item',
-      '#title' => $this->t('<h5>Ideal Sample Lab Migration Submission</h5>'),
+      // '#attributes' => array('class' => array('form-control')),
+'#title' => $this->t('<h5>Ideal Sample Lab Migration Submission</h5>'),
       '#markup' => $this->t('Kindly refer to the ') . t('<a href= "https://r.fossee.in/lab-migration/lab-migration-run/12" target="_blank">Sample Lab Migration (Statistical Quality Control using R)</a> and <a href= "https://r.fossee.in/lab-migration/lab-migration-run/6" target="_blank">Sample Lab Migration (Analysis using R)</a>') . '' . t(' to know the ideal submission.'),
     ];
     $form['submit'] = [
@@ -662,11 +698,11 @@ $proposal_id= $connection->insert('lab_migration_proposal')->fields($args)->exec
     //   \Drupal::messenger()->addError('Error sending email message.');
     //  }
     \Drupal::messenger()->addStatus($this->t('We have received you Lab migration proposal. We will get back to you soon.'));
-    // RedirectResponse('');
-    // Generate the URL and redirect
-// $url = Url::fromRoute('<front>')->toString();
-$response = new RedirectResponse('lab_migration.manage_proposal');
-$response->send();
+    
+$response = new RedirectResponse(Url::fromRoute('<front>')->toString());
+  
+  // Send the redirect response
+  $response->send();
   }
 
 }

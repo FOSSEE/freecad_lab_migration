@@ -98,7 +98,7 @@ lab_migration.code_approval:
   requirements:
     _permission: 'lab migration approve code'
 lab_migration.code_approval_form:
-  path: /lab_migration/code-approval/approve
+  path: /lab_migration/code-approval/approve/{solution_id}
   defaults:
     _title: 'Code Approval'
     _form: \Drupal\lab_migration\Form\LabMigrationCodeApprovalForm
