@@ -15,6 +15,7 @@ use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Response;
 use Drupal\user\Entity\User;
 use Drupal\Core\Link;
+use Drupal\Core\Config\ConfigFactoryInterface;
 
 class LabMigrationCodeApprovalForm extends FormBase {
 
@@ -229,6 +230,7 @@ $solution_files_html .= $link . ' (' . $code_file_type . ')<br/>';
 
   public function submitForm(array &$form, \Drupal\Core\Form\FormStateInterface $form_state) {
     $user = \Drupal::currentUser();
+
     // $user->get('uid')->value;
 
 
@@ -264,20 +266,23 @@ $solution_id = (int) $route_match->getParameter('solution_id');
     // $user_data = loadMultiple($proposal_data->uid);
 
     $user_data = User::loadMultiple([$proposal_data->uid]);   
+    $approver_uid = $user->id();
+
     //  $solution_prove_user_data =User::loadMultiple($proposal_data->solution_provider_uid);
     // **** TODO **** : del_lab_pdf($proposal_data->id);
     if ($form_state->getValue(['approved']) == "0") {
       $query = "UPDATE {lab_migration_solution} SET approval_status = 0, approver_uid = :approver_uid, approval_date = :approval_date WHERE id = :solution_id";
       $args = [
         ":approver_uid" => $approver_uid,
-
         ":approval_date" => time(),
         ":solution_id" => $solution_id,
       ];
       \Drupal::database()->query($query, $args);
       /* sending email */
       $email_to = $user_data->mail;
-      $from = $config->get('lab_migration_from_email', '');
+      $from = $this->configFactory->get('lab_migration.settings')->get('lab_migration_from_email');
+
+      // $from = $config->get('lab_migration_from_email', '');
       $bcc = $config->get('lab_migration_emails', '');
       $cc = $config->get('lab_migration_cc_emails', '');
       $param['solution_pending']['solution_id'] = $solution_id;
@@ -299,14 +304,16 @@ $solution_id = (int) $route_match->getParameter('solution_id');
       if ($form_state->getValue(['approved']) == "1") {
         $query = "UPDATE {lab_migration_solution} SET approval_status = 1, approver_uid = :approver_uid, approval_date = :approval_date WHERE id = :solution_id";
         $args = [
-          ":approver_uid" => $user->uid,
+          ":approver_uid" => $approver_uid,
           ":approval_date" => time(),
           ":solution_id" => $solution_id,
         ];
         \Drupal::database()->query($query, $args);
         /* sending email */
         $email_to = $user_data->mail;
-        $from = $config->get('lab_migration_from_email', '');
+      $from = $this->configFactory->get('lab_migration.settings')->get('lab_migration_from_email');
+
+        // $from = $config->get('lab_migration_from_email', '');
         $bcc = $config->get('lab_migration_emails', '');
         $cc = $config->get('lab_migration_cc_emails', '');
         $param['solution_approved']['solution_id'] = $solution_id;
@@ -360,7 +367,12 @@ $solution_id = (int) $route_match->getParameter('solution_id');
       }
     }
     \Drupal::messenger()->addmessage('Updated successfully.', 'status');
-    RedirectResponse('lab-migration/code-approval');
+    // RedirectResponse('lab-migration/code-approval');
+    $response = new RedirectResponse(Url::fromRoute('lab_migration.code_approval')->toString());
+  
+  // Send the redirect response
+  $response->send();
+  
   }
 
 }

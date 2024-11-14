@@ -696,12 +696,11 @@ $proposal_id= $connection->insert('lab_migration_proposal')->fields($args)->exec
     ];
     // if (!\Drupal::service('plugin.manager.mail')->mail('lab_migration', 'proposal_received', $email_to, 'en', $param, $from )) {
     //   \Drupal::messenger()->addError('Error sending email message.');
-    //  }
+//     //  }
     \Drupal::messenger()->addStatus($this->t('We have received you Lab migration proposal. We will get back to you soon.'));
-    
-$response = new RedirectResponse(Url::fromRoute('<front>')->toString());
+     $response = new RedirectResponse(Url::fromRoute('<front>')->toString());
   
-  // Send the redirect response
+// //   // Send the redirect response
   $response->send();
   }
 

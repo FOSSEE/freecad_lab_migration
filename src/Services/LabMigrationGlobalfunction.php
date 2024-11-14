@@ -618,7 +618,7 @@ $lab_id = (int) $route_match->getParameter('lab_id');
   /* get experiment list */
   $experiment_rows = array();
   //$experiment_q = db_query("SELECT * FROM {lab_migration_experiment} WHERE proposal_id = %d ORDER BY id ASC", $proposal_data->id);
-  $query = db_select('lab_migration_experiment');
+  $query = \Drupal::database()->select('lab_migration_experiment');
                 $query->fields('lab_migration_experiment');
                 $query->condition('proposal_id', $proposal_data->id);
                 $query->orderBy('id', 'ASC');
@@ -834,7 +834,285 @@ $lab_id = (int) $route_match->getParameter('lab_id');
       \Drupal::database()->delete('lab_migration_solution')->condition('id', $solution_id)->execute();
     return $status;
 }
+function lab_migration_with_morefeature($key, &$message, $params)
+  {
+    if (isset($params['subject']))
+      {
+        $message['subject'] = $params['subject'];
+      }
+    if (isset($params['body']))
+      {
+        $message['body'][] = $params['body'];
+      }
+    if (isset($params['headers']) && is_array($params['headers']))
+      {
+        $message['headers'] += $params['headers'];
+      }
+  }
+  function ajax_bulk_solution_list_callback($form, $form_state)
+  {
+    $commands = array();
+    $experiment_list_default_value = $form_state['values']['lab_experiment_list'];
+    //var_dump($lab_default_value);
+    if ($experiment_list_default_value != 0)
+      {
+        $form['lab_experiment_actions']['#options'] = _bulk_list_experiment_actions();
+        $form['lab_solution_list']['#options'] = _ajax_bulk_get_solution_list($experiment_list_default_value);
+        $commands[] = ajax_command_html('#ajax_download_experiment', l('Download Experiment', 'lab-migration/full-download/experiment/' . $experiment_list_default_value));
+        $commands[] = ajax_command_data('#ajax_selected_experiment', 'form_state_value_select', $form_state['values']['lab_experiment_list']);
+        $commands[] = ajax_command_html('#ajax_selected_experiment', drupal_render($form['lab_experiment_list']));
+        $commands[] = ajax_command_html('#ajax_selected_lab_experiment_action', drupal_render($form['lab_experiment_actions']));
+        $commands[] = ajax_command_html('#ajax_selected_solution', drupal_render($form['lab_solution_list']));
+        $commands[] = ajax_command_html('#ajax_selected_lab_experiment_solution_action', '');
+        $commands[] = ajax_command_html('#ajax_solution_files', '');
+        $commands[] = ajax_command_html('#ajax_download_experiment_solution', '');
+        $commands[] = ajax_command_html('#ajax_edit_experiment_solution', '');
+      }
+    else
+      {
+        $commands[] = ajax_command_html('#ajax_download_experiment', '');
+        $commands[] = ajax_command_html('#ajax_selected_lab_experiment_action', '');
+        $commands[] = ajax_command_html('#ajax_selected_solution', '');
+        $commands[] = ajax_command_html('#ajax_selected_lab_experiment_solution_action', '');
+        $commands[] = ajax_command_html('#ajax_solution_files', '');
+        $commands[] = ajax_command_html('#ajax_download_experiment_solution', '');
+        $commands[] = ajax_command_html('#ajax_edit_experiment_solution', '');
+        // $commands[] = ajax_command_replace('#ajax_selected_experiment',drupal_render($form['lab_experiment_list']));
+      }
+    return array(
+        '#type' => 'ajax',
+        '#commands' => $commands
+    );
+  }
+function ajax_bulk_solution_files_callback($form, $form_state)
+  {
+    $commands = array();
+    $solution_list_default_value = $form_state['values']['lab_solution_list'];
+    //var_dump($lab_default_value);
+    if ($solution_list_default_value != 0)
+      {
+        $form['lab_experiment_solution_actions']['#options'] = _bulk_list_solution_actions();
+        $commands[] = ajax_command_html('#ajax_selected_lab_experiment_solution_action', drupal_render($form['lab_experiment_solution_actions']));
+        /*************************************************************************************/
+        //$solution_list_q = db_query("SELECT * FROM {lab_migration_solution_files} WHERE solution_id = %d", $form_state['values']['solution']);
+        $query = \Drupal::database()->select('lab_migration_solution_files');
+        $query->fields('lab_migration_solution_files');
+        $query->condition('solution_id', $solution_list_default_value);
+        $solution_list_q = $query->execute();
+        if ($solution_list_q)
+          {
+            $solution_files_rows = array();
+            while ($solution_list_data = $solution_list_q->fetchObject())
+              {
+                $solution_file_type = '';
+                switch ($solution_list_data->filetype)
+                {
+                    case 'S':
+                        $solution_file_type = 'Source or Main file';
+                        break;
+                    case 'R':
+                        $solution_file_type = 'Result file';
+                        break;
+                    case 'X':
+                        $solution_file_type = 'xcos file';
+                        break;
+                    default:
+                        $solution_file_type = 'Unknown';
+                        break;
+                }
+                $solution_files_rows[] = array(
+                    l($solution_list_data->filename, 'lab-migration/download/file/' . $solution_list_data->id),
+                    $solution_file_type
+                );
+                if (strlen($solution_list_data->pdfpath) >= 5)
+                  {
+                    $pdfname = substr($solution_list_data->pdfpath, strrpos($solution_list_data->pdfpath, '/') + 1);
+                    $solution_files_rows[] = array(
+                        l($pdfname, 'lab-migration/download/pdf/' . $solution_list_data->id),
+                        "PDF File"
+                    );
+                  }
+              }
+            /* dependency files */
+            //$dependency_q = db_query("SELECT * FROM {lab_migration_solution_dependency} WHERE solution_id = %d", $form_state['values']['solution']);
+            $query = \Drupal::database()->select('lab_migration_solution_dependency');
+            $query->fields('lab_migration_solution_dependency');
+            $query->condition('solution_id', $solution_list_default_value);
+            $dependency_q = $query->execute();
+            while ($dependency_data = $dependency_q->fetchObject())
+              {
+                //$dependency_files_q = db_query("SELECT * FROM {lab_migration_dependency_files} WHERE id = %d", $dependency_data->dependency_id);
+                $query = \Drupal::database()->select('lab_migration_dependency_files');
+                $query->fields('lab_migration_dependency_files');
+                $query->condition('id', $dependency_data->dependency_id);
+                $dependency_files_q = $query->execute();
+                $dependency_files_data = $dependency_files_q->fetchObject();
+                $solution_file_type = 'Dependency file';
+                $solution_files_rows[] = array(
+                    l($dependency_files_data->filename, 'lab-migration/download/dependency/' . $dependency_files_data->dependency_id),
+                    $solution_file_type
+                );
+              }
+            /* creating list of files table */
+            $solution_files_header = array(
+                'Filename',
+                'Type'
+            );
+            $solution_files = theme('table', array(
+                'header' => $solution_files_header,
+                'rows' => $solution_files_rows
+            ));
+          }
+        $form['solution_files']['#title'] = 'List of solution files';
+        $form['solution_files']['#markup'] = $solution_files;
+        $commands[] = ajax_command_html('#ajax_download_experiment_solution', l('Download Solution', 'lab-migration/download/solution/' . $solution_list_default_value));
+        $commands[] = ajax_command_html('#ajax_edit_experiment_solution', l('Edit Solution', 'lab-migration/code-approval/editcode/' . $solution_list_default_value));
+        // $commands[] = ajax_command_html('#ajax_solution_files', $solution_files);
+        $commands[] = ajax_command_html('#ajax_solution_files', drupal_render($form['solution_files']));
+        /*************************************************************************************/
+      }
+    else
+      {
+        $commands[] = ajax_command_html('#ajax_selected_lab_experiment_solution_action', '');
+        $commands[] = ajax_command_html('#ajax_download_experiment_solution', '');
+        $commands[] = ajax_command_html('#ajax_edit_experiment_solution', '');
+        $commands[] = ajax_command_html('#ajax_solution_files', '');
+      }
+    return array(
+        '#type' => 'ajax',
+        '#commands' => $commands
+    );
+  }
 
+  function ajax_bulk_experiment_list_callback($form, $form_state)
+  {
+    $commands = array();
+    $lab_default_value = $form_state['values']['lab'];
+    if ($lab_default_value != 0)
+      {
+        $commands[] = ajax_command_html('#ajax_selected_lab', l('Download', 'lab-migration/full-download/lab/' . $lab_default_value) . ' ' . t('(Download all the approved and unapproved solutions of the entire lab)'));
+        /*$commands[] = ajax_command_html('#ajax_selected_lab_pdf', l('Download PDF', 'lab_migration/generate_lab/' . $lab_default_value . '/1') . 
+        ' ' . t('(Download PDF of all the approved and unapproved solution of the entire lab)'));  */
+        $form['lab_actions']['#options'] = _bulk_list_lab_actions();
+        $form['lab_experiment_list']['#options'] = _ajax_bulk_get_experiment_list($lab_default_value);
+        $commands[] = ajax_command_data('#ajax_selected_lab', 'form_state_value_select', $form_state['values']['lab_experiment_list']);
+        $commands[] = ajax_command_replace('#ajax_selected_experiment', drupal_render($form['lab_experiment_list']));
+        $commands[] = ajax_command_replace('#ajax_selected_lab_action', drupal_render($form['lab_actions']));
+        $commands[] = ajax_command_html('#ajax_selected_solution', '');
+        $commands[] = ajax_command_html('#ajax_selected_lab_experiment_action', '');
+        $commands[] = ajax_command_html('#ajax_selected_lab_experiment_solution_action', '');
+        $commands[] = ajax_command_html('#ajax_solution_files', '');
+        $commands[] = ajax_command_html('#ajax_download_experiment_solution', '');
+        $commands[] = ajax_command_html('#ajax_edit_experiment_solution', '');
+      }
+    else
+      {
+        $commands[] = ajax_command_html('#ajax_selected_lab', '');
+        $commands[] = ajax_command_html('#ajax_selected_lab_pdf', '');
+        $commands[] = ajax_command_data('#ajax_selected_lab', 'form_state_value_select', $form_state['values']['lab']);
+        $commands[] = ajax_command_html('#ajax_selected_experiment', '');
+        $commands[] = ajax_command_html('#ajax_selected_lab_action', '');
+        $commands[] = ajax_command_html('#ajax_selected_lab_experiment_action', '');
+        $commands[] = ajax_command_html('#ajax_download_experiment', '');
+        $commands[] = ajax_command_html('#ajax_selected_lab_experiment_solution_action', '');
+        $commands[] = ajax_command_html('#ajax_solution_files', '');
+        $commands[] = ajax_command_html('#ajax_download_experiment_solution', '');
+        $commands[] = ajax_command_html('#ajax_edit_experiment_solution', '');
+      }
+    return array(
+        '#type' => 'ajax',
+        '#commands' => $commands
+    );
+  }
 
+  function lab_migration_upload_code_delete()
+{
+  global $user;
+
+  $root_path = lab_migration_path();
+  $solution_id = (int)arg(3);
+
+  /* check solution */
+ // $solution_q = db_query("SELECT * FROM {lab_migration_solution} WHERE id = %d LIMIT 1", $solution_id);
+  $query = db_select('lab_migration_solution');
+              $query->fields('lab_migration_solution');
+              $query->condition('id', $solution_id);
+              $query->range(0, 1);
+              $solution_q = $query->execute();
+  $solution_data = $solution_q->fetchObject();
+  if (!$solution_data)
+  {
+    drupal_set_message('Invalid solution.', 'error');
+    drupal_goto('lab-migration/code');
+    return;
+  }
+  if ($solution_data->approval_status != 0)
+  {
+    drupal_set_message('You cannnot delete a solution after it has been approved. Please contact site administrator if you want to delete this solution.', 'error');
+    drupal_goto('lab-migration/code');
+    return;
+  }
+
+  //$experiment_q = db_query("SELECT * FROM {lab_migration_experiment} WHERE id = %d LIMIT 1", $solution_data->experiment_id);
+  $query = db_select('lab_migration_experiment');
+            $query->fields('lab_migration_experiment');
+            $query->condition('id', $solution_data->experiment_id);
+            $query->range(0, 1);
+            $experiment_q = $query->execute();
+
+  $experiment_data = $experiment_q->fetchObject();
+  if (!$experiment_data)
+  {
+    drupal_set_message('You do not have permission to delete this solution.', 'error');
+    drupal_goto('lab-migration/code');
+    return;
+  }
+
+  //$proposal_q = db_query("SELECT * FROM {lab_migration_proposal} WHERE id = %d AND solution_provider_uid = %d LIMIT 1", $experiment_data->proposal_id, $user->uid);
+  $query = db_select('lab_migration_proposal');
+              $query->fields('lab_migration_proposal');
+              $query->condition('id', $experiment_data->proposal_id);
+              $query->condition('solution_provider_uid', $user->uid);
+              $query->range(0, 1);
+              $proposal_q = $query->execute();
+  $proposal_data = $proposal_q->fetchObject();
+  if (!$proposal_data)
+  {
+    drupal_set_message('You do not have permission to delete this solution.', 'error');
+    drupal_goto('lab-migration/code');
+    return;
+  }
+
+  /* deleting solution files */
+  if (lab_migration_delete_solution($solution_data->id))
+  {
+    drupal_set_message('Solution deleted.', 'status');
+
+    /* sending email */
+    $email_to = $user->mail;
+
+    $from = variable_get('lab_migration_from_email', '');
+    $bcc= variable_get('lab_migration_emails', '');
+    $cc=variable_get('lab_migration_cc_emails', '');  
+    $param['solution_deleted_user']['solution_id'] = $proposal_data->id;
+    $param['solution_deleted_user']['lab_title'] = $proposal_data->lab_title;
+    $param['solution_deleted_user']['experiment_title'] = $experiment_data->title;
+    $param['solution_deleted_user']['solution_number'] = $solution_data->code_number;
+    $param['solution_deleted_user']['solution_caption'] = $solution_data->caption;
+    $param['solution_deleted_user']['user_id'] = $user->uid;
+    $param['solution_deleted_user']['headers']=array('From'=>$from,'MIME-Version'=> '1.0',
+    			'Content-Type'=> 'text/plain; charset=UTF-8; format=flowed; delsp=yes',
+    			'Content-Transfer-Encoding' => '8Bit',
+    			'X-Mailer'=> 'Drupal','Cc' => $cc, 'Bcc' => $bcc);
+
+    if (!drupal_mail('lab_migration', 'solution_deleted_user', $email_to, language_default(), $param , $from , TRUE))
+      drupal_set_message('Error sending email message.', 'error');
+  } else {
+    drupal_set_message('Error deleting example.', 'status');
+  }
+
+  drupal_goto('lab-migration/code');
+  return;
+}
 }
  

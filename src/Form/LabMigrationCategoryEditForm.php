@@ -11,6 +11,10 @@ use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Render\Element;
 use Symfony\Component\HttpFoundation\RedirectResponse;
+use Drupal\Core\Link;
+use Drupal\Core\Url;
+use Drupal\user\Entity\User;
+
 
 class LabMigrationCategoryEditForm extends FormBase {
 
@@ -53,35 +57,49 @@ return new RedirectResponse('/lab-migration/manage-proposal');
     $form['name'] = [
       '#type' => 'item',
       '#markup' => Link::fromTextAndUrl($proposal_data->name_title . ' ' . $proposal_data->name, 'user/' . $proposal_data->uid),
+      '#attributes' => array('class' => array('form-control')),
+
       '#title' => t('Name'),
     ];
     $form['email_id'] = [
       '#type' => 'item',
       '#markup' => loadMultiple($proposal_data->uid)->mail,
+      '#attributes' => array('class' => array('form-control')),
+
       '#title' => t('Email'),
     ];
     $form['contact_ph'] = [
       '#type' => 'item',
       '#markup' => $proposal_data->contact_ph,
+      '#attributes' => array('class' => array('form-control')),
+
       '#title' => t('Contact No.'),
     ];
     $form['department'] = [
       '#type' => 'item',
       '#markup' => $proposal_data->department,
+      '#attributes' => array('class' => array('form-control')),
+
       '#title' => t('Department/Branch'),
     ];
     $form['university'] = [
       '#type' => 'item',
       '#markup' => $proposal_data->university,
+      '#attributes' => array('class' => array('form-control')),
+
       '#title' => t('University/Institute'),
     ];
     $form['lab_title'] = [
       '#type' => 'item',
       '#markup' => $proposal_data->lab_title,
+      '#attributes' => array('class' => array('form-control')),
+
       '#title' => t('Title of the Lab'),
     ];
     $form['category'] = [
       '#type' => 'select',
+      '#attributes' => array('class' => array('form-control')),
+
       '#title' => t('Category'),
       '#options' => _lm_list_of_departments(),
       '#required' => TRUE,

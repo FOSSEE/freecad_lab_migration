@@ -15,7 +15,11 @@ use Drupal\Core\Url;
 use Drupal\Core\Link;
 use Drupal\Core\Config\ConfigFactoryInterface;
 use Drupal\Core\Database\Database;
+
+
 class LabMigrationUploadCodeForm extends FormBase {
+
+
 
   /**
    * {@inheritdoc}
@@ -547,10 +551,13 @@ $response->send();
 
     /* sending email */
     $email_to = $user->mail;
+    $from = $this->configFactory->get('lab_migration.settings')->get('lab_migration_from_email');
+    // $from = $config->get('lab_migration_from_email', '');
+    // $bcc = $config->get('lab_migration_emails', '');
+    $bcc = $this->configFactory->get('lab_migration.settings')->get('lab_migration_email');
+    $cc = $this->configFactory->get('lab_migration.settings')->get('lab_migration_cc_email');
 
-    $from = $config->get('lab_migration_from_email', '');
-    $bcc = $config->get('lab_migration_emails', '');
-    $cc = $config->get('lab_migration_cc_emails', '');
+    // $cc = $config->get('lab_migration_cc_emails', '');
     $param['solution_uploaded']['solution_id'] = $solution_id;
     $param['solution_uploaded']['user_id'] = $user->uid;
     $param['solution_uploaded']['headers'] = [
@@ -566,9 +573,12 @@ $response->send();
     if (!drupal_mail('lab_migration', 'solution_uploaded', $email_to, language_default(), $param, $from, TRUE)) {
       \Drupal::database()->addmessage('Error sending email message.', 'error');
     }
-
-    RedirectResponse('lab-migration/code');
+    $response = new RedirectResponse(Url::fromRoute('lab_migration/code/upload')->toString());
+   // Send the redirect response
+      $response->send();
+      }
+    // RedirectResponse('lab-migration/code/upload');
   }
 
-}
+
 ?>

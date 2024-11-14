@@ -46,7 +46,7 @@ $proposal_id = (int) $route_match->getParameter('proposal_id');
       }
     }
     else {
-      add_message(t('Invalid proposal selected. Please try again.'), 'error');
+      \Drupal::messenger()->addmessage(t('Invalid proposal selected. Please try again.'), 'error');
       // RedirectResponse('lab-migration/manage-proposal');
       return new RedirectResponse('/lab-migration/manage-proposal');
       return;
@@ -279,13 +279,13 @@ $proposal_id = (int) $route_match->getParameter('proposal_id');
         /* everything ok */
       }
       else {
-        add_message(t('Invalid proposal selected. Please try again.'), 'error');
+        \Drupal::messenger()->addmessage(t('Invalid proposal selected. Please try again.'), 'error');
         RedirectResponse('lab-migration/manage-proposal');
         return;
       }
     }
     else {
-      add_message(t('Invalid proposal selected. Please try again.'), 'error');
+      \Drupal::messenger()->addmessage(t('Invalid proposal selected. Please try again.'), 'error');
       RedirectResponse('lab-migration/manage-proposal');
       return;
     }
@@ -300,7 +300,7 @@ $proposal_id = (int) $route_match->getParameter('proposal_id');
       $result = $injected_database->query($up_query, $args);
       CreateReadmeFileLabMigration($proposal_id);
       if (!$result) {
-        add_message('Error in update status', 'error');
+        \Drupal::messenger()->addmessage('Error in update status', 'error');
         return;
       }
       /* sending email */
@@ -321,14 +321,18 @@ $proposal_id = (int) $route_match->getParameter('proposal_id');
         'Bcc' => $bcc,
       ];
       if (!drupal_mail('lab_migration', 'proposal_completed', $email_to, language_default(), $param, $from, TRUE)) {
-        add_message('Error sending email message.', 'error');
+        \Drupal::messenger()->addmessage('Error sending email message.', 'error');
       }
       /*$email_to = $user->mail . ', ' . $config->get('lab_migration_emails', '');;
         if (!drupal_mail('lab_migration', 'proposal_completed', $email_to , language_default(), $param, $config->get('lab_migration_from_email', NULL), TRUE))
-        add_message('Error sending email message.', 'error');*/
-      add_message('Congratulations! Lab Migration proposal has been marked as completed. User has been notified of the completion.', 'status');
+        \Drupal::messenger()->addmessage('Error sending email message.', 'error');*/
+      \Drupal::messenger()->addmessage('Congratulations! Lab Migration proposal has been marked as completed. User has been notified of the completion.', 'status');
     }
-    RedirectResponse('lab-migration/manage-proposal');
+    // RedirectResponse('lab-migration/manage-proposal');
+    $response = new RedirectResponse(Url::fromRoute('lab-migration/manage-proposal')->toString());
+  
+    // //   // Send the redirect response
+      $response->send();
     return;
   }
 

@@ -192,7 +192,7 @@ class DefaultController extends ControllerBase {
         $link = Link::fromTextAndUrl($pending_data->name, Url::fromRoute('entity.user.canonical', ['user' => $pending_data->uid])),
         $pending_data->lab_title,
         $pending_data->department,
-        $link = Link::fromTextAndUrl('Status', Url::fromRoute('lab_migration.manage_proposal_status', ['id' => $pending_data->id])),
+        $link = Link::fromTextAndUrl('Status', Url::fromRoute('lab_migration.proposal_status_form', ['id' => $pending_data->id])),
         // Link::fromTextAndUrl('Status', 'lab-migration/manage-proposal/status/' . $pending_data->id),
       ];
     }
@@ -211,8 +211,8 @@ class DefaultController extends ControllerBase {
     ];
     $output =  [
       '#type' => 'table',
-      'header' => $pending_header,
-      'rows' => $pending_rows,
+      '#header' => $pending_header,
+      '#rows' => $pending_rows,
     ];
     return $output;
   }
@@ -663,6 +663,10 @@ $link = Link::fromTextAndUrl(t('Edit'), $url)->toString(),
         $query->fields('lab_migration_proposal');
         $query->orderBy('id', 'DESC');
         $proposal_q = $query->execute();
+        // $approval_url = Link::fromTextAndUrl('Status', Url::fromRoute('lab_migration.proposal_status_form',['id'=>$proposal_data->id]))->toString();
+      $edit_url =  Link::fromTextAndUrl('Edit category', Url::fromRoute('lab_migration.category_edit_form',['id'=>$proposal_data->id]))->toString();
+      // $mainLink = t('@linkApprove | @linkReject', array('@linkApprove' => $approval_url, '@linkReject' => $edit_url));
+      
         while ($proposal_data = $proposal_q->fetchObject())
           {
             $proposal_rows[] = array(
@@ -672,11 +676,14 @@ $link = Link::fromTextAndUrl(t('Edit'), $url)->toString(),
                 //   Url::fromUri('internal:/lab_migration/proposal' . $proposal_data->uid)
                 // )->toRenderable(),
               // l($proposal_data->name, 'user/' . $proposal_data->uid),
+              Link::fromTextAndUrl($proposal_data->name, Url::fromRoute('entity.user.canonical', ['user' => $proposal_data->uid])),
+
                 $proposal_data->lab_title,
                 $proposal_data->department,
                 $proposal_data->category,
-                $url = Url::fromUri('internal:/lab-migration/manage-proposal/category/edit/' . $proposal_data->id),
-$link = Link::fromTextAndUrl('Edit Category', $url),
+                $edit_url
+//                 $url = Url::fromUri('internal:/lab-migration/manage-proposal/category/edit/' . $proposal_data->id),
+// $link = Link::fromTextAndUrl('Edit/Category', $url),
                 // Link::fromTextAndUrl('Edit Category', 'lab-migration/manage-proposal/category/edit/' . $proposal_data->id)
             );
           }
