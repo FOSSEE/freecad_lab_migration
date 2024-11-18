@@ -834,6 +834,17 @@ $lab_id = (int) $route_match->getParameter('lab_id');
       \Drupal::database()->delete('lab_migration_solution')->condition('id', $solution_id)->execute();
     return $status;
 }
+function LM_RenameDir($proposal_id, $dir_name)
+  {
+    $query = \Drupal::database()->query("SELECT directory_name FROM lab_migration_proposal WHERE id = :proposal_id", array(
+        ':proposal_id' => $proposal_id
+    ));
+    $result = $query->fetchObject();
+    $new_directory_name = rename(\Drupal::service("lab_migration_global")->lab_migration_path() . $result->directory_name, \Drupal::service("lab_migration_global")->lab_migration_path() . $dir_name) or \Drupal::messenger()->addMessage("Unable to rename folder");
+    
+    return $new_directory_name;
+    
+  }
 function lab_migration_with_morefeature($key, &$message, $params)
   {
     if (isset($params['subject']))
@@ -1114,5 +1125,35 @@ function ajax_bulk_solution_files_callback($form, $form_state)
   drupal_goto('lab-migration/code');
   return;
 }
+
+function CreateReadmeFileLabMigration($proposal_id)
+  {
+    $result =\Drupal::database()->select("
+                        SELECT * from lab_migration_proposal WHERE id = :proposal_id", array(
+        ":proposal_id" => $proposal_id
+    ));
+    $proposal_data = $result->fetchObject();
+    $root_path = \Drupal::service("lab_migration_global")->lab_migration_path();
+    $readme_file = fopen($root_path . $proposal_data->directory_name . "/README.txt", "w") or die("Unable to open file!");
+    $txt = "";
+    $txt .= "About the lab";
+    $txt .= "\n" . "\n";
+    $txt .= "Title Of The Lab: " . $proposal_data->lab_title . "\n";
+    $txt .= "Proposar Name: " . $proposal_data->name_title . " " . $proposal_data->name . "\n";
+    $txt .= "Department: " . $proposal_data->department . "\n";
+    $txt .= "University: " . $proposal_data->university . "\n";
+    $txt .= "Category: " . $proposal_data->department . "\n\n";
+    $txt .= "\n" . "\n";
+    $txt .= "Solution provider";
+    $txt .= "\n" . "\n";
+    $txt .= "Solution Provider Name: " . $proposal_data->solution_provider_name_title . " " . $proposal_data->solution_provider_name . "\n";
+    $txt .= "Solution Provider University: " . $proposal_data->solution_provider_university . "\n";
+    $txt .= "\n" . "\n";
+    $txt .= "Lab Migration Project By FOSSEE, IIT Bombay" . "\n";
+    fwrite($readme_file, $txt);
+    fclose($readme_file);
+    return $txt;
+  }
+
 }
  

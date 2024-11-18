@@ -45,13 +45,19 @@ $proposal_id = (int) $route_match->getParameter('proposal_id');
         // RedirectResponse('lab-migration/manage-proposal');
         
 
-return new RedirectResponse('/lab-migration/manage-proposal');
+return new RedirectResponse('/lab-migration/manage-proposal/category');
         return;
       }
     }
     else {
       \Drupal::messenger()->addmessage(t('Invalid proposal selected. Please try again.'), 'error');
-      RedirectResponse('lab-migration/manage-proposal');
+      // RedirectResponse('lab-migration/manage-proposal');
+
+$response = new RedirectResponse(Url::fromRoute('lab_migration.category_edit_form')->toString());
+  
+// Send the redirect response
+$response->send();
+
       return;
     }
     $form['name'] = [
@@ -101,7 +107,7 @@ return new RedirectResponse('/lab-migration/manage-proposal');
       '#attributes' => array('class' => array('form-control')),
 
       '#title' => t('Category'),
-      '#options' => _lm_list_of_departments(),
+      '#options' => \Drupal::service("lab_migration_global")->_lm_list_of_departments(),
       '#required' => TRUE,
       '#default_value' => $proposal_data->category,
     ];
@@ -121,7 +127,7 @@ return new RedirectResponse('/lab-migration/manage-proposal');
     // $proposal_id = (int) arg(4);
     $route_match = \Drupal::routeMatch();
 
-$proposal_id = (int) $route_match->getParameter('proposal_id');
+$proposal_id = (int) $route_match->getParameter('id');
     //$proposal_q = $injected_database->query("SELECT * FROM {lab_migration_proposal} WHERE id = %d", $proposal_id);
     $query = \Drupal::database()->select('lab_migration_proposal');
     $query->fields('lab_migration_proposal');
@@ -132,14 +138,24 @@ $proposal_id = (int) $route_match->getParameter('proposal_id');
         /* everything ok */
       }
       else {
-        add_message(t('Invalid proposal selected. Please try again.'), 'error');
-        RedirectResponse('lab-migration/manage-proposal');
+         \Drupal::messenger()->addmessage(t('Invalid proposal selected. Please try again.'), 'error');
+        // RedirectResponse('lab-migration/manage-proposal');
+        $response = new RedirectResponse(Url::fromRoute('lab_migration.category_edit_form')->toString());
+  
+        // Send the redirect response
+        $response->send();
+        
         return;
       }
     }
     else {
-      add_message(t('Invalid proposal selected. Please try again.'), 'error');
-      RedirectResponse('lab-migration/manage-proposal');
+       \Drupal::messenger()->addmessage(t('Invalid proposal selected. Please try again.'), 'error');
+      // RedirectResponse('lab-migration/manage-proposal');
+      $response = new RedirectResponse(Url::fromRoute('lab_migration.category_edit_form')->toString());
+  
+      // Send the redirect response
+      $response->send();
+
       return;
     }
     $query = "UPDATE {lab_migration_proposal} SET category = :category WHERE id = :proposal_id";
@@ -148,8 +164,13 @@ $proposal_id = (int) $route_match->getParameter('proposal_id');
       ":proposal_id" => $proposal_data->id,
     ];
     $result = $injected_database->query($query, $args);
-    add_message(t('Proposal Category Updated'), 'status');
-    RedirectResponse('lab-migration/manage-proposal/category');
+     \Drupal::messenger()->addmessage(t('Proposal Category Updated'), 'status');
+    // RedirectResponse('lab-migration/manage-proposal/category');
+    $response = new RedirectResponse(Url::fromRoute('lab_migration.category_edit_form')->toString());
+  
+    // Send the redirect response
+    $response->send();
+
   }
 
 }

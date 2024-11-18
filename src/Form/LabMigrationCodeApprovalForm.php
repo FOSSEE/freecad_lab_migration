@@ -265,7 +265,7 @@ $solution_id = (int) $route_match->getParameter('solution_id');
     $proposal_data = $proposal_q->fetchObject();
     // $user_data = loadMultiple($proposal_data->uid);
 
-    $user_data = User::loadMultiple([$proposal_data->uid]);   
+    $user_data = User::load($proposal_data->uid);   
     $approver_uid = $user->id();
 
     //  $solution_prove_user_data =User::loadMultiple($proposal_data->solution_provider_uid);
@@ -279,26 +279,26 @@ $solution_id = (int) $route_match->getParameter('solution_id');
       ];
       \Drupal::database()->query($query, $args);
       /* sending email */
-      $email_to = $user_data->mail;
-      $from = $this->configFactory->get('lab_migration.settings')->get('lab_migration_from_email');
+      $email_to = $user_data->getEmail();
+      // $from = $this->configFactory->get('lab_migration.settings')->get('lab_migration_from_email');
 
       // $from = $config->get('lab_migration_from_email', '');
-      $bcc = $config->get('lab_migration_emails', '');
-      $cc = $config->get('lab_migration_cc_emails', '');
-      $param['solution_pending']['solution_id'] = $solution_id;
-      $param['solution_pending']['user_id'] = $user_data->uid;
-      $param['solution_pending']['headers'] = [
-        'From' => $from,
-        'MIME-Version' => '1.0',
-        'Content-Type' => 'text/plain; charset=UTF-8; format=flowed; delsp=yes',
-        'Content-Transfer-Encoding' => '8Bit',
-        'X-Mailer' => 'Drupal',
-        'Cc' => $cc,
-        'Bcc' => $bcc,
-      ];
-      if (!drupal_mail('lab_migration', 'solution_pending', $email_to, language_default(), $param, $from, TRUE)) {
-        \Drupal::messenger()->addmessage('Error sending email message.', 'error');
-      }
+      // $bcc = $config->get('lab_migration_emails', '');
+      // $cc = $config->get('lab_migration_cc_emails', '');
+      // $param['solution_pending']['solution_id'] = $solution_id;
+      // $param['solution_pending']['user_id'] = $user_data->id();
+      // $param['solution_pending']['headers'] = [
+      //   'From' => $from,
+      //   'MIME-Version' => '1.0',
+      //   'Content-Type' => 'text/plain; charset=UTF-8; format=flowed; delsp=yes',
+      //   'Content-Transfer-Encoding' => '8Bit',
+      //   'X-Mailer' => 'Drupal',
+      //   'Cc' => $cc,
+      //   'Bcc' => $bcc,
+      // ];
+      // if (!drupal_mail('lab_migration', 'solution_pending', $email_to, language_default(), $param, $from, TRUE)) {
+      //   \Drupal::messenger()->addmessage('Error sending email message.', 'error');
+      // }
     }
     else {
       if ($form_state->getValue(['approved']) == "1") {
@@ -310,26 +310,26 @@ $solution_id = (int) $route_match->getParameter('solution_id');
         ];
         \Drupal::database()->query($query, $args);
         /* sending email */
-        $email_to = $user_data->mail;
-      $from = $this->configFactory->get('lab_migration.settings')->get('lab_migration_from_email');
+        $email_to = $user_data->getEmail();
+      // $from = $this->configFactory->get('lab_migration.settings')->get('lab_migration_from_email');
 
-        // $from = $config->get('lab_migration_from_email', '');
-        $bcc = $config->get('lab_migration_emails', '');
-        $cc = $config->get('lab_migration_cc_emails', '');
-        $param['solution_approved']['solution_id'] = $solution_id;
-        $param['solution_approved']['user_id'] = $user_data->uid;
-        $param['solution_approved']['headers'] = [
-          'From' => $from,
-          'MIME-Version' => '1.0',
-          'Content-Type' => 'text/plain; charset=UTF-8; format=flowed; delsp=yes',
-          'Content-Transfer-Encoding' => '8Bit',
-          'X-Mailer' => 'Drupal',
-          'Cc' => $cc,
-          'Bcc' => $bcc,
-        ];
-        if (!drupal_mail('lab_migration', 'solution_approved', $email_to, language_default(), $param, $from, TRUE)) {
-          \Drupal::messenger()->addmessage('Error sending email message.', 'error');
-        }
+      //   // $from = $config->get('lab_migration_from_email', '');
+      //   $bcc = $config->get('lab_migration_emails', '');
+      //   $cc = $config->get('lab_migration_cc_emails', '');
+      //   $param['solution_approved']['solution_id'] = $solution_id;
+      //   $param['solution_approved']['user_id'] = $user_data->id();
+      //   $param['solution_approved']['headers'] = [
+      //     'From' => $from,
+      //     'MIME-Version' => '1.0',
+      //     'Content-Type' => 'text/plain; charset=UTF-8; format=flowed; delsp=yes',
+      //     'Content-Transfer-Encoding' => '8Bit',
+      //     'X-Mailer' => 'Drupal',
+      //     'Cc' => $cc,
+      //     'Bcc' => $bcc,
+      //   ];
+      //   if (!drupal_mail('lab_migration', 'solution_approved', $email_to, language_default(), $param, $from, TRUE)) {
+      //     \Drupal::messenger()->addmessage('Error sending email message.', 'error');
+      //   }
       }
       else {
         if ($form_state->getValue(['approved']) == "2") {

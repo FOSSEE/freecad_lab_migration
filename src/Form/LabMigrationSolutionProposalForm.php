@@ -46,7 +46,7 @@ return $response;
     //var_dump($proposal_data->name); die;
     $form['name'] = [
       '#type' => 'item',
-      '#markup' => Link::fromTextAndUrl($proposal_data->name_title . ' ' . $proposal_data->name, 'user/' . $proposal_data->uid),
+     // '#markup' => Link::fromTextAndUrl($proposal_data->name_title . ' ' . $proposal_data->name, 'user/' . $proposal_data->uid),
       '#title' => t('Proposer Name'),
     ];
     $form['lab_title'] = [
@@ -91,7 +91,7 @@ return $response;
       '#type' => 'textfield',
       '#title' => t('Email'),
       '#size' => 30,
-      '#value' => $user->mail,
+      '#value' => $user->getEmail(),
       '#disabled' => TRUE,
     ];
     $form['solution_provider_contact_ph'] = [
@@ -104,7 +104,7 @@ return $response;
     $form['solution_provider_department'] = [
       '#type' => 'select',
       '#title' => t('Department/Branch'),
-      '#options' => _list_of_departments(),
+      '#options' => \Drupal::service("lab_migration_global")->_lm_list_of_departments(),
       '#required' => TRUE,
     ];
     $form['solution_provider_university'] = [
@@ -208,7 +208,7 @@ return $response;
     $form['version'] = [
       '#type' => 'select',
       '#title' => t('Version'),
-      '#options' => \Drupal::service("lab_migration_global")->_list_of_software_version(),
+      '#options' => \Drupal::service("lab_migration_global")->_lm_list_of_software_version(),
       '#required' => TRUE,
     ];
     $form['older'] = [

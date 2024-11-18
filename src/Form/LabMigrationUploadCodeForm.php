@@ -570,7 +570,7 @@ $response->send();
       'Bcc' => $bcc,
     ];
 
-    if (!drupal_mail('lab_migration', 'solution_uploaded', $email_to, language_default(), $param, $from, TRUE)) {
+    if (!drupal_Email('lab_migration', 'solution_uploaded', $email_to, language_default(), $param, $from, TRUE)) {
       \Drupal::database()->addmessage('Error sending email message.', 'error');
     }
     $response = new RedirectResponse(Url::fromRoute('lab_migration/code/upload')->toString());

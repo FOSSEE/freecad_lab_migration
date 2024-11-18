@@ -70,7 +70,7 @@ lab_migration.proposal_edit_form:
   requirements:
     _permission: 'lab migration manage proposal'
 lab_migration.proposal_status_form:
-  path: /lab_migration/manage-proposal/status
+  path: /lab_migration/manage-proposal/status/{id}
   defaults:
     _title: 'Proposal Status'
     _form: \Drupal\lab_migration\Form\LabMigrationProposalStatusForm
@@ -84,7 +84,7 @@ lab_migration.proposal_open:
   requirements:
     _permission: 'lab migration propose solution'
 lab_migration.solution_proposal_form:
-  path: /lab_migration/show-proposal
+  path: /lab_migration/show-proposal/{id}
   defaults:
     _title: 'Lab Migration Solution Proposal'
     _form: \Drupal\lab_migration\Form\LabMigrationSolutionProposalForm
@@ -140,7 +140,7 @@ lab_migration.upload_code_form:
   requirements:
     _permission: 'lab migration upload code'
 lab_migration.upload_code_delete:
-  path: /lab_migration/code/delete
+  path: /lab_migration/code/delete/{solution_id}
   defaults:
     _title: 'Delete Solution'
     _controller: '\Drupal\lab_migration\Controller\DefaultController::lab_migration_upload_code_delete'

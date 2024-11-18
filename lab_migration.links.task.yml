@@ -14,10 +14,10 @@ lab_migration.proposal_pending_solution:
   weight: 3
   base_route: lab_migration.proposal_pending
 lab_migration.proposal_all:
-  route_name: lab_migration_proposal_all
+  route_name: lab_migration.proposal_all
   title: 'All Proposals'
   weight: 4
-  base_route: lab_migration_proposal_pending
+  base_route: lab_migration.proposal_pending
 lab_migration.category_all:
   route_name: lab_migration.category_all
   title: Category

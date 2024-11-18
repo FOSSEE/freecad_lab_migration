@@ -21,6 +21,7 @@ use Drupal\user\Entity\User;
 use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Form\FormBuilderInterface;
 use Drupal\Core\Render\Markup;
+use Symfony\Component\DependencyInjection\ContainerInterface;
 /**
  * Default controller for the lab_migration module.
  */
@@ -291,15 +292,15 @@ class DefaultController extends ControllerBase {
     // Check if there are any proposals
     if (count($proposal_data_array) > 0) {
         foreach ($proposal_data_array as $proposal_data) {
-            $proposal_link = Link::fromTextAndUrl(
-                $proposal_data->lab_title, 
-                Url::fromRoute('lab_migration.show_proposal', ['id' => $proposal_data->id])
-            );
+            // $proposal_link = Link::fromTextAndUrl(
+            //     $proposal_data->lab_title, 
+            //     Url::fromRoute('/lab_migration/open-proposal', ['id' => $proposal_data->id])
+            // );
             $apply_link = Link::fromTextAndUrl(
                 'Apply', 
-                Url::fromRoute('lab_migration.show_proposal', ['id' => $proposal_data->id])
+                Url::fromRoute('lab_migration.solution_proposal_form', ['id' => $proposal_data->id])
             );
-            $proposal_rows[] = [$proposal_link, $apply_link];
+            $proposal_rows[] = [$proposal_data->lab_title, $apply_link];
         }
       
         // Define table headers
@@ -368,10 +369,18 @@ class DefaultController extends ControllerBase {
         $experiment_data->title,
         $proposal_data->name,
         $proposal_data->solution_provider_name,
-        $url = Url::fromRoute('lab_migration.code_approval_form', ['solution_id' => $pending_solution_data->id]),
+//     Generate the URL using the route and passing the parameter for solution_id.
+$url = Url::fromRoute('lab_migration.code_approval_form', ['solution_id' => $pending_solution_data->id]),
 
-// Create the link with Link::fromTextAndUrl.
+
+
+// Create the link with Link::fromTextAndUrl and translate the text.
 $link = Link::fromTextAndUrl(t('Edit'), $url)->toString(),
+
+// Return or render the link in your form or page.
+$build['edit_link'] = [
+  '#markup' => $link,
+],
         // Link::fromTextAndUrl('Edit', 'lab-migration/code-approval/approve/' . $pending_solution_data->id),
       ];
     }
@@ -616,7 +625,8 @@ $link = Link::fromTextAndUrl(t('Edit'), $url)->toString(),
                 break;
         }
       
-      $approval_url = Link::fromTextAndUrl('Status', Url::fromRoute('lab_migration.proposal_status_form',['id'=>$proposal_data->id]))->toString();
+      $approval_url =  Link::fromTextAndUrl('Status', Url::fromRoute('lab_migration.proposal_status_form',['id'=>$proposal_data->id]))->toString();
+      //var_dump($approval_url);die;
       $edit_url =  Link::fromTextAndUrl('Edit', Url::fromRoute('lab_migration.proposal_edit_form',['id'=>$proposal_data->id]))->toString();
       $mainLink = t('@linkApprove | @linkReject', array('@linkApprove' => $approval_url, '@linkReject' => $edit_url));
       
@@ -681,10 +691,10 @@ $link = Link::fromTextAndUrl(t('Edit'), $url)->toString(),
                 $proposal_data->lab_title,
                 $proposal_data->department,
                 $proposal_data->category,
-                $edit_url
-//                 $url = Url::fromUri('internal:/lab-migration/manage-proposal/category/edit/' . $proposal_data->id),
+                $edit_url,
+//                 $url = Url::fromUri('internal:/lab_migration/manage-proposal/category/edit' . $proposal_data->id),
 // $link = Link::fromTextAndUrl('Edit/Category', $url),
-                // Link::fromTextAndUrl('Edit Category', 'lab-migration/manage-proposal/category/edit/' . $proposal_data->id)
+                // Link::fromTextAndUrl('Edit Category', '/lab_migration/manage-proposal/category/edit' . $proposal_data->id)
             );
           }
         $proposal_header = array(
@@ -733,7 +743,12 @@ $link = Link::fromTextAndUrl(t('Edit'), $url)->toString(),
     }
     if ($solution_data->approval_status != 0) {
       \Drupal::messenger()->addMessage('You cannnot delete a solution after it has been approved. Please contact site administrator if you want to delete this solution.', 'error');
-      RedirectResponse('lab-migration/code');
+      // RedirectResponse('lab-migration/code');
+       // RedirectResponse('lab-migration/code-approval');
+    $response = new RedirectResponse(Url::fromRoute('lab_migration.code_approval')->toString());
+  
+    // Send the redirect response
+    $response->send();
       return;
     }
 
@@ -759,47 +774,51 @@ $link = Link::fromTextAndUrl(t('Edit'), $url)->toString(),
     $query->range(0, 1);
     $proposal_q = $query->execute();
     $proposal_data = $proposal_q->fetchObject();
-    if (!$proposal_data) {
-      \Drupal::messenger()->addMessage('You do not have permission to delete this solution.', 'error');
-      RedirectResponse('lab-migration/code');
-      return;
-    }
+    // if (!$proposal_data) {
+    //   \Drupal::messenger()->addMessage('You do not have permission to delete this solution.', 'error');
+
+    //   RedirectResponse('lab-migration/code');
+    //   return;
+    // }
 
     /* deleting solution files */
-    if (lab_migration_delete_solution($solution_data->id)) {
+    if (\Drupal::service("lab_migration_global")->lab_migration_delete_solution($solution_data->id)) {
       \Drupal::messenger()->addMessage('Solution deleted.', 'status');
 
       /* sending email */
-      $email_to = $user->mail;
+      // $email_to = $user->mail;
 
-      $from = $config->get('lab_migration_from_email', '');
-      $bcc = $config->get('lab_migration_emails', '');
-      $cc = $config->get('lab_migration_cc_emails', '');
-      $param['solution_deleted_user']['solution_id'] = $proposal_data->id;
-      $param['solution_deleted_user']['lab_title'] = $proposal_data->lab_title;
-      $param['solution_deleted_user']['experiment_title'] = $experiment_data->title;
-      $param['solution_deleted_user']['solution_number'] = $solution_data->code_number;
-      $param['solution_deleted_user']['solution_caption'] = $solution_data->caption;
-      $param['solution_deleted_user']['user_id'] = $user->uid;
-      $param['solution_deleted_user']['headers'] = [
-        'From' => $from,
-        'MIME-Version' => '1.0',
-        'Content-Type' => 'text/plain; charset=UTF-8; format=flowed; delsp=yes',
-        'Content-Transfer-Encoding' => '8Bit',
-        'X-Mailer' => 'Drupal',
-        'Cc' => $cc,
-        'Bcc' => $bcc,
-      ];
+      // $from = $config->get('lab_migration_from_email', '');
+      // $bcc = $config->get('lab_migration_emails', '');
+      // $cc = $config->get('lab_migration_cc_emails', '');
+      // $param['solution_deleted_user']['solution_id'] = $proposal_data->id;
+      // $param['solution_deleted_user']['lab_title'] = $proposal_data->lab_title;
+      // $param['solution_deleted_user']['experiment_title'] = $experiment_data->title;
+      // $param['solution_deleted_user']['solution_number'] = $solution_data->code_number;
+      // $param['solution_deleted_user']['solution_caption'] = $solution_data->caption;
+      // $param['solution_deleted_user']['user_id'] = $user->uid;
+      // $param['solution_deleted_user']['headers'] = [
+      //   'From' => $from,
+      //   'MIME-Version' => '1.0',
+      //   'Content-Type' => 'text/plain; charset=UTF-8; format=flowed; delsp=yes',
+      //   'Content-Transfer-Encoding' => '8Bit',
+      //   'X-Mailer' => 'Drupal',
+      //   'Cc' => $cc,
+      //   'Bcc' => $bcc,
+      // ];
 
-      if (!drupal_mail('lab_migration', 'solution_deleted_user', $email_to, language_default(), $param, $from, TRUE)) {
-        \Drupal::messenger()->addMessage('Error sending email message.', 'error');
-      }
+      // if (!drupal_mail('lab_migration', 'solution_deleted_user', $email_to, language_default(), $param, $from, TRUE)) {
+      //   \Drupal::messenger()->addMessage('Error sending email message.', 'error');
+      // }
     }
     else {
       \Drupal::messenger()->addMessage('Error deleting example.', 'status');
     }
-
-    RedirectResponse('lab-migration/code');
+    $response = new RedirectResponse(Url::fromRoute('lab_migration.list_experiments')->toString());
+  
+  // Send the redirect response
+  $response->send();
+    //RedirectResponse('lab-migration/code');
     return;
   }
 
@@ -1499,9 +1518,9 @@ $response->send();
   
     $route_match = \Drupal::routeMatch();
 
-$proposal_id = (int) $route_match->getParameter('proposal_id');
+$proposal_id = (int) $route_match->getParameter('id');
     //$proposal_q = db_query("SELECT * FROM {lab_migration_proposal} WHERE id = %d", $proposal_id);
-    $query = db_select('lab_migration_proposal');
+    $query = \Drupal::database()->select('lab_migration_proposal');
     $query->fields('lab_migration_proposal');
     $query->condition('id', $proposal_id);
     $proposal_q = $query->execute();
@@ -1513,8 +1532,13 @@ $proposal_id = (int) $route_match->getParameter('proposal_id');
           }
         else
           {
-            drupal_set_message(t('Invalid proposal selected. Please try again.'), 'error');
-            drupal_goto('lab-migration/manage-proposal');
+            \Drupal::messenger()->message(t('Invalid proposal selected. Please try again.'), 'error');
+            // drupal_goto('lab-migration/manage-proposal');
+            // Generate the URL using the route name.
+$url = Url::fromRoute('lab_migration.manage_proposal')->toString();
+
+// Perform the redirect.
+return new RedirectResponse($url);
             return;
           }
       }
@@ -1822,7 +1846,8 @@ public function lab_migration_list_experiments() {
         // Action link for 'Delete' if approval status is pending.
         $action_link = '';
         if ($solution_data->approval_status == 0) {
-          $delete_url = Url::fromRoute('lab_migration.upload_code_delete', ['id' => $solution_data->id]);
+          $delete_url = Url::fromUri('internal:/lab_migration/code/delete/' . $solution_data->id);
+          //Url::fromRoute('lab_migration.upload_code_delete', ['id' => $solution_data->id]);
           $action_link = Link::fromTextAndUrl('Delete', $delete_url)->toString();
         }
 

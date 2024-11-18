@@ -11,6 +11,8 @@ use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Render\Element;
 use Symfony\Component\HttpFoundation\RedirectResponse;
+use Drupal\user\Entity\User;
+use Drupal\Core\Url;
 
 class LabMigrationProposalEditForm extends FormBase {
 
@@ -27,7 +29,7 @@ class LabMigrationProposalEditForm extends FormBase {
     // $proposal_id = (int) arg(3);
     $route_match = \Drupal::routeMatch();
 
-$proposal_id = (int) $route_match->getParameter('proposal_id');
+$proposal_id = (int) $route_match->getParameter('id');
     //$proposal_q = \Drupal::database()->query("SELECT * FROM {lab_migration_proposal} WHERE id = %d", $proposal_id);
     $query = \Drupal::database()->select('lab_migration_proposal');
     $query->fields('lab_migration_proposal');
@@ -48,11 +50,12 @@ return new RedirectResponse('/lab-migration/manage-proposal');
       }
     }
     else {
-      add_message(t('Invalid proposal selected. Please try again.'), 'error');
+       \Drupal::messenger()->addmessage(t('Invalid proposal selected. Please try again.'), 'error');
       RedirectResponse('lab-migration/manage-proposal');
       return;
     }
-    $user_data = loadMultiple($proposal_data->uid);
+    $user_data = User::load($proposal_data->uid);
+    //var_dump($user_data->getEmail());die;
     $form['name_title'] = [
       '#type' => 'select',
       '#title' => t('Title'),
@@ -77,7 +80,7 @@ return new RedirectResponse('/lab-migration/manage-proposal');
     $form['email_id'] = [
       '#type' => 'item',
       '#title' => t('Email'),
-      '#markup' => $user_data->mail,
+      '#markup' => $user_data->getEmail(),
     ];
     $form['contact_ph'] = [
       '#type' => 'textfield',
@@ -90,7 +93,7 @@ return new RedirectResponse('/lab-migration/manage-proposal');
     $form['department'] = [
       '#type' => 'select',
       '#title' => t('Department/Branch'),
-      '#options' => _lm_list_of_departments(),
+      '#options' =>  \Drupal::service("lab_migration_global")->_lm_list_of_departments(),
       '#required' => TRUE,
       '#default_value' => $proposal_data->department,
     ];
@@ -165,7 +168,7 @@ return new RedirectResponse('/lab-migration/manage-proposal');
     $form['all_state'] = [
       '#type' => 'select',
       '#title' => t('State'),
-      '#options' => _lm_list_of_states(),
+      '#options' => \Drupal::service("lab_migration_global")->_lm_list_of_states(),
       '#default_value' => $proposal_data->state,
       '#validated' => TRUE,
       '#states' => [
@@ -179,7 +182,7 @@ return new RedirectResponse('/lab-migration/manage-proposal');
     $form['city'] = [
       '#type' => 'select',
       '#title' => t('City'),
-      '#options' => _lm_list_of_cities(),
+      '#options' => \Drupal::service("lab_migration_global")->_lm_list_of_cities(),
       '#default_value' => $proposal_data->city,
       '#states' => [
         'visible' => [
@@ -207,8 +210,8 @@ return new RedirectResponse('/lab-migration/manage-proposal');
     $form['version'] = [
       '#type' => 'select',
       '#title' => t('R Version'),
-      '#options' => _lm_list_of_software_version(),
-      '#markup' => $proposal_data->r_version,
+      '#options' => \Drupal::service("lab_migration_global")->_lm_list_of_software_version(),
+      '#default_value' => $proposal_data->version,
     ];
     $form['syllabus_link'] = [
       '#type' => 'item',
@@ -304,12 +307,12 @@ return new RedirectResponse('/lab-migration/manage-proposal');
         $solution_provider_user = 'Proposer';
       }
       else {
-        $user_data = loadMultiple($proposal_data->solution_provider_uid);
+        $user_data = User::load($proposal_data->solution_provider_uid);
         if (!$user_data) {
-          $solution_provider_user = 1;
-          add_message('Solution provider user name is invalid', 'error');
+          $solution_provider_user = 'NA';
+          \Drupal::messenger()->addmessage('Solution provider user name is invalid', 'error');
         }
-        $solution_provider_user = $user_data->name;
+        $solution_provider_user = $proposal_data->soultion_provider_name;
       }
     }
     $form['solution_provider_uid'] = [
@@ -341,13 +344,16 @@ return new RedirectResponse('/lab-migration/manage-proposal');
     ];
     $form['cancel'] = [
       '#type' => 'item',
-      '#markup' => Link::fromTextAndUrl(t('Cancel'), 'lab-migration/manage-proposal'),
+      // '#markup' => Link::fromTextAndUrl(t('Cancel'), 'lab-migration/manage-proposal'),
     ];
     return $form;
   }
 
   public function validateForm(array &$form, \Drupal\Core\Form\FormStateInterface $form_state) {
-    $proposal_id = (int) arg(3);
+    // $proposal_id = (int) arg(3);
+    $route_match = \Drupal::routeMatch();
+
+$proposal_id = (int) $route_match->getParameter('id');
     /* check before delete proposal */
     if ($form_state->getValue(['delete_proposal']) == 1) {
       //$experiment_q = \Drupal::database()->query("SELECT * FROM {lab_migration_experiment} WHERE proposal_id = %d", $proposal_id);
@@ -372,7 +378,10 @@ return new RedirectResponse('/lab-migration/manage-proposal');
   public function submitForm(array &$form, \Drupal\Core\Form\FormStateInterface $form_state) {
     $user = \Drupal::currentUser();
     /* get current proposal */
-    $proposal_id = (int) arg(3);
+    // $proposal_id = (int) arg(3);
+    $route_match = \Drupal::routeMatch();
+
+$proposal_id = (int) $route_match->getParameter('id');
     // $proposal_q = \Drupal::database()->query("SELECT * FROM {lab_migration_proposal} WHERE id = %d", $proposal_id);
     $query = \Drupal::database()->select('lab_migration_proposal');
     $query->fields('lab_migration_proposal');
@@ -383,14 +392,14 @@ return new RedirectResponse('/lab-migration/manage-proposal');
         /* everything ok */
       }
       else {
-        add_message(t('Invalid proposal selected. Please try again.'), 'error');
+         \Drupal::messenger()->addmessage(t('Invalid proposal selected. Please try again.'), 'error');
         RedirectResponse('lab-migration/manage-proposal');
         return;
       }
     }
     else {
-      add_message(t('Invalid proposal selected. Please try again.'), 'error');
-      RedirectResponse('lab-migration/manage-proposal');
+       \Drupal::messenger()->addmessage(t('Invalid proposal selected. Please try again.'), 'error');
+      RedirectResponse('lab-migration/manage-proposal/pending');
       return;
     }
     /* delete proposal */
@@ -403,8 +412,11 @@ return new RedirectResponse('/lab-migration/manage-proposal');
       $query = \Drupal::database()->delete('lab_migration_experiment');
       $query->condition('proposal_id', $proposal_id);
       $num_deleted = $query->execute();
-      add_message(t('Proposal Delete'), 'status');
-      RedirectResponse('lab-migration/manage-proposal');
+      \Drupal::messenger()->addmessage(t('Proposal Delete'), 'status');
+      // RedirectResponse('lab-migration/manage-proposal');
+      $url = Url::fromRoute('lab_migration/manage-proposal/pending')->toString();
+    // Redirect to the URL.
+    return new RedirectResponse($url);
       return;
     }
     if ($form_state->getValue(['open_solution']) == 1) {
@@ -425,7 +437,7 @@ return new RedirectResponse('/lab-migration/manage-proposal');
         'solution_provider_university' => '',
       ])->condition('id', $proposal_id)->execute();
       if (!$result) {
-        add_message(t('Solution already open for everyone.'), 'error');
+       \Drupal::messenger()->addmessage(t('Solution already open for everyone.'), 'error');
         return;
       }
     }
@@ -453,8 +465,8 @@ return new RedirectResponse('/lab-migration/manage-proposal');
     $lab_title = $v['lab_title'];
     $proposar_name = $v['name_title'] . ' ' . $v['name'];
     $university = $v['university'];
-    $directory_names = _lm_dir_name($lab_title, $proposar_name, $university);
-    if (LM_RenameDir($proposal_id, $directory_names)) {
+    $directory_names = \Drupal::service("lab_migration_global")->_lm_dir_name($lab_title, $proposar_name, $university);
+    if (\Drupal::service("lab_migration_global")->LM_RenameDir($proposal_id, $directory_names)) {
       $directory_name = $directory_names;
     }
     else {
@@ -470,8 +482,8 @@ return new RedirectResponse('/lab-migration/manage-proposal');
       'city' => $v['city'],
       'pincode' => $v['pincode'],
       'state' => $v['all_state'],
-      ":operating_system" => $v['operating_system'],
-      ":r_version" => $form_state->getValue(['version']),
+      'operating_system' => $v['operating_system'],
+      'version' => $form_state->getValue(['version']),
       'lab_title' => $v['lab_title'],
       'solution_display' => $solution_display,
       'directory_name' => $directory_name,
@@ -498,7 +510,7 @@ return new RedirectResponse('/lab-migration/manage-proposal');
           ];
           $result2 = \Drupal::database()->query($query, $args);
           if (!$result2) {
-            add_message(t('Could not update Title of the Experiment : ') . trim($form_state->getValue([$experiment_field_name])), 'error');
+            \Drupal::messenger()->addmessage(t('Could not update Title of the Experiment : ') . trim($form_state->getValue([$experiment_field_name])), 'error');
           }
         }
         else {
@@ -520,7 +532,7 @@ return new RedirectResponse('/lab-migration/manage-proposal');
     $result2 = \Drupal::database()->query($query, $args);
     if (!$result2)
     {
-    add_message(t('Could not update Title of the Experiment : ') . trim($update_value), 'error');
+     \Drupal::messenger()->addmessage(t('Could not update Title of the Experiment : ') . trim($update_value), 'error');
     }
     } else {
     $query = "DELETE FROM {lab_migration_experiment} WHERE id = :id LIMIT 1";
@@ -557,7 +569,7 @@ return new RedirectResponse('/lab-migration/manage-proposal');
         ];
         $result4 = \Drupal::database()->query($query, $args);
         if (!$result4) {
-          add_message(t('Could not insert Title of the Experiment : ') . trim($form_state->getValue([$lab_experiment_insert])), 'error');
+          \Drupal::messenger()->addmessage(t('Could not insert Title of the Experiment : ') . trim($form_state->getValue([$lab_experiment_insert])), 'error');
         }
         else {
           $number++;
@@ -594,14 +606,14 @@ return new RedirectResponse('/lab-migration/manage-proposal');
     $result4 = \Drupal::database()->query($query, $args);
     if (!$result4)
     {
-    add_message(t('Could not insert Title of the Experiment : ') . trim($insert_value), 'error');
+     \Drupal::messenger()->addmessage(t('Could not insert Title of the Experiment : ') . trim($insert_value), 'error');
     } else {
     $number++;
     }
     }
     }
     }*/
-    add_message(t('Proposal Updated'), 'status');
+    \Drupal::messenger()->addmessage(t('Proposal Updated'), 'status');
   }
 
 }
