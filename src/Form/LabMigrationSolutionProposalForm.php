@@ -61,12 +61,12 @@ return $response;
     $query->condition('proposal_id', $proposal_id);
     $experiment_q = $query->execute();
     while ($experiment_data = $experiment_q->fetchObject()) {
-      $experiment_html .= $experiment_data->title . "<br/>";
+      $experiment_html .= $experiment_data->title ;
     }
     $form['experiment'] = [
       '#type' => 'item',
       '#markup' => $experiment_html,
-      '#title' => t('Experiment List'),
+      '#title' => $this->t('Experiment List'),
     ];
     $form['solution_provider_name_title'] = [
       '#type' => 'select',
@@ -298,7 +298,9 @@ return $response;
     $solution_provider_q = $query->execute();
     if ($solution_provider_q->fetchObject()) {
       $form_state->setErrorByName('', t("You have already applied for a solution. Please compelete that before applying for another solution."));
-      RedirectResponse('lab-migration/open-proposal');
+      // RedirectResponse('lab-migration/open-proposal');
+      $response = new RedirectResponse('/lab_migration/open-proposal');
+      $response->send();
     }
   }
 
@@ -319,55 +321,61 @@ return $response;
     $proposal_data = $proposal_q->fetchObject();
     if (!$proposal_data) {
       \Drupal::messenger()->addmessage("Invalid proposal.", 'error');
-      RedirectResponse('lab-migration/open-proposal');
+      // RedirectResponse('/lab-migration/open-proposal');
+      $response = new RedirectResponse('/lab_migration/open-proposal');
+      $response->send();
     }
     if ($proposal_data->solution_provider_uid != 0) {
       \Drupal::messenger()->addmessage("Someone has already applied for solving this Lab.", 'error');
-      RedirectResponse('lab-migration/open-proposal');
+      // RedirectResponse('lab-migration/open-proposal');
+      $response = new RedirectResponse('/lab_migration/open-proposal');
+      $response->send();
     }
-    $query = "UPDATE {lab_migration_proposal} set solution_provider_uid = :uid, solution_status = :solution_status, solution_provider_name_title = :solution_provider_name_title, solution_provider_name = :solution_provider_contact_name, solution_provider_contact_ph = :solution_provider_contact_ph, solution_provider_department = :solution_provider_department, solution_provider_university = :solution_provider_university , solution_provider_city = :solution_provider_city, solution_provider_pincode = :solution_provider_pincode, solution_provider_state = :solution_provider_state,solution_provider_country = :solution_provider_country, r_version = :r_version WHERE id = :proposal_id";
+    $query = "UPDATE {lab_migration_proposal} set solution_provider_uid = :uid, solution_status = :solution_status, solution_provider_name_title = :solution_provider_name_title, solution_provider_name = :solution_provider_contact_name, solution_provider_contact_ph = :solution_provider_contact_ph, solution_provider_department = :solution_provider_department, solution_provider_university = :solution_provider_university , solution_provider_city = :solution_provider_city, solution_provider_pincode = :solution_provider_pincode, solution_provider_state = :solution_provider_state,solution_provider_country = :solution_provider_country, version = :r_version WHERE id = :proposal_id";
     $args = [
-      ":uid" => $user->uid,
-      ":solution_status" => 1,
-      ":solution_provider_name_title" => $form_state->getValue(['solution_provider_name_title']),
-      ":solution_provider_contact_name" => $form_state->getValue(['solution_provider_name']),
-      ":solution_provider_contact_ph" => $form_state->getValue(['solution_provider_contact_ph']),
-      ":solution_provider_department" => $form_state->getValue(['solution_provider_department']),
-      ":solution_provider_university" => $form_state->getValue(['solution_provider_university']),
-      ":solution_provider_city" => $form_state->getValue(['city']),
-      ":solution_provider_pincode" => $form_state->getValue(['pincode']),
-      ":solution_provider_state" => $form_state->getValue(['all_state']),
-      ":solution_provider_country" => $form_state->getValue(['country']),
-      ":r_version" => $form_state->getValue(['version']),
-      ":proposal_id" => $proposal_id,
+      'uid' => \Drupal::currentUser()->id(),
+      "solution_status" => 1,
+      "solution_provider_name_title" => $form_state->getValue(['solution_provider_name_title']),
+      "solution_provider_contact_name" => $form_state->getValue(['solution_provider_name']),
+      "solution_provider_contact_ph" => $form_state->getValue(['solution_provider_contact_ph']),
+      "solution_provider_department" => $form_state->getValue(['solution_provider_department']),
+      "solution_provider_university" => $form_state->getValue(['solution_provider_university']),
+      "solution_provider_city" => $form_state->getValue(['city']),
+      "solution_provider_pincode" => $form_state->getValue(['pincode']),
+      "solution_provider_state" => $form_state->getValue(['all_state']),
+      "solution_provider_country" => $form_state->getValue(['country']),
+      "r_version" => $form_state->getValue(['version']),
+      "proposal_id" => $proposal_id,
     ];
 
-    $result = $injected_database->query($query, $args);
+    $result = \Drupal::database()->query($query, $args);
     \Drupal::messenger()->addmessage("We have received your application. We will get back to you soon.", 'status');
     /* sending email */
-    $email_to = $user->mail;
-    $from = $config->get('lab_migration_from_email', '');
-    $bcc = $config->get('lab_migration_emails', '');
-    $cc = $config->get('lab_migration_cc_emails', '');
-    $param['solution_proposal_received']['proposal_id'] = $proposal_id;
-    $param['solution_proposal_received']['user_id'] = $user->uid;
-    $param['solution_proposal_received']['headers'] = [
-      'From' => $from,
-      'MIME-Version' => '1.0',
-      'Content-Type' => 'text/plain; charset=UTF-8; format=flowed; delsp=yes',
-      'Content-Transfer-Encoding' => '8Bit',
-      'X-Mailer' => 'Drupal',
-      'Cc' => $cc,
-      'Bcc' => $bcc,
-    ];
-    if (!drupal_mail('lab_migration', 'solution_proposal_received', $email_to, language_default(), $param, $from, TRUE)) {
-      \Drupal::messenger()->addmessage('Error sending email message.', 'error');
-    }
+    // $email_to = $user->mail;
+    // $from = $config->get('lab_migration_from_email', '');
+    // $bcc = $config->get('lab_migration_emails', '');
+    // $cc = $config->get('lab_migration_cc_emails', '');
+    // $param['solution_proposal_received']['proposal_id'] = $proposal_id;
+    // $param['solution_proposal_received']['user_id'] = $user->uid;
+    // $param['solution_proposal_received']['headers'] = [
+    //   'From' => $from,
+    //   'MIME-Version' => '1.0',
+    //   'Content-Type' => 'text/plain; charset=UTF-8; format=flowed; delsp=yes',
+    //   'Content-Transfer-Encoding' => '8Bit',
+    //   'X-Mailer' => 'Drupal',
+    //   'Cc' => $cc,
+    //   'Bcc' => $bcc,
+    // ];
+    // if (!drupal_mail('lab_migration', 'solution_proposal_received', $email_to, language_default(), $param, $from, TRUE)) {
+    //   \Drupal::messenger()->addmessage('Error sending email message.', 'error');
+    // }
     /* sending email */
     /* $email_to = $config->get('lab_migration_emails', '');
     if (!drupal_mail('lab_migration', 'solution_proposal_received', $email_to , language_default(), $param, $config->get('lab_migration_from_email', NULL), TRUE))
     \Drupal::messenger()->addmessage('Error sending email message.', 'error');*/
-    RedirectResponse('lab-migration/open-proposal');
+    // RedirectResponse('lab-migration/open-proposal');
+    $response = new RedirectResponse('/lab_migration/open-proposal');
+    $response->send();
   }
 
 }

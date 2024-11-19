@@ -612,13 +612,13 @@ $build['edit_link'] = [
                 $approval_status = 'Pending';
                 break;
             case 1:
-                $approval_status = "<span style='color:red;'>Approved</span>";
+                $approval_status = "Approved";
                 break;
             case 2:
-                $approval_status = "<span style='color:black;'>Dis-approved</span>";
+                $approval_status = "Dis-approved";
                 break;
             case 3:
-                $approval_status = "<span style='color:green;'>Solved</span>";
+                $approval_status = "Solved";
                 break;
             default:
                 $approval_status = 'Unknown';
@@ -651,7 +651,7 @@ $build['edit_link'] = [
           'Title of the Lab',
           'Department',
           'Status',
-          'Action'
+          'Action',
       );
       // $output = _theme('table', array(
       //     'header' => $proposal_header,
@@ -668,17 +668,18 @@ $build['edit_link'] = [
       {
         /* get pending proposals to be approved */
         $proposal_rows = array();
-        $proposal_q = \Drupal::database()->query("SELECT * FROM {lab_migration_proposal} ORDER BY id DESC");
+        // $proposal_q = \Drupal::database()->query("SELECT * FROM {lab_migration_proposal} ORDER BY id DESC");
         $query = \Drupal::database()->select('lab_migration_proposal');
         $query->fields('lab_migration_proposal');
         $query->orderBy('id', 'DESC');
         $proposal_q = $query->execute();
         // $approval_url = Link::fromTextAndUrl('Status', Url::fromRoute('lab_migration.proposal_status_form',['id'=>$proposal_data->id]))->toString();
-      $edit_url =  Link::fromTextAndUrl('Edit category', Url::fromRoute('lab_migration.category_edit_form',['id'=>$proposal_data->id]))->toString();
-      // $mainLink = t('@linkApprove | @linkReject', array('@linkApprove' => $approval_url, '@linkReject' => $edit_url));
       
+      // $mainLink = t('@linkApprove | @linkReject', array('@linkApprove' => $approval_url, '@linkReject' => $edit_url));
+     
         while ($proposal_data = $proposal_q->fetchObject())
           {
+            $edit_url =  Link::fromTextAndUrl('Edit category', Url::fromRoute('lab_migration.category_edit_form',['id'=>$proposal_data->id]))->toString();
             $proposal_rows[] = array(
                 date('d-m-Y', $proposal_data->creation_date),
                 // $link = Link::fromTextAndUrl(
@@ -737,7 +738,10 @@ $build['edit_link'] = [
     if (!$solution_data) {
       \Drupal::messenger()->addMessage('Invalid solution.', 'error');
       // RedirectResponse('lab-migration/code');
-      return new RedirectResponse('/lab-migration/code');
+      // return new RedirectResponse('/lab-migration/code/list-experiments');
+      $response = new RedirectResponse(Url::fromRoute('/lab_migration/code/list-experiments')->toString());
+      // Send the redirect response
+         $response->send();
 
       return;
     }
@@ -1136,7 +1140,11 @@ $zip_filename = $temporary_directory . '/zip-' . time() . '-' . rand(0, 999999) 
     else {
       \Drupal::messenger()->addMessage("There are no solutions in this Lab to download", 'error');
       // RedirectResponse('lab-migration/lab-migration-run');
-      return new Response('');
+      $url = Url::fromRoute('lab_migration.run_form')->toString();
+
+// Return the RedirectResponse.
+return new RedirectResponse($url);
+
   };}
 
   public function lab_migration_download_full_experiment() {
@@ -1415,48 +1423,6 @@ $lab_id = (int) $route_match->getParameter('lab_id');
       return $page_content;
     }
   
-            
-  
-
-  // public function lab_migration_completed_labs_all() {
-  //   $output = "";
-  //   //$query = "SELECT * FROM {lab_migration_proposal} WHERE approval_status = 3";
-  //   $query = \Drupal::database()->select('lab_migration_proposal');
-  //   $query->fields('lab_migration_proposal');
-  //   $query->condition('approval_status', 3);
-  //   $query->orderBy('approval_date', DESC);
-  //   $result = $query->execute();
-  //   //$result = \Drupal::database()->query($query);
-  //   if ($result->rowCount() == 0) {
-  //     $output .= "We are in the process of updating the lab migration data. ";
-  //   }
-  //   else {
-  //     $preference_rows = [];
-  //     $i = $result->rowCount();
-  //     while ($row = $result->fetchObject()) {
-  //       $approval_date = date("Y", $row->approval_date);
-  //       $preference_rows[] = [
-  //         $i,
-  //         $row->university,
-  //         Link::fromTextAndUrl($row->lab_title, "lab-migration/lab-migration-run/" . $row->id),
-  //         $approval_date,
-  //       ];
-  //       $i--;
-  //     }
-  //     $preference_header = [
-  //       'No',
-  //       'Institute',
-  //       'Lab',
-  //       'Year',
-  //     ];
-  //     $output .= \Drupal::service("renderer")->render('table', [
-  //       'header' => $preference_header,
-  //       'rows' => $preference_rows,
-  //     ]);
-  //   }
-  //   return $output;
-  // }
-
   public function lab_migration_labs_progress_proposal() {
     $page_content = "";
     //$query = "SELECT * FROM {lab_migration_proposal} WHERE approval_status = 1 and solution_status = 2";
@@ -1512,89 +1478,89 @@ $response->send();
     return;
   }
 
-  function lab_migration_category_edit_form($form, $form_state)
-  {
-    /* get current proposal */
+//   function lab_migration_category_edit_form($form, $form_state)
+//   {
+//     /* get current proposal */
   
-    $route_match = \Drupal::routeMatch();
+//     $route_match = \Drupal::routeMatch();
 
-$proposal_id = (int) $route_match->getParameter('id');
-    //$proposal_q = db_query("SELECT * FROM {lab_migration_proposal} WHERE id = %d", $proposal_id);
-    $query = \Drupal::database()->select('lab_migration_proposal');
-    $query->fields('lab_migration_proposal');
-    $query->condition('id', $proposal_id);
-    $proposal_q = $query->execute();
-    if ($proposal_q)
-      {
-        if ($proposal_data = $proposal_q->fetchObject())
-          {
-            /* everything ok */
-          }
-        else
-          {
-            \Drupal::messenger()->message(t('Invalid proposal selected. Please try again.'), 'error');
-            // drupal_goto('lab-migration/manage-proposal');
-            // Generate the URL using the route name.
-$url = Url::fromRoute('lab_migration.manage_proposal')->toString();
+// $proposal_id = (int) $route_match->getParameter('id');
+//     //$proposal_q = db_query("SELECT * FROM {lab_migration_proposal} WHERE id = %d", $proposal_id);
+//     $query = \Drupal::database()->select('lab_migration_proposal');
+//     $query->fields('lab_migration_proposal');
+//     $query->condition('id', $proposal_id);
+//     $proposal_q = $query->execute();
+//     if ($proposal_q)
+//       {
+//         if ($proposal_data = $proposal_q->fetchObject())
+//           {
+//             /* everything ok */
+//           }
+//         else
+//           {
+//             \Drupal::messenger()->message(t('Invalid proposal selected. Please try again.'), 'error');
+//             // drupal_goto('lab-migration/manage-proposal');
+//             // Generate the URL using the route name.
+// $url = Url::fromRoute('lab-migration.category_edit_form')->toString();
 
-// Perform the redirect.
-return new RedirectResponse($url);
-            return;
-          }
-      }
-    else
-      {
-        drupal_set_message(t('Invalid proposal selected. Please try again.'), 'error');
-        drupal_goto('lab-migration/manage-proposal');
-        return;
-      }
-    $form['name'] = array(
-        '#type' => 'item',
-        '#markup' => l($proposal_data->name_title . ' ' . $proposal_data->name, 'user/' . $proposal_data->uid),
-        '#title' => t('Name')
-    );
-    $form['email_id'] = array(
-        '#type' => 'item',
-        '#markup' => user_load($proposal_data->uid)->mail,
-        '#title' => t('Email')
-    );
-    $form['contact_ph'] = array(
-        '#type' => 'item',
-        '#markup' => $proposal_data->contact_ph,
-        '#title' => t('Contact No.')
-    );
-    $form['department'] = array(
-        '#type' => 'item',
-        '#markup' => $proposal_data->department,
-        '#title' => t('Department/Branch')
-    );
-    $form['university'] = array(
-        '#type' => 'item',
-        '#markup' => $proposal_data->university,
-        '#title' => t('University/Institute')
-    );
-    $form['lab_title'] = array(
-        '#type' => 'item',
-        '#markup' => $proposal_data->lab_title,
-        '#title' => t('Title of the Lab')
-    );
-    $form['category'] = array(
-        '#type' => 'select',
-        '#title' => t('Category'),
-        '#options' => _lm_list_of_departments(),
-        '#required' => TRUE,
-        '#default_value' => $proposal_data->category
-    );
-    $form['submit'] = array(
-        '#type' => 'submit',
-        '#value' => t('Submit')
-    );
-    $form['cancel'] = array(
-        '#type' => 'item',
-        '#markup' => l(t('Cancel'), 'lab-migration/manage-proposal/category')
-    );
-    return $form;
-  }
+// // Perform the redirect.
+// return new RedirectResponse($url);
+//             return;
+//           }
+//       }
+//     else
+//       {
+//         drupal_set_message(t('Invalid proposal selected. Please try again.'), 'error');
+//         drupal_goto('lab-migration/manage-proposal');
+//         return;
+//       }
+//     $form['name'] = array(
+//         '#type' => 'item',
+//         '#markup' => l($proposal_data->name_title . ' ' . $proposal_data->name, 'user/' . $proposal_data->uid),
+//         '#title' => t('Name')
+//     );
+//     $form['email_id'] = array(
+//         '#type' => 'item',
+//         '#markup' => user_load($proposal_data->uid)->mail,
+//         '#title' => t('Email')
+//     );
+//     $form['contact_ph'] = array(
+//         '#type' => 'item',
+//         '#markup' => $proposal_data->contact_ph,
+//         '#title' => t('Contact No.')
+//     );
+//     $form['department'] = array(
+//         '#type' => 'item',
+//         '#markup' => $proposal_data->department,
+//         '#title' => t('Department/Branch')
+//     );
+//     $form['university'] = array(
+//         '#type' => 'item',
+//         '#markup' => $proposal_data->university,
+//         '#title' => t('University/Institute')
+//     );
+//     $form['lab_title'] = array(
+//         '#type' => 'item',
+//         '#markup' => $proposal_data->lab_title,
+//         '#title' => t('Title of the Lab')
+//     );
+//     $form['category'] = array(
+//         '#type' => 'select',
+//         '#title' => t('Category'),
+//         '#options' => \Drupal::service("lab_migration_global")->_lm_list_of_departments(),
+//         '#required' => TRUE,
+//         '#default_value' => $proposal_data->category
+//     );
+//     $form['submit'] = array(
+//         '#type' => 'submit',
+//         '#value' => t('Submit')
+//     );
+//     $form['cancel'] = array(
+//         '#type' => 'item',
+//         '#markup' => l(t('Cancel'), 'lab-migration/manage-proposal/category')
+//     );
+//     return $form;
+//   }
 
 
 //   public function verify_lab_migration_certificates($qr_code = 0) {
@@ -1931,7 +1897,7 @@ public function lab_migration_completed_labs_all() {
 
   // Fetch all rows into an array for easy counting and iteration.
   $rows = $result->fetchAll();
-
+// var_dump($rows);die;
   if (empty($rows)) {
     $output['content'] = [
       '#markup' => 'We are in the process of updating the lab migration data.',
@@ -1943,7 +1909,7 @@ public function lab_migration_completed_labs_all() {
       $approval_date = date("Y", $row->approval_date);
 
       // Create a URL for the lab title link.
-      $url = Url::fromUri('internal:/lab-migration/lab-migration-run/' . $row->id);
+      $url = Url::fromUri('internal:/lab_migration/lab_migration-run/' . $row->id);
       $link = Link::fromTextAndUrl($row->lab_title, $url)->toString();
 
       $preference_rows[] = [
@@ -2071,6 +2037,89 @@ function ajax_get_lm_city_pincode_list_callback($form, $form_state)
         '#type' => 'ajax',
         '#commands' => $commands
     );
+}
+
+function lab_migration_category_edit_form(array $form, FormStateInterface $form_state) {
+  // Retrieve the current proposal ID from the route.
+  $route_match = \Drupal::routeMatch();
+  $proposal_id = (int) $route_match->getParameter('id');
+
+  // Fetch the proposal data.
+  $query = \Drupal::database()->select('lab_migration_proposal', 'p');
+  $query->fields('p');
+  $query->condition('id', $proposal_id);
+  $proposal_data = $query->execute()->fetchObject();
+
+  if (!$proposal_data) {
+    // Handle invalid proposals with an error message and redirect.
+    \Drupal::messenger()->addError(t('Invalid proposal selected. Please try again.'));
+    $url = Url::fromRoute('lab-migration.manage_proposal')->toString();
+    return new RedirectResponse($url);
+  }
+
+  // Build the form.
+  $user = User::load($proposal_data->uid);
+
+  $form['name'] = [
+    '#type' => 'item',
+    '#markup' => \Drupal::l(
+      $proposal_data->name_title . ' ' . $proposal_data->name,
+      Url::fromRoute('entity.user.canonical', ['user' => $proposal_data->uid])
+    ),
+    '#title' => t('Name'),
+  ];
+
+  $form['email_id'] = [
+    '#type' => 'item',
+    '#markup' => $user ? $user->getEmail() : t('Unknown'),
+    '#title' => t('Email'),
+  ];
+
+  $form['contact_ph'] = [
+    '#type' => 'item',
+    '#markup' => $proposal_data->contact_ph,
+    '#title' => t('Contact No.'),
+  ];
+
+  $form['department'] = [
+    '#type' => 'item',
+    '#markup' => $proposal_data->department,
+    '#title' => t('Department/Branch'),
+  ];
+
+  $form['university'] = [
+    '#type' => 'item',
+    '#markup' => $proposal_data->university,
+    '#title' => t('University/Institute'),
+  ];
+
+  $form['lab_title'] = [
+    '#type' => 'item',
+    '#markup' => $proposal_data->lab_title,
+    '#title' => t('Title of the Lab'),
+  ];
+
+  $form['category'] = [
+    '#type' => 'select',
+    '#title' => t('Category'),
+    '#options' => _lm_list_of_departments(), // Replace with the correct department list function.
+    '#required' => TRUE,
+    '#default_value' => $proposal_data->category,
+  ];
+
+  $form['actions']['submit'] = [
+    '#type' => 'submit',
+    '#value' => t('Submit'),
+  ];
+
+  $form['actions']['cancel'] = [
+    '#type' => 'link',
+    '#title' => t('Cancel'),
+    '#url' => Url::fromRoute('lab-migration.manage_proposal_category'),
+    '#attributes' => ['class' => ['button']],
+  ];
+
+  return $form;
 }
 }
 ?>

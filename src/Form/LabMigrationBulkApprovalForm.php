@@ -61,7 +61,7 @@ class LabMigrationBulkApprovalForm extends FormBase {
         'lab_experiment_list'
         ]) ? $form_state->getValue(['lab_experiment_list']) : '',
       '#ajax' => [
-        'callback' => 'ajax_bulk_solution_list_callback'
+        'callback' => '::ajax_bulk_solution_list_callback'
         ],
       '#prefix' => '<div id="ajax_selected_experiment">',
       '#suffix' => '</div>',
@@ -234,7 +234,7 @@ class LabMigrationBulkApprovalForm extends FormBase {
           $user_data = loadMultiple($user_info->uid);
           if (($form_state->getValue(['lab_actions']) == 1) && ($form_state->getValue(['lab_experiment_actions']) == 0) && ($form_state->getValue(['lab_experiment_solution_actions']) == 0)) {
             /* approving entire lab */
-            //   $experiment_q = $injected_database->query("SELECT * FROM {lab_migration_experiment} WHERE proposal_id = %d", $form_state['values']['lab']);
+            //   $experiment_q = \Drupal::database()->query("SELECT * FROM {lab_migration_experiment} WHERE proposal_id = %d", $form_state['values']['lab']);
             $query = \Drupal::database()->select('lab_migration_experiment');
             $query->fields('lab_migration_experiment');
             $query->condition('proposal_id', $form_state->getValue(['lab']));
@@ -242,8 +242,8 @@ class LabMigrationBulkApprovalForm extends FormBase {
             $experiment_q = $query->execute();
             $experiment_list = '';
             while ($experiment_data = $experiment_q->fetchObject()) {
-              //  $injected_database->query("UPDATE {lab_migration_solution} SET approval_status = 1, approver_uid = %d WHERE experiment_id = %d AND approval_status = 0", $user->uid, $experiment_data->id);
-              $injected_database->query("UPDATE {lab_migration_solution} SET approval_status = 1, approver_uid = :approver_uid WHERE experiment_id = :experiment_id AND approval_status = 0", [
+              //  \Drupal::database()->query("UPDATE {lab_migration_solution} SET approval_status = 1, approver_uid = %d WHERE experiment_id = %d AND approval_status = 0", $user->uid, $experiment_data->id);
+              \Drupal::database()->query("UPDATE {lab_migration_solution} SET approval_status = 1, approver_uid = :approver_uid WHERE experiment_id = :experiment_id AND approval_status = 0", [
                 ':approver_uid' => $user->uid,
                 ':experiment_id' => $experiment_data->id,
               ]);
@@ -278,13 +278,13 @@ FOSSEE,IIT Bombay', [
           }
           elseif (($form_state->getValue(['lab_actions']) == 2) && ($form_state->getValue(['lab_experiment_actions']) == 0) && ($form_state->getValue(['lab_experiment_solution_actions']) == 0)) {
             /* pending review entire lab */
-            //$experiment_q = $injected_database->query("SELECT * FROM {lab_migration_experiment} WHERE proposal_id = %d", $form_state['values']['lab']);
-            $experiment_q = $injected_database->query("SELECT * FROM {lab_migration_experiment} WHERE proposal_id = :proposal_id", [
+            //$experiment_q = \Drupal::database()->query("SELECT * FROM {lab_migration_experiment} WHERE proposal_id = %d", $form_state['values']['lab']);
+            $experiment_q = \Drupal::database()->query("SELECT * FROM {lab_migration_experiment} WHERE proposal_id = :proposal_id", [
               ':proposal_id' => $form_state->getValue(['lab'])
               ]);
             while ($experiment_data = $experiment_q->fetchObject()) {
-              //$injected_database->query("UPDATE {lab_migration_solution} SET approval_status = 0 WHERE experiment_id = %d", $experiment_data->id);
-              $injected_database->query("UPDATE {lab_migration_solution} SET approval_status = 0 WHERE experiment_id = :experiment_id", [
+              //\Drupal::database()->query("UPDATE {lab_migration_solution} SET approval_status = 0 WHERE experiment_id = %d", $experiment_data->id);
+              \Drupal::database()->query("UPDATE {lab_migration_solution} SET approval_status = 0 WHERE experiment_id = :experiment_id", [
                 ":experiment_id" => $experiment_data->id
                 ]);
             }
@@ -366,7 +366,7 @@ FOSSEE,IIT Bombay', [
               \Drupal::messenger()->addmessage("Please mention the reason for disapproval/deletion. Minimum 30 character required", 'error');
               return;
             }
-            $query = $injected_database->select('lab_migration_experiment');
+            $query = \Drupal::database()->select('lab_migration_experiment');
             $query->fields('lab_migration_experiment');
             $query->condition('proposal_id', $form_state->getValue(['lab']));
             $query->orderBy('number', 'ASC');
@@ -382,7 +382,7 @@ FOSSEE,IIT Bombay', [
               return;
             }
             /* check if dependency files are present */
-            $dep_q = $injected_database->query("SELECT * FROM {lab_migration_dependency_files} WHERE proposal_id = :proposal_id", [
+            $dep_q = \Drupal::database()->query("SELECT * FROM {lab_migration_dependency_files} WHERE proposal_id = :proposal_id", [
               ":proposal_id" => $form_state->getValue(['lab'])
               ]);
             if ($dep_data = $dep_q->fetchObject()) {
@@ -391,11 +391,11 @@ FOSSEE,IIT Bombay', [
             }
             if (lab_migration_delete_lab($form_state->getValue(['lab']))) {
               \Drupal::messenger()->addmessage(t('Dis-Approved and Deleted Entire Lab solutions.'), 'status');
-              $query = $injected_database->select('lab_migration_proposal');
+              $query = \Drupal::database()->select('lab_migration_proposal');
               $query->fields('lab_migration_proposal');
               $query->condition('id', $form_state->getValue(['lab']));
               $proposal_q = $query->execute()->fetchObject();
-              $query = $injected_database->select('lab_migration_experiment');
+              $query = \Drupal::database()->select('lab_migration_experiment');
               $query->fields('lab_migration_experiment');
               $query->condition('proposal_id', $form_state->getValue(['lab']));
               $experiment_q = $query->execute();
@@ -414,16 +414,16 @@ FOSSEE,IIT Bombay', [
                 \Drupal::messenger()->addmessage(t("Lab directory not present: " . $dir_path . ". Skipping deleting lab directory."), 'status');
               }
               /* deleting full proposal */
-              //$proposal_q = $injected_database->query("SELECT * FROM {lab_migration_proposal} WHERE id = %d", $form_state['values']['lab']);
-              $proposal_q = $injected_database->query("SELECT * FROM {lab_migration_proposal} WHERE id = :id", [
+              //$proposal_q = \Drupal::database()->query("SELECT * FROM {lab_migration_proposal} WHERE id = %d", $form_state['values']['lab']);
+              $proposal_q = \Drupal::database()->query("SELECT * FROM {lab_migration_proposal} WHERE id = :id", [
                 ":id" => $form_state->getValue(['lab'])
                 ]);
               $proposal_data = $proposal_q->fetchObject();
               $proposal_id = $proposal_data->id;
-              $injected_database->query("DELETE FROM {lab_migration_experiment} WHERE proposal_id = :proposal_id", [
+              \Drupal::database()->query("DELETE FROM {lab_migration_experiment} WHERE proposal_id = :proposal_id", [
                 ":proposal_id" => $proposal_id
                 ]);
-              $injected_database->query("DELETE FROM {lab_migration_proposal} WHERE id = :id", [
+              \Drupal::database()->query("DELETE FROM {lab_migration_proposal} WHERE id = :id", [
                 ":id" => $proposal_id
                 ]);
               \Drupal::messenger()->addmessage(t('Deleted Lab Proposal.'), 'status');
@@ -461,17 +461,17 @@ FOSSEE, IIT Bombay', [
             }
           }
           elseif (($form_state->getValue(['lab_actions']) == 0) && ($form_state->getValue(['lab_experiment_actions']) == 1) && ($form_state->getValue(['lab_experiment_solution_actions']) == 0)) {
-            $injected_database->query("UPDATE {lab_migration_solution} SET approval_status = 1, approver_uid = :approver_uid WHERE experiment_id = :experiment_id AND approval_status = 0", [
+            \Drupal::database()->query("UPDATE {lab_migration_solution} SET approval_status = 1, approver_uid = :approver_uid WHERE experiment_id = :experiment_id AND approval_status = 0", [
               ":approver_uid" => $user->uid,
               ":experiment_id" => $form_state->getValue(['lab_experiment_list']),
             ]);
-            $query = $injected_database->select('lab_migration_experiment');
+            $query = \Drupal::database()->select('lab_migration_experiment');
             $query->fields('lab_migration_experiment');
             $query->condition('id', $form_state->getValue(['lab_experiment_list']));
             $query->orderBy('number', 'ASC');
             $experiment_q = $query->execute();
             $experiment_value = $experiment_q->fetchObject();
-            $query = $injected_database->select('lab_migration_solution');
+            $query = \Drupal::database()->select('lab_migration_solution');
             $query->fields('lab_migration_solution');
             $query->condition('experiment_id', $form_state->getValue(['lab_experiment_list']));
             $query->orderBy('code_number', 'ASC');
@@ -505,17 +505,17 @@ FOSSEE,IIT Bombay', [
                 $email_body = array(0 =>t('Your all the uploaded solutions for the experiment have been approved.'));*/
           }
           elseif (($form_state->getValue(['lab_actions']) == 0) && ($form_state->getValue(['lab_experiment_actions']) == 2) && ($form_state->getValue(['lab_experiment_solution_actions']) == 0)) {
-            $injected_database->query("UPDATE {lab_migration_solution} SET approval_status = 0 WHERE experiment_id = :experiment_id", [
+            \Drupal::database()->query("UPDATE {lab_migration_solution} SET approval_status = 0 WHERE experiment_id = :experiment_id", [
               ":experiment_id" => $form_state->getValue(['lab_experiment_list'])
               ]);
             \Drupal::messenger()->addmessage(t('Entire Experiment marked as Pending Review.'), 'status');
-            $query = $injected_database->select('lab_migration_experiment');
+            $query = \Drupal::database()->select('lab_migration_experiment');
             $query->fields('lab_migration_experiment');
             $query->condition('id', $form_state->getValue(['lab_experiment_list']));
             $query->orderBy('number', 'ASC');
             $experiment_q = $query->execute();
             $experiment_value = $experiment_q->fetchObject();
-            $query = $injected_database->select('lab_migration_solution');
+            $query = \Drupal::database()->select('lab_migration_solution');
             $query->fields('lab_migration_solution');
             $query->condition('experiment_id', $form_state->getValue(['lab_experiment_list']));
             $query->orderBy('code_number', 'ASC');
@@ -557,13 +557,13 @@ FOSSEE,IIT Bombay', [
               \Drupal::messenger()->addmessage(t('You do not have permission to Bulk Dis-Approved and Deleted Entire Experiment.'), 'error');
               return;
             }
-            $query = $injected_database->select('lab_migration_experiment');
+            $query = \Drupal::database()->select('lab_migration_experiment');
             $query->fields('lab_migration_experiment');
             $query->condition('id', $form_state->getValue(['lab_experiment_list']));
             $query->orderBy('number', 'ASC');
             $experiment_q = $query->execute();
             $experiment_value = $experiment_q->fetchObject();
-            $query = $injected_database->select('lab_migration_solution');
+            $query = \Drupal::database()->select('lab_migration_solution');
             $query->fields('lab_migration_solution');
             $query->condition('experiment_id', $form_state->getValue(['lab_experiment_list']));
             $query->orderBy('code_number', 'ASC');
@@ -610,19 +610,19 @@ FOSSEE,IIT Bombay', [
                 ' . $form_state['values']['message']));*/
           }
           elseif (($form_state->getValue(['lab_actions']) == 0) && ($form_state->getValue(['lab_experiment_actions']) == 0) && ($form_state->getValue(['lab_experiment_solution_actions']) == 1)) {
-            $query = $injected_database->select('lab_migration_solution');
+            $query = \Drupal::database()->select('lab_migration_solution');
             $query->fields('lab_migration_solution');
             $query->condition('id', $form_state->getValue(['lab_solution_list']));
             $query->orderBy('code_number', 'ASC');
             $solution_q = $query->execute();
             $solution_value = $solution_q->fetchObject();
-            $query = $injected_database->select('lab_migration_experiment');
+            $query = \Drupal::database()->select('lab_migration_experiment');
             $query->fields('lab_migration_experiment');
             $query->condition('id', $solution_value->experiment_id);
             $query->orderBy('number', 'ASC');
             $experiment_q = $query->execute();
             $experiment_value = $experiment_q->fetchObject();
-            $injected_database->query("UPDATE {lab_migration_solution} SET approval_status = 1, approver_uid = :approver_uid WHERE id = :id", [
+            \Drupal::database()->query("UPDATE {lab_migration_solution} SET approval_status = 1, approver_uid = :approver_uid WHERE id = :id", [
               ":approver_uid" => $user->uid,
               ":id" => $form_state->getValue(['lab_solution_list']),
             ]);
@@ -654,19 +654,19 @@ FOSSEE,IIT Bombay', [
                 $email_body = array(0 =>t('Your uploaded solution has been approved.'));*/
           }
           elseif (($form_state->getValue(['lab_actions']) == 0) && ($form_state->getValue(['lab_experiment_actions']) == 0) && ($form_state->getValue(['lab_experiment_solution_actions']) == 2)) {
-            $query = $injected_database->select('lab_migration_solution');
+            $query = \Drupal::database()->select('lab_migration_solution');
             $query->fields('lab_migration_solution');
             $query->condition('id', $form_state->getValue(['lab_solution_list']));
             $query->orderBy('code_number', 'ASC');
             $solution_q = $query->execute();
             $solution_value = $solution_q->fetchObject();
-            $query = $injected_database->select('lab_migration_experiment');
+            $query = \Drupal::database()->select('lab_migration_experiment');
             $query->fields('lab_migration_experiment');
             $query->condition('id', $solution_value->experiment_id);
             $query->orderBy('number', 'ASC');
             $experiment_q = $query->execute();
             $experiment_value = $experiment_q->fetchObject();
-            $injected_database->query("UPDATE {lab_migration_solution} SET approval_status = 0 WHERE id = :id", [
+            \Drupal::database()->query("UPDATE {lab_migration_solution} SET approval_status = 0 WHERE id = :id", [
               ":id" => $form_state->getValue(['lab_solution_list'])
               ]);
             \Drupal::messenger()->addmessage(t('Solution marked as Pending Review.'), 'status');
@@ -697,13 +697,13 @@ FOSSEE,IIT Bombay', [
                 $email_body = array(0 =>t('Your uploaded solution has been marked as pending to be review.'));*/
           }
           elseif (($form_state->getValue(['lab_actions']) == 0) && ($form_state->getValue(['lab_experiment_actions']) == 0) && ($form_state->getValue(['lab_experiment_solution_actions']) == 3)) {
-            $query = $injected_database->select('lab_migration_solution');
+            $query = \Drupal::database()->select('lab_migration_solution');
             $query->fields('lab_migration_solution');
             $query->condition('id', $form_state->getValue(['lab_solution_list']));
             $query->orderBy('code_number', 'ASC');
             $solution_q = $query->execute();
             $solution_value = $solution_q->fetchObject();
-            $query = $injected_database->select('lab_migration_experiment');
+            $query = \Drupal::database()->select('lab_migration_experiment');
             $query->fields('lab_migration_experiment');
             $query->condition('id', $solution_value->experiment_id);
             $query->orderBy('number', 'ASC');

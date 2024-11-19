@@ -393,13 +393,19 @@ $proposal_id = (int) $route_match->getParameter('id');
       }
       else {
          \Drupal::messenger()->addmessage(t('Invalid proposal selected. Please try again.'), 'error');
-        RedirectResponse('lab-migration/manage-proposal');
+        // RedirectResponse('lab-migration/manage-proposal');
+        $response = new RedirectResponse(Url::fromRoute('lab_migration/manage-proposal/pending')->toString());
+        // Send the redirect response
+           $response->send();
         return;
       }
     }
     else {
        \Drupal::messenger()->addmessage(t('Invalid proposal selected. Please try again.'), 'error');
-      RedirectResponse('lab-migration/manage-proposal/pending');
+      // RedirectResponse('lab-migration/manage-proposal/pending');
+      $response = new RedirectResponse(Url::fromRoute('lab_migration/manage-proposal/pending')->toString());
+      // Send the redirect response
+         $response->send();
       return;
     }
     /* delete proposal */
@@ -414,9 +420,11 @@ $proposal_id = (int) $route_match->getParameter('id');
       $num_deleted = $query->execute();
       \Drupal::messenger()->addmessage(t('Proposal Delete'), 'status');
       // RedirectResponse('lab-migration/manage-proposal');
-      $url = Url::fromRoute('lab_migration/manage-proposal/pending')->toString();
+      // $url = Url::fromRoute('lab_migration/manage-proposal/pending')->toString();
     // Redirect to the URL.
-    return new RedirectResponse($url);
+    $response = new RedirectResponse(Url::fromRoute('lab_migration/manage-proposal/pending')->toString());
+      // Send the redirect response
+         $response->send();
       return;
     }
     if ($form_state->getValue(['open_solution']) == 1) {
@@ -614,7 +622,12 @@ $proposal_id = (int) $route_match->getParameter('id');
     }
     }*/
     \Drupal::messenger()->addmessage(t('Proposal Updated'), 'status');
+    $response = new RedirectResponse(Url::fromRoute('lab_migration.proposal_pending')->toString());
+    // Send the redirect response
+       $response->send();
+       return;
   }
+
 
 }
 ?>

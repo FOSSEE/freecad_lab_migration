@@ -42,7 +42,7 @@ lab_migration.category_all:
   requirements:
     _permission: 'lab migration manage proposal'
 lab_migration.category_edit_form:
-  path: /lab_migration/manage-proposal/category/edit
+  path: /lab_migration/manage-proposal/category/edit/{id}
   defaults:
     _title: 'Edit Category'
     _form: \Drupal\lab_migration\Form\LabMigrationCategoryEditForm
@@ -203,7 +203,7 @@ lab_migration.labs_progress_all:
   requirements:
     _permission: 'lab migration download code'
 lab_migration.run_form:
-  path: /lab_migration/lab_migration-run
+  path: /lab_migration/lab_migration-run/{url_lab_id?}
   defaults:
     _title: 'Download Codes'
     _form: \Drupal\lab_migration\Form\LabMigrationRunForm

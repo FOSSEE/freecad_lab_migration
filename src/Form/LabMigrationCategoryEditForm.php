@@ -30,7 +30,7 @@ class LabMigrationCategoryEditForm extends FormBase {
     // $proposal_id = (int) arg(4);
     $route_match = \Drupal::routeMatch();
 
-$proposal_id = (int) $route_match->getParameter('proposal_id');
+$proposal_id = (int) $route_match->getParameter('id');
     //$proposal_q = $injected_database->query("SELECT * FROM {lab_migration_proposal} WHERE id = %d", $proposal_id);
     $query =\Drupal::database()->select('lab_migration_proposal');
     $query->fields('lab_migration_proposal');
@@ -43,9 +43,13 @@ $proposal_id = (int) $route_match->getParameter('proposal_id');
       else {
         \Drupal::messenger()->addmessage(t('Invalid proposal selected. Please try again.'), 'error');
         // RedirectResponse('lab-migration/manage-proposal');
-        
+        $response = new RedirectResponse(Url::fromRoute('lab_migration.category_edit_form')->toString());
+  
+// Send the redirect response
+$response->send();
 
-return new RedirectResponse('/lab-migration/manage-proposal/category');
+
+// return new RedirectResponse('/lab-migration/manage-proposal/category');
         return;
       }
     }
@@ -62,14 +66,14 @@ $response->send();
     }
     $form['name'] = [
       '#type' => 'item',
-      '#markup' => Link::fromTextAndUrl($proposal_data->name_title . ' ' . $proposal_data->name, 'user/' . $proposal_data->uid),
+      '#markup' => Link::fromTextAndUrl($proposal_data->name_title . ' ' . $proposal_data->name,Url::fromRoute('entity.user.canonical', ['user' => $proposal_data->uid]))->toString(),
       '#attributes' => array('class' => array('form-control')),
 
       '#title' => t('Name'),
     ];
     $form['email_id'] = [
       '#type' => 'item',
-      '#markup' => loadMultiple($proposal_data->uid)->mail,
+      '#markup' => User::load($proposal_data->uid)->getEmail(),
       '#attributes' => array('class' => array('form-control')),
 
       '#title' => t('Email'),
@@ -95,6 +99,7 @@ $response->send();
 
       '#title' => t('University/Institute'),
     ];
+
     $form['lab_title'] = [
       '#type' => 'item',
       '#markup' => $proposal_data->lab_title,
@@ -117,7 +122,9 @@ $response->send();
     ];
     $form['cancel'] = [
       '#type' => 'item',
-      '#markup' => Link::fromTextAndUrl(t('Cancel'), 'lab-migration/manage-proposal/category'),
+      // '#markup' => Link::fromTextAndUrl(t('Cancel'), 'lab-migration/manage-proposal/category'),
+      '#markup' => Link::fromTextAndUrl(
+  $this->t('Cancel'),Url::fromRoute('lab_migration.category_all'))->toString(),
     ];
     return $form;
   }
@@ -140,7 +147,7 @@ $proposal_id = (int) $route_match->getParameter('id');
       else {
          \Drupal::messenger()->addmessage(t('Invalid proposal selected. Please try again.'), 'error');
         // RedirectResponse('lab-migration/manage-proposal');
-        $response = new RedirectResponse(Url::fromRoute('lab_migration.category_edit_form')->toString());
+        $response = new RedirectResponse(Url::fromRoute('lab_migration.category_all')->toString());
   
         // Send the redirect response
         $response->send();
@@ -151,7 +158,7 @@ $proposal_id = (int) $route_match->getParameter('id');
     else {
        \Drupal::messenger()->addmessage(t('Invalid proposal selected. Please try again.'), 'error');
       // RedirectResponse('lab-migration/manage-proposal');
-      $response = new RedirectResponse(Url::fromRoute('lab_migration.category_edit_form')->toString());
+      $response = new RedirectResponse(Url::fromRoute('lab_migration.category_all')->toString());
   
       // Send the redirect response
       $response->send();
@@ -161,12 +168,12 @@ $proposal_id = (int) $route_match->getParameter('id');
     $query = "UPDATE {lab_migration_proposal} SET category = :category WHERE id = :proposal_id";
     $args = [
       ":category" => $form_state->getValue(['category']),
-      ":proposal_id" => $proposal_data->id,
+      ":proposal_id" => id,
     ];
-    $result = $injected_database->query($query, $args);
+    $result = \Drupal::database()->query($query, $args);
      \Drupal::messenger()->addmessage(t('Proposal Category Updated'), 'status');
     // RedirectResponse('lab-migration/manage-proposal/category');
-    $response = new RedirectResponse(Url::fromRoute('lab_migration.category_edit_form')->toString());
+    $response = new RedirectResponse(Url::fromRoute('lab_migration.category_all')->toString());
   
     // Send the redirect response
     $response->send();

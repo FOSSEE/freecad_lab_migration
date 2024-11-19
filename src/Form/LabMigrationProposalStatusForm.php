@@ -309,32 +309,33 @@ $response->send();
         ":proposal_id" => $proposal_id,
         ":expected_completion_date" => time(),
       ];
-      $result = \Drupal::database()->query($up_query, $args);
-      \Drupal::service("lab_migration_global")->CreateReadmeFileLabMigration($proposal_id);
-      if (!$result) {
-        \Drupal::messenger()->addmessage('Error in update status', 'error');
-        return;
-      }
+      // $result = \Drupal::database()->query($up_query, $args);
+      
+      // \Drupal::service("lab_migration_global")->CreateReadmeFileLabMigration($proposal_id);
+      // if (!$result) {
+      //   \Drupal::messenger()->addmessage('Error in update status', 'error');
+      //   return;
+      // }
       /* sending email */
-      $user_data = loadMultiple($proposal_data->uid);
-      $email_to = $user_data->mail;
-      $from = $config->get('lab_migration_from_email', '');
-      $bcc = $user->mail . ', ' . $config->get('lab_migration_emails', '');
-      $cc = $config->get('lab_migration_cc_emails', '');
-      $param['proposal_completed']['proposal_id'] = $proposal_id;
-      $param['proposal_completed']['user_id'] = $proposal_data->uid;
-      $param['proposal_completed']['headers'] = [
-        'From' => $from,
-        'MIME-Version' => '1.0',
-        'Content-Type' => 'text/plain; charset=UTF-8; format=flowed; delsp=yes',
-        'Content-Transfer-Encoding' => '8Bit',
-        'X-Mailer' => 'Drupal',
-        'Cc' => $cc,
-        'Bcc' => $bcc,
-      ];
-      if (!drupal_mail('lab_migration', 'proposal_completed', $email_to, language_default(), $param, $from, TRUE)) {
-        \Drupal::messenger()->addmessage('Error sending email message.', 'error');
-      }
+  //     $user_data = User::load($proposal_data->uid);
+  //     $email_to = $user_data->mail;
+  //     $from = $config->get('lab_migration_from_email', '');
+  //     $bcc = $user->mail . ', ' . $config->get('lab_migration_emails', '');
+  //     $cc = $config->get('lab_migration_cc_emails', '');
+  //     $param['proposal_completed']['proposal_id'] = $proposal_id;
+  //     $param['proposal_completed']['user_id'] = $proposal_data->uid;
+  //     $param['proposal_completed']['headers'] = [
+  //       'From' => $from,
+  //       'MIME-Version' => '1.0',
+  //       'Content-Type' => 'text/plain; charset=UTF-8; format=flowed; delsp=yes',
+  //       'Content-Transfer-Encoding' => '8Bit',
+  //       'X-Mailer' => 'Drupal',
+  //       'Cc' => $cc,
+  //       'Bcc' => $bcc,
+  //     ];
+      // if (!drupal_mail('lab_migration', 'proposal_completed', $email_to, language_default(), $param, $from, TRUE)) {
+      //   \Drupal::messenger()->addmessage('Error sending email message.', 'error');
+      // }
       /*$email_to = $user->mail . ', ' . $config->get('lab_migration_emails', '');;
         if (!drupal_mail('lab_migration', 'proposal_completed', $email_to , language_default(), $param, $config->get('lab_migration_from_email', NULL), TRUE))
         \Drupal::messenger()->addmessage('Error sending email message.', 'error');*/
