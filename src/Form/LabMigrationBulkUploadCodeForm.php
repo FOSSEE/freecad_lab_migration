@@ -37,7 +37,7 @@ $proposal_id = (int) $route_match->getParameter('proposal_id');
     if (!$proposal_data) {
       \Drupal::messenger()->addmessage("Invalid proposal selected", 'error');
       // RedirectResponse('lab_migration/code_approval/bulk');
-      $url = Url::fromRoute('lab_migration.code')->toString();
+      $url = Url::fromRoute('lab_migration.code_approval')->toString();
 $response = new RedirectResponse($url);
 $response->send();
     }

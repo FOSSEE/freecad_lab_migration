@@ -168,7 +168,7 @@ $proposal_id = (int) $route_match->getParameter('id');
     $query = "UPDATE {lab_migration_proposal} SET category = :category WHERE id = :proposal_id";
     $args = [
       ":category" => $form_state->getValue(['category']),
-      ":proposal_id" => id,
+      ":proposal_id" =>  $proposal_data->id,
     ];
     $result = \Drupal::database()->query($query, $args);
      \Drupal::messenger()->addmessage(t('Proposal Category Updated'), 'status');

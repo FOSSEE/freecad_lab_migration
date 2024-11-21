@@ -10,6 +10,7 @@ namespace Drupal\lab_migration\Form;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Render\Element;
+use Drupal\Core\Extension\ExtensionPathResolver;
 
 class GenerateLmPdf extends FormBase {
 
@@ -21,7 +22,12 @@ class GenerateLmPdf extends FormBase {
   }
 
   public function buildForm(array $form, \Drupal\Core\Form\FormStateInterface $form_state) {
-    $mpath = drupal_get_path('module', 'lab_migration');
+    // $mpath = drupal_get_path('module', 'lab_migration');
+    /** @var \Drupal\Core\Extension\ExtensionPathResolver $extension_path_resolver */
+$extension_path_resolver = \Drupal::service('extension.path.resolver');
+
+// Get the path to the module.
+$mpath = $extension_path_resolver->getPath('module', 'lab_migration');
     //var_dump($mpath);die;
     require($mpath . '/pdf/fpdf/fpdf.php');
     require($mpath . '/pdf/phpqrcode/qrlib.php');

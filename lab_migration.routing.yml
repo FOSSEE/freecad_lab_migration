@@ -168,7 +168,7 @@ lab_migration.download_experiment:
   requirements:
     _permission: 'lab migration download code'
 lab_migration.download_lab:
-  path: /lab_migration/download/lab
+  path: /lab_migration/download/lab/{lab_id}
   defaults:
     _title: 'Code Download'
     _controller: '\Drupal\lab_migration\Controller\DefaultController::lab_migration_download_lab'
@@ -292,10 +292,3 @@ lab_migration.download_syllabus_copy:
     _controller: '\Drupal\lab_migration\Controller\DefaultController::lab_migration_download_syllabus_copy'
   requirements:
     _permission: 'lab migration bulk manage code'
-# lab_migration.manage_proposal_approve:
-# path: /lab_migration/manage_proposal
-# defaults:
-# _title: 'Manage Proposal' 
-# _controller:  '\Drupal\lab_migration\Controller\DefaultController::lab_migration_manage_proposal_approve'
-# requirements:
-# _permission:  'lab migration manage proposal approve'

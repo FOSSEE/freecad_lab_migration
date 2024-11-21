@@ -22,6 +22,7 @@ use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Form\FormBuilderInterface;
 use Drupal\Core\Render\Markup;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+
 /**
  * Default controller for the lab_migration module.
  */
@@ -1448,22 +1449,40 @@ $lab_id = (int) $route_match->getParameter('lab_id');
   }
 
   public function lab_migration_download_lab_pdf() {
-  
+    // Get the current route parameters
     $route_match = \Drupal::routeMatch();
-
-$lab_id = (int) $route_match->getParameter('lab_id');
-\Drupal::service("lab_migration_global")->_latex_copy_script_file();
     
-    $route_match = \Drupal::routeMatch();
+    // Retrieve lab_id from the URL parameters
+    $lab_id = (int) $route_match->getParameter('lab_id');
+    
+    // Retrieve full_lab flag from the URL parameters
+    $full_lab = (int) $route_match->getParameter('full_lab');
+    
+    // Ensure the lab ID is valid
+    if ($lab_id <= 0) {
+      // Handle the invalid lab_id (you can return an error or redirect)
+      \Drupal::messenger()->addMessage(t('Invalid lab ID provided.'), 'error');
+      return;
+    }
 
-$full_lab = (int) $route_match->getParameter('full_lab');
-    if ($full_lab == "1") {
-      _latex_generate_files($lab_id, TRUE);
+    // Use the lab_migration_global service to copy script files
+    \Drupal::service("lab_migration_global")->_latex_copy_script_file();
+    
+    // Generate PDF files based on the full_lab flag
+    if ($full_lab == 1) {
+      \Drupal::service("lab_migration_global")->_latex_generate_files($lab_id, TRUE);
+    } else {
+      \Drupal::service("lab_migration_global")->_latex_generate_files($lab_id, FALSE);
     }
-    else {
-      _latex_generate_files($lab_id, FALSE);
-    }
+
+    // Return a response (you can modify this to return a PDF download response)
+    $url = Url::fromRoute('lab_migration.lab_migration_download_lab_pdf', ['lab_id' => $lab_id]);
+    return new Response(t('PDF generated successfully for lab %lab_id. You can download it from %url', [
+      '%lab_id' => $lab_id,
+      '%url' => $url->toString()
+    ]));
   }
+
 
   public function lab_migration_delete_lab_pdf() {
     
@@ -1473,7 +1492,7 @@ $lab_id = (int) $route_match->getParameter('lab_id');
 // \Drupal::service("lab_migration_global")->lab_migration_del_lab_pdf($lab_id);
     \Drupal::messenger()->addMessage(t('Lab schedule for regeneration.'), 'status');
     // RedirectResponse('lab_migration/code_approval/bulk');
-    $response = new RedirectResponse(Url::fromRoute('lab_migration.code_approval.bulk')->toString());
+    $response = new RedirectResponse(Url::fromRoute('lab_migration.bulk_approval_form')->toString());
 $response->send();
     return;
   }
@@ -1605,14 +1624,24 @@ public function verify_lab_migration_certificates($qr_code = 0) {
     $route_match = \Drupal::routeMatch();
 
 $proposal_id = (int) $route_match->getParameter('proposal_id');
-    $root_path = lab_migration_path();
+    $root_path = \Drupal::service('lab_migration_global')->lab_migration_path();
     $query = \Drupal::database()->select('lab_migration_proposal');
     $query->fields('lab_migration_proposal');
     $query->condition('id', $proposal_id);
     $query->range(0, 1);
     $result = $query->execute();
     $syllabus_copy_file_data = $result->fetchObject();
-    $syllabus_copy_file_name = substr($syllabus_copy_file_data->syllabus_copy_file_path, strrpos($syllabus_copy_file_data->syllabus_copy_file_path, '/') + 1);
+    // $syllabus_copy_file_name = substr($syllabus_copy_file_data->syllabus_copy_file_path, strrpos($syllabus_copy_file_data->syllabus_copy_file_path, '/') + 1);
+    $syllabus_copy_file_path = $syllabus_copy_file_data->syllabus_copy_file_path ?? ''; // Default to an empty string if null.
+
+if ($syllabus_copy_file_path !== '') {
+  $syllabus_copy_file_name = substr($syllabus_copy_file_path, strrpos($syllabus_copy_file_path, '/') + 1);
+} else {
+  // Handle the case where the path is empty.
+  $syllabus_copy_file_name = 'default_file_name.txt'; // Provide a fallback file name if needed.
+}
+
+    
     error_reporting(0); //Errors may corrupt download
     ob_start(); //Insert this
     header('Content-Description: File Transfer');

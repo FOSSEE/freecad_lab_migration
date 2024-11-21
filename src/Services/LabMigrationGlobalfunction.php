@@ -8,6 +8,8 @@ use Drupal\Core\Link;
 use Drupal\Core\Url;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Drupal\Core\Database\Database;
+use Drupal\Core\DrupalKernel;
+use Drupal\user\Entity\User;
 
 class LabMigrationGlobalfunction{
 
@@ -174,68 +176,22 @@ function lm_ucname($string)
       }
     return $lab_titles;
   }
-  function _ajax_bulk_get_experiment_list($lab_default_value = '')
-  {
-    $experiments = array(
-        '0' => 'Please select...'
-    );
-    //$experiments_q = db_query("SELECT * FROM {lab_migration_experiment} WHERE proposal_id = %d ORDER BY number ASC", $proposal_id);
-    $query = \Drupal::database()->select('lab_migration_experiment');
-    $query->fields('lab_migration_experiment');
-    $query->condition('proposal_id', $lab_default_value);
-    $query->orderBy('number', 'ASC');
-    $experiments_q = $query->execute();
-    while ($experiments_data = $experiments_q->fetchObject())
-      {
-        $experiments[$experiments_data->id] = $experiments_data->number . '. ' . $experiments_data->title;
-      }
-    return $experiments;
-  }
-  function _ajax_get_experiment_list($lab_default_value = '')
-  {
-    $experiments = array(
-        '0' => 'Please select...'
-    );
-    //$experiments_q = db_query("SELECT * FROM {lab_migration_experiment} WHERE proposal_id = %d ORDER BY number ASC", $proposal_id);
-    $query = \Drupal::database()->select('lab_migration_experiment');
-    $query->fields('lab_migration_experiment');
-    $query->condition('proposal_id', $lab_default_value);
-    $query->orderBy('number', 'ASC');
-    $experiments_q = $query->execute();
-    while ($experiments_data = $experiments_q->fetchObject())
-      {
-        $experiments[$experiments_data->id] = $experiments_data->number . '. ' . $experiments_data->title;
-      }
-    return $experiments;
-  }
-  function _ajax_get_solution_list($lab_experiment_list = '')
-  {
-    $solutions = array(
-        '0' => 'Please select...'
-    );
-    // $solutions_q = db_query("SELECT * FROM {lab_migration_solution} WHERE experiment_id = %d ORDER BY
-    //  CAST(SUBSTRING_INDEX(code_number, '.', 1) AS BINARY) ASC,
-    //   CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(code_number , '.', 2), '.', -1) AS UNSIGNED) ASC,
-    //  CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(code_number , '.', -1), '.', 1) AS UNSIGNED) ASC", $experiment_id);
-    $query = \Drupal::database()->select('lab_migration_solution');
-    $query->fields('lab_migration_solution');
-    $query->condition('experiment_id', $lab_experiment_list);
-    //$query->orderBy("CAST(SUBSTRING_INDEX(code_number, '.', 1) AS BINARY", "ASC");
-    // $query->orderBy("CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(code_number , '.', 2), '.', -1) AS UNSIGNED", "ASC");
-    // $query->orderBy("CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(code_number , '.', -1), '.', 1) AS UNSIGNED", "ASC");
-    $solutions_q = $query->execute();
-    while ($solutions_data = $solutions_q->fetchObject())
-      {
-        $solutions[$solutions_data->id] = $solutions_data->code_number . ' (' . $solutions_data->caption . ')';
-      }
-    return $solutions;
   
-  }
-
   function _latex_copy_script_file()
   {
-    exec("cp ./" . drupal_get_path('module', 'lab_migration') . "/latex/* " . \Drupal::service("lab_migration_global")->lab_migration_path() . "latex");
-    exec("chmod u+x ./uploads/latex/*.sh");
+    // exec("cp ./" . drupal_get_path('module', 'lab_migration') . "/latex/* " . \Drupal::service("lab_migration_global")->lab_migration_path() . "latex");
+    // exec("chmod u+x ./uploads/latex/*.sh");
+    // Get the module path using the updated method for Drupal 10
+$module_path = \Drupal::service('module_handler')->getModule('lab_migration')->getPath();
+
+// Get the migration path from the lab_migration_global service
+$lab_migration_path = \Drupal::service('lab_migration_global')->lab_migration_path();
+
+// Execute the command to copy files
+exec("cp {$module_path}/latex/* {$lab_migration_path}latex");
+
+// Execute the command to change permissions
+exec("chmod u+x ./uploads/latex/*.sh");
   }
   
   function lab_migration_solution_proposal_pending()
@@ -474,28 +430,6 @@ $qr_code = (int) $route_match->getParameter('qr_code');
     $lab_experiment_actions[2] = 'Pending Review Entire Experiment';
     $lab_experiment_actions[3] = 'Dis-Approve Entire Experiment (This will delete all the solutions in the experiment)';
     return $lab_experiment_actions;
-  }
-  function _ajax_bulk_get_solution_list($lab_experiment_list = '')
-  {
-    $solutions = array(
-        0 => 'Please select...'
-    );
-    // $solutions_q = db_query("SELECT * FROM {lab_migration_solution} WHERE experiment_id = %d ORDER BY
-    //  CAST(SUBSTRING_INDEX(code_number, '.', 1) AS BINARY) ASC,
-    //   CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(code_number , '.', 2), '.', -1) AS UNSIGNED) ASC,
-    //  CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(code_number , '.', -1), '.', 1) AS UNSIGNED) ASC", $experiment_id);
-    $query = \Drupal::database()->select('lab_migration_solution');
-    $query->fields('lab_migration_solution');
-    $query->condition('experiment_id', $lab_experiment_list);
-    //$query->orderBy("CAST(SUBSTRING_INDEX(code_number, '.', 1) AS BINARY", "ASC");
-    // $query->orderBy("CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(code_number , '.', 2), '.', -1) AS UNSIGNED", "ASC");
-    // $query->orderBy("CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(code_number , '.', -1), '.', 1) AS UNSIGNED", "ASC");
-    $solutions_q = $query->execute();
-    while ($solutions_data = $solutions_q->fetchObject())
-      {
-        $solutions[$solutions_data->id] = $solutions_data->code_number . ' (' . $solutions_data->caption . ')';
-      }
-    return $solutions;
   }
   function _bulk_list_solution_actions()
   {
@@ -870,7 +804,7 @@ function lab_migration_with_morefeature($key, &$message, $params)
 
   /* check solution */
  // $solution_q = db_query("SELECT * FROM {lab_migration_solution} WHERE id = %d LIMIT 1", $solution_id);
-  $query = db_select('lab_migration_solution');
+  $query = \Drupal::database()->select('lab_migration_solution');
               $query->fields('lab_migration_solution');
               $query->condition('id', $solution_id);
               $query->range(0, 1);
@@ -878,19 +812,19 @@ function lab_migration_with_morefeature($key, &$message, $params)
   $solution_data = $solution_q->fetchObject();
   if (!$solution_data)
   {
-    drupal_set_message('Invalid solution.', 'error');
+    \Drupal::messenger()->addmessage('Invalid solution.', 'error');
     drupal_goto('lab-migration/code');
     return;
   }
   if ($solution_data->approval_status != 0)
   {
-    drupal_set_message('You cannnot delete a solution after it has been approved. Please contact site administrator if you want to delete this solution.', 'error');
+    \Drupal::messenger()->addmessage('You cannnot delete a solution after it has been approved. Please contact site administrator if you want to delete this solution.', 'error');
     drupal_goto('lab-migration/code');
     return;
   }
 
   //$experiment_q = db_query("SELECT * FROM {lab_migration_experiment} WHERE id = %d LIMIT 1", $solution_data->experiment_id);
-  $query = db_select('lab_migration_experiment');
+  $query = \Drupal::database()->select('lab_migration_experiment');
             $query->fields('lab_migration_experiment');
             $query->condition('id', $solution_data->experiment_id);
             $query->range(0, 1);
@@ -899,13 +833,13 @@ function lab_migration_with_morefeature($key, &$message, $params)
   $experiment_data = $experiment_q->fetchObject();
   if (!$experiment_data)
   {
-    drupal_set_message('You do not have permission to delete this solution.', 'error');
+    \Drupal::messenger()->addmessage('You do not have permission to delete this solution.', 'error');
     drupal_goto('lab-migration/code');
     return;
   }
 
   //$proposal_q = db_query("SELECT * FROM {lab_migration_proposal} WHERE id = %d AND solution_provider_uid = %d LIMIT 1", $experiment_data->proposal_id, $user->uid);
-  $query = db_select('lab_migration_proposal');
+  $query = \Drupal::database()->select('lab_migration_proposal');
               $query->fields('lab_migration_proposal');
               $query->condition('id', $experiment_data->proposal_id);
               $query->condition('solution_provider_uid', $user->uid);
@@ -914,7 +848,7 @@ function lab_migration_with_morefeature($key, &$message, $params)
   $proposal_data = $proposal_q->fetchObject();
   if (!$proposal_data)
   {
-    drupal_set_message('You do not have permission to delete this solution.', 'error');
+    \Drupal::messenger()->addmessage('You do not have permission to delete this solution.', 'error');
     drupal_goto('lab-migration/code');
     return;
   }
@@ -922,7 +856,7 @@ function lab_migration_with_morefeature($key, &$message, $params)
   /* deleting solution files */
   if (lab_migration_delete_solution($solution_data->id))
   {
-    drupal_set_message('Solution deleted.', 'status');
+    \Drupal::messenger()->addmessage('Solution deleted.', 'status');
 
     /* sending email */
     $email_to = $user->mail;
@@ -942,9 +876,9 @@ function lab_migration_with_morefeature($key, &$message, $params)
     			'X-Mailer'=> 'Drupal','Cc' => $cc, 'Bcc' => $bcc);
 
     if (!drupal_mail('lab_migration', 'solution_deleted_user', $email_to, language_default(), $param , $from , TRUE))
-      drupal_set_message('Error sending email message.', 'error');
+      \Drupal::messenger()->addmessage('Error sending email message.', 'error');
   } else {
-    drupal_set_message('Error deleting example.', 'status');
+    \Drupal::messenger()->addmessage('Error deleting example.', 'status');
   }
 
   drupal_goto('lab-migration/code');
@@ -979,54 +913,202 @@ function CreateReadmeFileLabMigration($proposal_id)
     fclose($readme_file);
     return $txt;
   }
-  function ajax_bulk_experiment_list_callback(array &$form, FormStateInterface $form_state) {
-    $response = new AjaxResponse();
   
-    $lab_default_value = $form_state->getValue('lab');
-  
-    if ($lab_default_value != 0) {
-      // Add commands for when a lab is selected.
-      $download_url = Url::fromUri('internal:/lab-migration/full-download/lab/' . $lab_default_value);
-      $download_link = Link::fromTextAndUrl(
-        'Download',
-        $download_url
-      )->toString() . ' ' . t('(Download all the approved and unapproved solutions of the entire lab)');
-      $response->addCommand(new HtmlCommand('#ajax_selected_lab', $download_link));
-  
-      // Update form elements dynamically.
-      $form['lab_actions']['#options'] = _bulk_list_lab_actions();
-      $form['lab_experiment_list']['#options'] = _ajax_bulk_get_experiment_list($lab_default_value);
-  
-      // Replace updated form elements.
-      $response->addCommand(new DataCommand('#ajax_selected_lab', 'form_state_value_select', $form_state->getValue('lab_experiment_list')));
-      $response->addCommand(new ReplaceCommand('#ajax_selected_experiment', \Drupal::service('renderer')->render($form['lab_experiment_list'])));
-      $response->addCommand(new ReplaceCommand('#ajax_selected_lab_action', \Drupal::service('renderer')->render($form['lab_actions'])));
-      
-      // Clear other fields.
-      $response->addCommand(new HtmlCommand('#ajax_selected_solution', ''));
-      $response->addCommand(new HtmlCommand('#ajax_selected_lab_experiment_action', ''));
-      $response->addCommand(new HtmlCommand('#ajax_selected_lab_experiment_solution_action', ''));
-      $response->addCommand(new HtmlCommand('#ajax_solution_files', ''));
-      $response->addCommand(new HtmlCommand('#ajax_download_experiment_solution', ''));
-      $response->addCommand(new HtmlCommand('#ajax_edit_experiment_solution', ''));
-    } 
-    else {
-      // Clear all related fields if no lab is selected.
-      $response->addCommand(new HtmlCommand('#ajax_selected_lab', ''));
-      $response->addCommand(new HtmlCommand('#ajax_selected_lab_pdf', ''));
-      $response->addCommand(new DataCommand('#ajax_selected_lab', 'form_state_value_select', $form_state->getValue('lab')));
-      $response->addCommand(new HtmlCommand('#ajax_selected_experiment', ''));
-      $response->addCommand(new HtmlCommand('#ajax_selected_lab_action', ''));
-      $response->addCommand(new HtmlCommand('#ajax_selected_lab_experiment_action', ''));
-      $response->addCommand(new HtmlCommand('#ajax_download_experiment', ''));
-      $response->addCommand(new HtmlCommand('#ajax_selected_lab_experiment_solution_action', ''));
-      $response->addCommand(new HtmlCommand('#ajax_solution_files', ''));
-      $response->addCommand(new HtmlCommand('#ajax_download_experiment_solution', ''));
-      $response->addCommand(new HtmlCommand('#ajax_edit_experiment_solution', ''));
+  function _latex_generate_files($lab_id, $full_lab = FALSE)
+  {
+    $root_path = \Drupal::service("lab_migration_global")->lab_migration_path();
+    $dir_path = $root_path . "latex/";
+    $lab_filedata = "";
+    $solution_provider_filedata = "";
+    $latex_filedata = "";
+    $latex_dep_filedata = "";
+    $depedency_list = array();
+    $eol = "\n";
+    $sep = "#";
+    //$proposal_q = db_query("SELECT * FROM {lab_migration_proposal} WHERE id = %d", $lab_id);
+    $query = \Drupal::database()->select('lab_migration_proposal');
+    $query->fields('lab_migration_proposal');
+    $query->condition('id', $lab_id);
+    $proposal_q = $query->execute();
+    $proposal_data = $proposal_q->fetchObject();
+    if (!$proposal_data)
+      {
+        \Drupal::messenger()->addMessage('Invalid lab specified.', 'error');
+        // drupal_goto('');
+      }
+    if ($proposal_data->approval_status == 0)
+      {
+        \Drupal::messenger()->addMessage('Lab proposal is still in pending review.', 'error');
+        // drupal_goto('');
+      }
+    $category_data = '';
+    switch ($proposal_data->category)
+    {
+        case 0:
+            $category_data = 'Not Selected';
+            break;
+        case 1:
+            $category_data = 'Fluid Mechanics';
+            break;
+        case 2:
+            $category_data = 'Control Theory & Control Systems';
+            break;
+        case 3:
+            $category_data = 'Chemical Engineering';
+            break;
+        case 4:
+            $category_data = 'Thermodynamics';
+            break;
+        case 5:
+            $category_data = 'Mechanical Engineering';
+            break;
+        case 6:
+            $category_data = 'Signal Processing';
+            break;
+        case 7:
+            $category_data = 'Digital Communications';
+            break;
+        case 8:
+            $category_data = 'Electrical Technology';
+            break;
+        case 9:
+            $category_data = 'Mathematics & Pure Science';
+            break;
+        case 10:
+            $category_data = 'Analog Electronics';
+            break;
+        case 11:
+            $category_data = 'Digital Electronics';
+            break;
+        case 12:
+            $category_data = 'Computer Programming';
+            break;
+        case 13:
+            $category_data = 'Others';
+            break;
+        default:
+            $category_data = 'Unknown';
+            break;
     }
-  
-    return $response;
-  }
-  
+    $lab_filedata = $proposal_data->lab_title . $sep . $proposal_data->name_title . $sep . $proposal_data->name . $sep . $proposal_data->department . $sep . $proposal_data->university . $sep . $category_data . $eol;
+    /* regenerate lab if full lab selected */
+    if ($full_lab)
+      {
+        lab_migration_del_lab_pdf($proposal_data->id);
+      }
+    /* check if lab already generated */
+    if (file_exists($dir_path . "lab_" . $proposal_data->id . ".pdf"))
+      {
+        /* download zip file */
+        header('Content-Type: application/pdf');
+        header('Content-disposition: attachment; filename="' . $proposal_data->lab_title . '.pdf"');
+        header('Content-Length: ' . filesize($dir_path . "lab_" . $proposal_data->id . ".pdf"));
+        readfile($dir_path . "lab_" . $proposal_data->id . ".pdf");
+        return;
+      }
+    $solution_provider_user = User::load($proposal_data->solution_provider_uid);
+    if (!$solution_provider_user)
+      {
+        \Drupal::messenger()->addmessage('Could not fetch solution provider information for the lab specified.', 'error');
+      }
+    $solution_provider_filedata .= $proposal_data->solution_provider_name_title . $sep . $proposal_data->solution_provider_name . $sep . $proposal_data->solution_provider_department . $sep . $proposal_data->solution_provider_university . $eol;
+    //$experiment_q = db_query("SELECT * FROM {lab_migration_experiment} WHERE proposal_id = %d ORDER BY number DESC", $proposal_data->id);
+    $query = \Drupal::database()->select('lab_migration_experiment');
+    $query->fields('lab_migration_experiment');
+    $query->condition('proposal_id', $proposal_data->id);
+    $query->orderBy('number', 'DESC');
+    $experiment_q = $query->execute();
+    while ($experiment_data = $experiment_q->fetchObject())
+      {
+        if ($full_lab)
+          {
+            //$solution_q = db_query("SELECT * FROM {lab_migration_solution} WHERE experiment_id = %d ORDER BY code_number DESC", $experiment_data->id);
+            $query = \Drupal::database()->select('lab_migration_solution');
+            $query->fields('lab_migration_solution');
+            $query->condition('experiment_id', $experiment_data->id);
+            $query->orderBy('code_number', 'DESC');
+            $solution_q = $query->execute();
+          }
+        else
+          {
+            //$solution_q = db_query("SELECT * FROM {lab_migration_solution} WHERE experiment_id = %d AND approval_status = 1 ORDER BY code_number DESC", $experiment_data->id);
+            $query = \Drupal::database()->select('lab_migration_solution');
+            $query->fields('lab_migration_solution');
+            $query->condition('experiment_id', $experiment_data->id);
+            $query->condition('approval_status', 1);
+            $query->orderBy('code_number', 'DESC');
+            $solution_q = $query->execute();
+          }
+        while ($solution_data = $solution_q->fetchObject())
+          {
+            //$solution_files_q = db_query("SELECT * FROM {lab_migration_solution_files} WHERE solution_id = %d", $solution_data->id);
+            $query = \Drupal::database()->select('lab_migration_solution_files');
+            $query->fields('lab_migration_solution_files');
+            $query->condition('solution_id', $solution_data->id);
+            $solution_files_q = $query->execute();
+            while ($solution_files_data = $solution_files_q->fetchObject())
+              {
+                $latex_filedata .= $experiment_data->number . $sep;
+                $latex_filedata .= $experiment_data->title . $sep;
+                $latex_filedata .= $solution_data->code_number . $sep;
+                $latex_filedata .= $solution_data->caption . $sep;
+                $latex_filedata .= $solution_files_data->filename . $sep;
+                $latex_filedata .= $solution_files_data->filepath . $sep;
+                $latex_filedata .= $solution_files_data->filetype . $sep;
+                $latex_filedata .= $sep;
+                $latex_filedata .= $solution_files_data->id;
+                $latex_filedata .= $eol;
+              }
+            //$dependency_files_q = db_query("SELECT * FROM {lab_migration_solution_dependency} WHERE solution_id = %d", $solution_data->id);
+            $query = \Drupal::database()->select('lab_migration_solution_dependency');
+            $query->fields('lab_migration_solution_dependency');
+            $query->condition('solution_id', $solution_data->id);
+            $dependency_files_q = $query->execute();
+            while ($dependency_files_data = $dependency_files_q->fetchObject())
+              {
+                //$dependency_q = db_query("SELECT * FROM {lab_migration_dependency_files} WHERE id = %d LIMIT 1", $dependency_files_data->dependency_id);
+                $query = \Drupal::database()->select('lab_migration_dependency_files');
+                $query->fields('lab_migration_dependency_files');
+                $query->condition('id', $dependency_files_data->dependency_id);
+                $query->range(0, 1);
+                $dependency_q = $query->execute();
+                if ($dependency_data = $dependency_q->fetchObject())
+                  {
+                    if (substr($dependency_data->filename, -3) != "wav")
+                      {
+                        $latex_filedata .= $experiment_data->number . $sep;
+                        $latex_filedata .= $experiment_data->title . $sep;
+                        $latex_filedata .= $solution_data->code_number . $sep;
+                        $latex_filedata .= $solution_data->caption . $sep;
+                        $latex_filedata .= $dependency_data->filename . $sep;
+                        $latex_filedata .= $dependency_data->filepath . $sep;
+                        $latex_filedata .= 'D' . $sep;
+                        $latex_filedata .= $dependency_data->caption . $sep;
+                        $latex_filedata .= $dependency_data->id;
+                        $latex_filedata .= $eol;
+                        $depedency_list[$dependency_data->id] = "D";
+                      }
+                  }
+              }
+          }
+      }
+    foreach ($depedency_list as $row => $data)
+      {
+        //$dependency_q = db_query("SELECT * FROM {lab_migration_dependency_files} WHERE id = %d LIMIT 1", $row);
+        $query = \Drupal::database()->select('lab_migration_dependency_files');
+        $query->fields('lab_migration_dependency_files');
+        $query->condition('id', $row);
+        $query->range(0, 1);
+        $dependency_q = $query->execute();
+        if ($dependency_data = $dependency_q->fetchObject())
+          {
+            $latex_dep_filedata .= $dependency_data->filename . $sep;
+            $latex_dep_filedata .= $dependency_data->filepath . $sep;
+            $latex_dep_filedata .= $dependency_data->caption . $sep;
+            $latex_dep_filedata .= $dependency_data->id;
+            $latex_dep_filedata .= $eol;
+          }
+      }
+}
 }
  
