@@ -374,7 +374,7 @@ return $response;
     if (!drupal_mail('lab_migration', 'solution_proposal_received', $email_to , language_default(), $param, $config->get('lab_migration_from_email', NULL), TRUE))
     \Drupal::messenger()->addmessage('Error sending email message.', 'error');*/
     // RedirectResponse('lab-migration/open-proposal');
-    $response = new RedirectResponse('/lab_migration/open-proposal');
+    $response = new RedirectResponse('<front>');
     $response->send();
   }
 

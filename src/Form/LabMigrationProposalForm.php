@@ -316,7 +316,7 @@ class LabMigrationProposalForm extends FormBase {
     ];
     $first_experiemnt = TRUE;
     for ($counter = 1; $counter <= 15; $counter++) {
-      if ($counter <= 2) {
+      if ($counter <= 1) {
         $form['lab_experiment-' . $counter] = [
           '#type' => 'textfield',
           '#attributes' => array('class' => array('form-control')),

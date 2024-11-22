@@ -132,7 +132,7 @@ $response->send();
     ];
     $form['version'] = [
       '#type' => 'select',
-      '#title' => t('R version used'),
+      '#title' => t('FreeCAD version used'),
       '#options' => \Drupal::service("lab_migration_global")->_lm_list_of_software_version(),
       '#required' => TRUE,
     ];
@@ -573,7 +573,7 @@ $response->send();
     // if (!drupal_Email('lab_migration', 'solution_uploaded', $email_to, language_default(), $param, $from, TRUE)) {
     //   \Drupal::database()->addmessage('Error sending email message.', 'error');
     // }
-    $response = new RedirectResponse(Url::fromRoute('/lab_migration/code/upload')->toString());
+    $response = new RedirectResponse(Url::fromRoute('lab_migration.upload_code_form')->toString());
    // Send the redirect response
       $response->send();
       }

@@ -309,7 +309,7 @@ $response->send();
         ":proposal_id" => $proposal_id,
         ":expected_completion_date" => time(),
       ];
-      // $result = \Drupal::database()->query($up_query, $args);
+       $result = \Drupal::database()->query($up_query, $args);
       
       // \Drupal::service("lab_migration_global")->CreateReadmeFileLabMigration($proposal_id);
       // if (!$result) {
@@ -342,7 +342,7 @@ $response->send();
       \Drupal::messenger()->addmessage('Congratulations! Lab Migration proposal has been marked as completed. User has been notified of the completion.', 'status');
     }
     // RedirectResponse('lab-migration/manage-proposal');
-    $response = new RedirectResponse(Url::fromRoute('lab_migration.proposal_pending_solution')->toString());
+    $response = new RedirectResponse(Url::fromRoute('lab_migration.proposal_all')->toString());
   
     // //   // Send the redirect response
       $response->send();

@@ -365,23 +365,21 @@ class DefaultController extends ControllerBase {
       //   $solution_provider_user_name = '';
       // }
       /* setting table row information */
+      $url = Url::fromRoute('lab_migration.code_approval_form', ['solution_id' => $pending_solution_data->id]);
+      //     Generate the URL using the route and passing the parameter for solution_id.
+// Create the link with Link::fromTextAndUrl and translate the text.
+$link = Link::fromTextAndUrl(t('Edit'), $url)->toString();
       $pending_solution_rows[] = [
         $proposal_data->lab_title,
         $experiment_data->title,
         $proposal_data->name,
         $proposal_data->solution_provider_name,
-//     Generate the URL using the route and passing the parameter for solution_id.
-$url = Url::fromRoute('lab_migration.code_approval_form', ['solution_id' => $pending_solution_data->id]),
+        $link
 
-
-
-// Create the link with Link::fromTextAndUrl and translate the text.
-$link = Link::fromTextAndUrl(t('Edit'), $url)->toString(),
-
-// Return or render the link in your form or page.
-$build['edit_link'] = [
-  '#markup' => $link,
-],
+// // Return or render the link in your form or page.
+// $build['edit_link'] = [
+//   '#markup' => $link,
+// ],
         // Link::fromTextAndUrl('Edit', 'lab-migration/code-approval/approve/' . $pending_solution_data->id),
       ];
     }
@@ -1826,7 +1824,7 @@ public function lab_migration_list_experiments() {
       $experiment_data->number . ') ' . $experiment_data->title,
       '', '', ''
     ];
-
+    //var_dump($experiment_data);die;
     // Get solutions related to each experiment.
     $query = \Drupal::database()->select('lab_migration_solution', 'lms');
     $query->fields('lms');
@@ -1836,6 +1834,7 @@ public function lab_migration_list_experiments() {
 
     if ($solution_q) {
       while ($solution_data = $solution_q->fetchObject()) {
+        //var_dump($solution_data);die;
         $solution_status = ($solution_data->approval_status == 0) ? "Pending" : (($solution_data->approval_status == 1) ? "Approved" : "Unknown");
 
         // Action link for 'Delete' if approval status is pending.
@@ -1863,6 +1862,7 @@ public function lab_migration_list_experiments() {
 
         if ($solution_files_q) {
           while ($solution_files_data = $solution_files_q->fetchObject()) {
+            //var_dump($solution_files_data);die;
             $filetype_map = ['S' => 'Source', 'R' => 'Result', 'X' => 'Xcox', 'U' => 'Unknown'];
             $code_file_type = $filetype_map[$solution_files_data->filetype] ?? 'Unknown';
 
@@ -1878,32 +1878,32 @@ public function lab_migration_list_experiments() {
         }
       
         // Get dependency files related to each solution.
-        $query = \Drupal::database()->select('lab_migration_solution_dependency', 'lmsd');
-        $query->fields('lmsd');
-        $query->condition('solution_id', $solution_data->id);
-        $query->orderBy('id', 'ASC');
-        $dependency_q = $query->execute();
+        // $query = \Drupal::database()->select('lab_migration_solution_dependency', 'lmsd');
+        // $query->fields('lmsd');
+        // $query->condition('solution_id', $solution_data->id);
+        // $query->orderBy('id', 'ASC');
+        // $dependency_q = $query->execute();
 
-        while ($dependency_data = $dependency_q->fetchObject()) {
-          $query = \Drupal::database()->select('lab_migration_dependency_files', 'lmf');
-          $query->fields('lmf');
-          $query->condition('id', $dependency_data->dependency_id);
-          $dependency_files_q = $query->execute();
+        // while ($dependency_data = $dependency_q->fetchObject()) {
+        //   $query = \Drupal::database()->select('lab_migration_dependency_files', 'lmf');
+        //   $query->fields('lmf');
+        //   $query->condition('id', $dependency_data->dependency_id);
+        //   $dependency_files_q = $query->execute();
 
-          if ($dependency_files_data = $dependency_files_q->fetchObject()) {
-            $dependency_url = Url::fromRoute('lab_migration.download_dependency', ['id' => $dependency_files_data->id]);
-            $experiment_rows[] = [
-          Link::fromTextAndUrl($dependency_files_data->filename, $dependency_url)->toString(),
-              'Dependency',
-              '',
-              ''
-            ];
-          }
-        }
+        //   if ($dependency_files_data = $dependency_files_q->fetchObject()) {
+        //     $dependency_url = Url::fromRoute('lab_migration.download_dependency', ['id' => $dependency_files_data->id]);
+        //     $experiment_rows[] = [
+        //   Link::fromTextAndUrl($dependency_files_data->filename, $dependency_url)->toString(),
+        //       'Dependency',
+        //       '',
+        //       ''
+        //     ];
+        //   }
+        // }
       }
     }
   }
-
+//var_dump($experiment_rows);die;
   // Build the table render array.
   $return_html[] = [
     '#theme' => 'table',

@@ -38,7 +38,6 @@ class LabMigrationRunForm extends FormBase {
     $select_two = $form_state->getValue('lab_experiment_list') ?: key($options_two);
     // $url_lab_id = (int) arg(2);
     $route_match = \Drupal::routeMatch();
-
 $url_lab_id = (int) $route_match->getParameter('url_lab_id');
     if (!$url_lab_id)
       {
@@ -165,13 +164,14 @@ $url_lab_id = (int) $route_match->getParameter('url_lab_id');
                 '#markup' => '<div id="ajax_selected_lab_r">' . l('Download Lab Solutions (r Version)', 'lab-migration-uploads/r_Version.zip') . '</div>'
             );
           }*/
+          //var_dump($this->_lab_details($lab_default_value));die;
         $form['lab_details'] = array(
             '#type' => 'item',
             '#markup' => '<div id="ajax_lab_details">' . $this->_lab_details($lab_default_value) . '</div>'
         );
         $form['lab_experiment_list'] = array(
             '#type' => 'select',
-            '#title' => t('Titile of the experiment'),
+            '#title' => t('Title of the experiment'),
             '#options' => $this->_ajax_get_experiment_list($selected),
             // '#default_value' => isset($form_state['values']['lab_experiment_list']) ? $form_state['values']['lab_experiment_list'] : '',
             '#ajax' => array(
@@ -231,7 +231,7 @@ $url_lab_id = (int) $route_match->getParameter('url_lab_id');
             )
         );
       }
-      var_dump($this->_lab_details(62));die;
+      // var_dump($this->_lab_details(62));die;
     /*
     $form['message'] = array(
     '#type' => 'textarea',
@@ -261,7 +261,6 @@ $url_lab_id = (int) $route_match->getParameter('url_lab_id');
       // Get the lab details
       $lab_details = $this->_lab_information($lab_default_value);
       $user_solution_provider = \Drupal\user\Entity\User::load($lab_details->solution_provider_uid);
-      
       // If solution provider exists
       if ($lab_details->solution_provider_uid > 0) {
         // Download Lab Solutions link
@@ -323,7 +322,7 @@ $url_lab_id = (int) $route_match->getParameter('url_lab_id');
   public function ajax_solution_list_callback(array &$form, \Drupal\Core\Form\FormStateInterface $form_state) {
     $commands = [];
     $experiment_list_default_value = $form_state->getValue('lab_experiment_list');
-    
+    //var_dump($experiment_list_default_value);die;
     if ($experiment_list_default_value != 0) {
       // Update the solution list options
       $form['lab_solution_list']['#options'] = $this->_ajax_get_solution_list($experiment_list_default_value);
@@ -339,7 +338,7 @@ $url_lab_id = (int) $route_match->getParameter('url_lab_id');
     }
     else {
       // Default options when no experiment is selected
-      $form['lab_solution_list']['#options'] = _ajax_get_solution_list();
+      $form['lab_solution_list']['#options'] = $this->_ajax_get_solution_list();
       
       // Clear the DOM elements
       $commands[] = new HtmlCommand('#ajax_selected_solution', \Drupal::service('renderer')->render($form['lab_solution_list']));
@@ -520,6 +519,7 @@ public function _ajax_get_experiment_list($lab_default_value = '')
   }
 public function _ajax_get_solution_list($lab_experiment_list = '')
   {
+    //var_dump($lab_experiment_list);die;
     $solutions = array(
         '0' => 'Please select...'
     );
@@ -542,6 +542,7 @@ public function _ajax_get_solution_list($lab_experiment_list = '')
   }
 public function _lab_information($proposal_id)
   {
+      //var_dump($proposal_id);die;
     //$lab_q = db_query("SELECT * FROM {lab_migration_proposal} WHERE id = %d", $proposal_id);
     $query = \Drupal::database()->select('lab_migration_proposal', 'l')
     ->fields('l') // Use the table alias here
@@ -549,7 +550,8 @@ public function _lab_information($proposal_id)
     ->condition('l.approval_status', 3);
 
 $lab_q = $query->execute();
-$lab_data = $lab_q->fetchAll();
+$lab_data = $lab_q->fetchObject();
+//var_dump($lab_data);die;
 
 if ($lab_data) {
     return $lab_data;
@@ -577,6 +579,7 @@ public function _lab_details($lab_default_value)
   {
     // $lab_default_value = $form_state['values']['lab'];
     $lab_details = $this->_lab_information($lab_default_value);
+    //var_dump($lab_details->name_title);die;
     if ($lab_default_value != 0)
       {
         if ($lab_details){
@@ -598,11 +601,11 @@ public function _lab_details($lab_default_value)
           }}
           else{
           // drupal_goto('lab-migration/lab-migration-run');
-//           $url = Url::fromRoute('lab_migration.run_form');
+          $url = Url::fromRoute('lab_migration.run_form');
 
-// // Create a RedirectResponse and send it.
-// $response = new RedirectResponse($url->toString());
-// $response->send();
+// Create a RedirectResponse and send it.
+$response = new RedirectResponse($url->toString());
+$response->send();
           
       }
     $form['lab_details']['#markup'] = '<span style="color: rgb(128, 0, 0);"><strong>About the Lab</strong></span></td><td style="width: 35%;"><br />' . '<ul>' . '<li><strong>Proposer Name:</strong> ' . $lab_details->name_title . ' ' . $lab_details->name . '</li>' . '<li><strong>Title of the Lab:</strong> ' . $lab_details->lab_title . '</li>' . '<li><strong>Department:</strong> ' . $lab_details->department . '</li>' . '<li><strong>University:</strong> ' . $lab_details->university . '</li>' . '<li><strong>Version:</strong> ' . $lab_details->version . '</li>' . '<li><strong>Operating System:</strong> ' . $lab_details->operating_system . '</li>' . '</ul>' . $solution_provider;
