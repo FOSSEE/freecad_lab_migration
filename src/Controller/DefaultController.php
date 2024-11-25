@@ -22,6 +22,7 @@ use Drupal\Core\Session\AccountInterface;
 use Drupal\Core\Form\FormBuilderInterface;
 use Drupal\Core\Render\Markup;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 
 /**
  * Default controller for the lab_migration module.
@@ -947,8 +948,8 @@ $zip_filename = $temporary_directory . '/zip-' . time() . '-' . rand(0, 999999) 
       \Drupal::messenger()->addMessage("There are no files in this solutions to download", 'error');
      
       // RedirectResponse('lab-migration/lab-migration-run');
-      return new RedirectResponse(Url::fromUserInput('/lab-migration/lab-migration-run')->toString());
-   
+      // return new RedirectResponse(Url::fromUserInput('lab_migration.run_form')->toString());
+      return new RedirectResponse(Url::fromUserInput('lab_migration/lab_migration-run')->toString());
     }
   }
 
@@ -1617,40 +1618,88 @@ public function verify_lab_migration_certificates($qr_code = 0) {
   return new Response($page_content);
 }
 
-  public function lab_migration_download_syllabus_copy() {
+//   public function lab_migration_download_syllabus_copy() {
    
-    $route_match = \Drupal::routeMatch();
+//     $route_match = \Drupal::routeMatch();
 
-$proposal_id = (int) $route_match->getParameter('proposal_id');
-    $root_path = \Drupal::service('lab_migration_global')->lab_migration_path();
-    $query = \Drupal::database()->select('lab_migration_proposal');
-    $query->fields('lab_migration_proposal');
-    $query->condition('id', $proposal_id);
-    $query->range(0, 1);
-    $result = $query->execute();
-    $syllabus_copy_file_data = $result->fetchObject();
-    // $syllabus_copy_file_name = substr($syllabus_copy_file_data->syllabus_copy_file_path, strrpos($syllabus_copy_file_data->syllabus_copy_file_path, '/') + 1);
-    $syllabus_copy_file_path = $syllabus_copy_file_data->syllabus_copy_file_path ?? ''; // Default to an empty string if null.
+// $proposal_id = (int) $route_match->getParameter('proposal_id');
+//     $root_path = \Drupal::service('lab_migration_global')->lab_migration_path();
+//     $query = \Drupal::database()->select('lab_migration_proposal');
+//     $query->fields('lab_migration_proposal');
+//     $query->condition('id', $proposal_id);
+//     $query->range(0, 1);
+//     $result = $query->execute();
+//     $syllabus_copy_file_data = $result->fetchObject();
+//     // $syllabus_copy_file_name = substr($syllabus_copy_file_data->syllabus_copy_file_path, strrpos($syllabus_copy_file_data->syllabus_copy_file_path, '/') + 1);
+//     $syllabus_copy_file_path = $syllabus_copy_file_data->syllabus_copy_file_path ?? ''; // Default to an empty string if null.
 
-if ($syllabus_copy_file_path !== '') {
-  $syllabus_copy_file_name = substr($syllabus_copy_file_path, strrpos($syllabus_copy_file_path, '/') + 1);
-} else {
-  // Handle the case where the path is empty.
-  $syllabus_copy_file_name = 'default_file_name.txt'; // Provide a fallback file name if needed.
-}
+// if ($syllabus_copy_file_path !== '') {
+//   $syllabus_copy_file_name = substr($syllabus_copy_file_path, strrpos($syllabus_copy_file_path, '/') + 1);
+// } else {
+//   // Handle the case where the path is empty.
+//   $syllabus_copy_file_name = 'default_file_name.txt'; // Provide a fallback file name if needed.
+// }
 
     
-    error_reporting(0); //Errors may corrupt download
-    ob_start(); //Insert this
-    header('Content-Description: File Transfer');
-    header('Content-Type: application/octet-stream');
-    header('Content-disposition: attachment; filename="' . $syllabus_copy_file_name . '"');
-    header('Content-Length: ' . filesize($root_path . $syllabus_copy_file_data->syllabus_copy_file_path));
-    ob_clean();
-    ob_end_flush();
-    readfile($root_path . $syllabus_copy_file_data->syllabus_copy_file_path);
-    exit;
+//     error_reporting(0); //Errors may corrupt download
+//     ob_start(); //Insert this
+//     header('Content-Description: File Transfer');
+//     header('Content-Type: application/octet-stream');
+//     header('Content-disposition: attachment; filename="' . $syllabus_copy_file_name . '"');
+//     header('Content-Length: ' . filesize($root_path . $syllabus_copy_file_data->syllabus_copy_file_path));
+//     ob_clean();
+//     ob_end_flush();
+//     readfile($root_path . $syllabus_copy_file_data->syllabus_copy_file_path);
+//     exit;
+//   }
+/**
+ * Downloads the syllabus copy file for the given proposal.
+ */
+public function lab_migration_download_syllabus_copy() {
+  // Get the proposal ID from the route.
+  $route_match = \Drupal::routeMatch();
+  $proposal_id = (int) $route_match->getParameter('proposal_id');
+
+  // Retrieve the root path and file details.
+  $root_path = \Drupal::service('lab_migration_global')->lab_migration_path();
+  $query = \Drupal::database()->select('lab_migration_proposal', 'p');
+  $query->fields('p', ['syllabus_copy_file_path']);
+  $query->condition('id', $proposal_id);
+  $syllabus_copy_file_path = $query->execute()->fetchField();
+
+  // Ensure the file path is valid.
+  if (!$syllabus_copy_file_path) {
+    \Drupal::messenger()->addmessage(t('The syllabus copy file could not be found.'));
+    $response = new RedirectResponse(Url::fromRoute('<front>')->toString());
+  
+// //   // Send the redirect response
+  $response->send();
+    // return $this->redirect('<front>'); // Redirect to the front page or an appropriate route.
   }
+
+  // Construct the full file path.
+  $full_path = $root_path . $syllabus_copy_file_path;
+
+  // Validate the file exists.
+  if (!file_exists($full_path)) {
+    \Drupal::messenger()->addmessage(t('The requested file does not exist.'));
+    // return $this->redirect('<front>'); // Redirect to the front page or an appropriate route.
+    $response = new RedirectResponse(Url::fromRoute('<front>')->toString());
+
+  }
+
+  // Extract the file name from the path.
+  $syllabus_copy_file_name = basename($syllabus_copy_file_path);
+
+  // Create the response using Symfony components.
+  $response = new Response();
+  $response->setContent(file_get_contents($full_path));
+  $response->headers->set('Content-Type', 'application/octet-stream');
+  $response->headers->set('Content-Disposition', ResponseHeaderBag::DISPOSITION_ATTACHMENT, $syllabus_copy_file_name);
+  $response->headers->set('Content-Length', filesize($full_path));
+
+  return $response;
+}
 
   function lab_migration_upload_code_form($form,$form_state)
   {

@@ -10,6 +10,7 @@ namespace Drupal\lab_migration\Form;
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Render\Element;
+use Drupal\Core\Database\Database;
 
 class LabMigrationBulkApprovalForm extends FormBase {
 
@@ -21,8 +22,8 @@ class LabMigrationBulkApprovalForm extends FormBase {
   }
 
   public function buildForm(array $form, \Drupal\Core\Form\FormStateInterface $form_state) {
-    $options_first = \Drupal::service("lab_migration_global")->_bulk_list_of_labs();
-    $options_two = \Drupal::service("lab_migration_global")->_ajax_bulk_get_experiment_list();
+    $options_first = $this->_bulk_list_of_labs();
+    $options_two = $this->_ajax_bulk_get_experiment_list();
     $selected = !$form_state->getValue(['lab']) ? $form_state->getValue(['lab']) : key($options_first);
     $select_two = !$form_state->getValue(['lab_experiment_list']) ? $form_state->getValue([
       'lab_experiment_list'
@@ -31,17 +32,17 @@ class LabMigrationBulkApprovalForm extends FormBase {
     $form['lab'] = [
       '#type' => 'select',
       '#title' => t('Title of the lab'),
-      '#options' => \Drupal::service("lab_migration_global")->_bulk_list_of_labs(),
+      '#options' => $this->_bulk_list_of_labs(),
       '#default_value' => $selected,
       '#ajax' => [
-        'callback' => 'ajax_bulk_experiment_list_callback'
+        'callback' => '::ajax_bulk_experiment_list_callback'
         ],
       '#suffix' => '<div id="ajax_selected_lab"></div><div id="ajax_selected_lab_pdf"></div>',
     ];
     $form['lab_actions'] = [
       '#type' => 'select',
       '#title' => t('Please select action for Entire Lab'),
-      '#options' => \Drupal::service("lab_migration_global")->_bulk_list_lab_actions(),
+      '#options' => $this->_bulk_list_lab_actions(),
       '#default_value' => 0,
       '#prefix' => '<div id="ajax_selected_lab_action" style="color:red;">',
       '#suffix' => '</div>',
@@ -55,8 +56,8 @@ class LabMigrationBulkApprovalForm extends FormBase {
     ];
     $form['lab_experiment_list'] = [
       '#type' => 'select',
-      '#title' => t('Titile of the experiment'),
-      '#options' => \Drupal::service("lab_migration_global")->_ajax_bulk_get_experiment_list($selected),
+      '#title' => t('Title of the experiment'),
+      '#options' => $this->_ajax_bulk_get_experiment_list($selected),
       '#default_value' => !$form_state->getValue([
         'lab_experiment_list'
         ]) ? $form_state->getValue(['lab_experiment_list']) : '',
@@ -75,12 +76,12 @@ class LabMigrationBulkApprovalForm extends FormBase {
     ];
     $form['download_experiment'] = [
       '#type' => 'item',
-      '#markup' => '<div id="ajax_download_experiment"></div>',
+      '#markup' => '<div id="download_experiment"></div>',
     ];
     $form['lab_experiment_actions'] = [
       '#type' => 'select',
       '#title' => t('Please select action for Entire Experiment'),
-      '#options' =>\Drupal::service("lab_migration_global")->_bulk_list_experiment_actions(),
+      '#options' =>$this->_bulk_list_experiment_actions(),
       '#default_value' => 0,
       '#prefix' => '<div id="ajax_selected_lab_experiment_action" style="color:red;">',
       '#suffix' => '</div>',
@@ -102,12 +103,12 @@ class LabMigrationBulkApprovalForm extends FormBase {
     $form['lab_solution_list'] = [
       '#type' => 'select',
       '#title' => t('Solution'),
-      '#options' => \Drupal::service("lab_migration_global")->_ajax_bulk_get_solution_list($select_two),
+      '#options' => $this->_ajax_bulk_get_solution_list($select_two),
       '#default_value' => !$form_state->getValue([
         'lab_solution_list'
         ]) ? $form_state->getValue(['lab_solution_list']) : '',
       '#ajax' => [
-        'callback' => 'ajax_bulk_solution_files_callback'
+        'callback' => '::ajax_bulk_solution_files_callback'
         ],
       '#prefix' => '<div id="ajax_selected_solution">',
       '#suffix' => '</div>',
@@ -122,7 +123,7 @@ class LabMigrationBulkApprovalForm extends FormBase {
     $form['lab_experiment_solution_actions'] = [
       '#type' => 'select',
       '#title' => t('Please select action for solution'),
-      '#options' => \Drupal::service("lab_migration_global")->_bulk_list_solution_actions(),
+      '#options' => $this->_bulk_list_solution_actions(),
       '#default_value' => 0,
       '#prefix' => '<div id="ajax_selected_lab_experiment_solution_action" style="color:red;">',
       '#suffix' => '</div>',
@@ -788,5 +789,118 @@ FOSSEE,IIT Bombay', [
     return;
   }
 
+  function _ajax_bulk_get_experiment_list($lab_default_value = '') {
+    $experiments = [
+      '0' => 'Please select...',
+    ];
+  
+    // Get the database connection.
+    $connection = Database::getConnection();
+  
+    // Prepare the query.
+    $query = $connection->select('lab_migration_experiment', 'lme')
+      ->fields('lme', ['id', 'number', 'title'])
+      ->condition('proposal_id', $lab_default_value)
+      ->orderBy('number', 'ASC');
+  
+    // Execute the query and fetch results.
+    $experiments_q = $query->execute();
+  
+    foreach ($experiments_q as $experiments_data) {
+      $experiments[$experiments_data->id] = $experiments_data->number . '. ' . $experiments_data->title;
+    }
+  
+    return $experiments;
+  }
+  
+  function _bulk_list_lab_actions(): array {
+    return [
+      0 => 'Please select...',
+      1 => 'Approve Entire Lab',
+      2 => 'Pending Review Entire Lab',
+      3 => 'Dis-Approve Entire Lab (This will delete all the solutions in the lab)',
+      4 => 'Delete Entire Lab Including Proposal',
+    ];
+  }
+  
+
+  function _bulk_list_of_labs(): array {
+    $lab_titles = [
+      '0' => 'Please select...',
+    ];
+  
+    // Get the database connection.
+    $connection = Database::getConnection();
+  
+    // Prepare the query.
+    $query = $connection->select('lab_migration_proposal', 'lmp')
+      ->fields('lmp', ['id', 'lab_title', 'name'])
+      ->condition('solution_display', 1)
+      ->orderBy('lab_title', 'ASC');
+  
+    // Execute the query and fetch results.
+    $results = $query->execute();
+  
+    foreach ($results as $lab_titles_data) {
+      $lab_titles[$lab_titles_data->id] = $lab_titles_data->lab_title . ' (Proposed by ' . $lab_titles_data->name . ')';
+    }
+  
+    return $lab_titles;
+  }
+  
+
+function _ajax_bulk_get_solution_list($lab_experiment_list = ''): array {
+  $solutions = [
+    0 => 'Please select...',
+  ];
+
+  if (empty($lab_experiment_list)) {
+    return $solutions;
+  }
+// var_dump($lab_experiment_list);die;
+  // Get the database connection.
+  $connection = Database::getConnection();
+
+  // Prepare the query.
+  $query = $connection->select('lab_migration_solution', 'lms')
+    ->fields('lms', ['id', 'code_number', 'caption'])
+    ->condition('experiment_id', $lab_experiment_list);
+
+  // Add custom ordering logic for `code_number`.
+  $query->addExpression("CAST(SUBSTRING_INDEX(code_number, '.', 1) AS BINARY)", 'part1');
+  $query->addExpression("CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(code_number, '.', 2), '.', -1) AS UNSIGNED)", 'part2');
+  $query->addExpression("CAST(SUBSTRING_INDEX(SUBSTRING_INDEX(code_number, '.', -1), '.', 1) AS UNSIGNED)", 'part3');
+  $query->orderBy('part1', 'ASC');
+  $query->orderBy('part2', 'ASC');
+  $query->orderBy('part3', 'ASC');
+
+  // Execute the query and fetch results.
+  $results = $query->execute();
+// var_dump($results);die;
+  foreach ($results as $solution) {
+    $solutions[$solution->id] = $solution->code_number . ' (' . $solution->caption . ')';
+  }
+var_dump($solutions);die;
+  return $solutions;
+}
+
+function _bulk_list_solution_actions(): array {
+  return [
+    0 => 'Please select...',
+    1 => 'Approve Entire Solution',
+    2 => 'Pending Review Entire Solution',
+    3 => 'Dis-approve Solution (This will delete the solution)',
+  ];
+}
+function _bulk_list_experiment_actions()
+  {
+    $lab_experiment_actions = array(
+        0 => 'Please select...'
+    );
+    $lab_experiment_actions[1] = 'Approve Entire Experiment';
+    $lab_experiment_actions[2] = 'Pending Review Entire Experiment';
+    $lab_experiment_actions[3] = 'Dis-Approve Entire Experiment (This will delete all the solutions in the experiment)';
+    return $lab_experiment_actions;
+  }
 }
 ?>

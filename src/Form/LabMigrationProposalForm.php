@@ -20,7 +20,8 @@ use Drupal\Core\StringTranslation\StringTranslationTrait;
 use Drupal\Core\Database\Database;
 use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\Mail\MailManager;
-
+use Drupal\Core\Mail\MailManagerInterface;
+use Drupal\Core\DependencyInjection\ContainerInterface;
 class LabMigrationProposalForm extends FormBase {
 
   /**
@@ -54,33 +55,44 @@ class LabMigrationProposalForm extends FormBase {
       // 'pincode'
       // ]):key($pincode);
     /************************ start approve book details ************************/
-  //   if ($user->uid == 0) {
-  //     // $msg = \Drupal::messenger()->addError(t('This is an error message, red in color'));
-  //     $url = Link::fromTextAndUrl(t('login'), Url::fromRoute('user.page'))->toString();
+    if ($user->isAnonymous()) {
+      // $msg = \Drupal::messenger()->addError(t('This is an error message, red in color'));
+      $url = Link::fromTextAndUrl(t('login'), Url::fromRoute('user.page'))->toString();
       
-  //     $msg = \Drupal::messenger()->addError(t('It is mandatory to ' . Link::fromTextAndUrl(t('login'), Url::fromRoute('user.page'))->toString() . ' on this website to access the lab proposal form. If you are new user please create a new account first.'));
+      $msg = \Drupal::messenger()->addmessage(t('It is mandatory to ' . Link::fromTextAndUrl(t('login'), Url::fromRoute('user.page'))->toString() . ' on this website to access the lab proposal form. If you are new user please create a new account first.'));
       
-  //     // RedirectResponse('lab-migration-project');
-  //     // \Drupal::RedirectResponse('user');
+      // RedirectResponse('lab-migration-project');
+      // \Drupal::RedirectResponse('user');
   //     $redirect = new RedirectResponse($url);
   //     $redirect->send();
-  // // return $msg;
+  // return $msg;
+  // Redirect to the login page
+  $response = new RedirectResponse(Url::fromRoute('user.page')->toString());
+
+  $response->send();
+  return $msg;
+
   // /lab_migration/proposal
-  //   }
-    // $query = \Drupal::database()->select('lab_migration_proposal');
-    // $query->fields('lab_migration_proposal');
-    // $query->condition('uid', $user->uid);
-    // $query->orderBy('id', 'DESC');
-    // $query->range(0, 1);
-    // $proposal_q = $query->execute();
-    // $proposal_data = $proposal_q->fetchObject();
-    // if ($proposal_data) {
-    //   if ($proposal_data->approval_status == 0 || $proposal_data->approval_status == 1) {
-    //     \Drupal::messenger()->addStatus(t('We have already received your proposal.'));
-    //     RedirectResponse('');
-    //     return;
-    //   }
-    // }
+    }
+    $query = \Drupal::database()->select('lab_migration_proposal');
+    $query->fields('lab_migration_proposal');
+    $query->condition('uid', $user->id());
+    $query->orderBy('id', 'DESC');
+    $query->range(0, 1);
+    $proposal_q = $query->execute();
+    $proposal_data = $proposal_q->fetchObject();
+    if ($proposal_data) {
+      if ($proposal_data->approval_status == 0 || $proposal_data->approval_status == 1) {
+        \Drupal::messenger()->addmessage(t('We have already received your proposal.'));
+        // Create a redirect response to the front page
+$response = new RedirectResponse(Url::fromRoute('<front>')->toString());
+
+// Send the redirect response
+$response->send();
+
+      return;
+      }
+    }
     $form['#attributes'] = ['enctype' => "multipart/form-data"];
     $form['name_title'] = [
       '#type' => 'select',
@@ -694,10 +706,49 @@ $proposal_id= $connection->insert('lab_migration_proposal')->fields($args)->exec
       'Cc' => $cc,
       'Bcc' => $bcc,
     ];
-    // if (!\Drupal::service('plugin.manager.mail')->mail('lab_migration', 'proposal_received', $email_to, 'en', $param, $from )) {
-    //   \Drupal::messenger()->addError('Error sending email message.');
-//     //  }
-    \Drupal::messenger()->addStatus($this->t('We have received you Lab migration proposal. We will get back to you soon.'));
+    if (!\Drupal::service('plugin.manager.mail')->mail('lab_migration', 'proposal_received', $email_to, 'en', $param, $from )) {
+      \Drupal::messenger()->addError('Error sending email message.');
+     }
+
+// function send_proposal_received_email($user, $proposal_id) {
+//   // Get the recipient email from the user object.
+//   $email_to = $user->mail;
+
+//   // Get configuration values.
+//   $from = \Drupal::config('lab_migration.settings')->get('lab_migration_from_email');
+//   $bcc = \Drupal::config('lab_migration.settings')->get('lab_migration_emails');
+//   $cc = \Drupal::config('lab_migration.settings')->get('lab_migration_cc_emails');
+
+//   // Set parameters for the email.
+//   $params = [
+//     'proposal_received' => [
+//       'proposal_id' => $proposal_id,
+//       'user_id' => $user->uid,
+//       'headers' => [
+//         'From' => $from,
+//         'MIME-Version' => '1.0',
+//         'Content-Type' => 'text/plain; charset=UTF-8; format=flowed; delsp=yes',
+//         'Content-Transfer-Encoding' => '8Bit',
+//         'X-Mailer' => 'Drupal',
+//         'Cc' => $cc,
+//         'Bcc' => $bcc,
+//       ],
+//     ],
+//   ];
+
+//   // Send the email using the MailManager service.
+//   /** @var \Drupal\Core\Mail\MailManagerInterface $mail_manager */
+//   $mail_manager = \Drupal::service('plugin.manager.mail');
+
+//   // The mail key 'lab_migration' corresponds to the mail template defined in the module.
+//   $mail_result = $mail_manager->mail('lab_migration', 'proposal_received', $email_to, 'en', $params, $from);
+
+//   // Check for errors in sending the email.
+//   if (!$mail_result) {
+//     \Drupal::messenger()->addError('Error sending email message.');
+//   }
+// }
+    \Drupal::messenger()->addmessage($this->t('We have received you Lab migration proposal. We will get back to you soon.'));
      $response = new RedirectResponse(Url::fromRoute('<front>')->toString());
   
 // //   // Send the redirect response
