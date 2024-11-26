@@ -429,8 +429,8 @@ $response->send();
     $cur_solution_q = $query->execute();
     if ($cur_solution_d = $cur_solution_q->fetchObject()) {
       if ($cur_solution_d->approval_status == 1) {
-        \Drupal::database()->addmessage(t("Solution already approved. Cannot overwrite it."), 'error');
-        RedirectResponse('lab-migration/code');
+        \Drupal::messenger()->addmessage(t("Solution already approved. Cannot overwrite it."), 'error');
+        // RedirectResponse('lab-migration/code');
         return;
       }
       else {

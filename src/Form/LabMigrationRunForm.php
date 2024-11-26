@@ -60,132 +60,119 @@ $url_lab_id = (int) $route_match->getParameter('url_lab_id');
         '#title' => t('Title of the lab'),
         '#options' => $this->_list_of_labs(),
         '#default_value' => $selected,
-        '#ajax' => array(
+        '#ajax' => [
             'callback' => '::ajax_experiment_list_callback'
-        )
+        ]
     );
     // var_dump($this->_list_of_labs());die;
-    if (!$url_lab_id)
-      {
-        $form['selected_lab'] = array(
-            '#type' => 'item',
-            '#markup' => '<div id="ajax_selected_lab"></div>'
-        );
-        $form['selected_lab_r'] = array(
-            '#type' => 'item',
-            '#markup' => '<div id="ajax_selected_lab_r"></div>'
-        );
-        $form['selected_lab_pdf'] = array(
-            '#type' => 'item',
-            '#markup' => '<div id="ajax_selected_lab_pdf"></div>'
-        );
-        $form['lab_details'] = array(
-            '#type' => 'item',
-            '#markup' => '<div id="ajax_lab_details"></div>'
-        );
-        $form['lab_experiment_list'] = array(
-            '#type' => 'select',
-            '#title' => t('Title of the experiment'),
-            '#options' => $this->_ajax_get_experiment_list($selected),
-            //'#default_value' => isset($form_state['values']['lab_experiment_list']) ? $form_state['values']['lab_experiment_list'] : '',
-            '#ajax' => array(
-                'callback' => '::ajax_solution_list_callback'
-            ),
-            '#prefix' => '<div id="ajax_selected_experiment">',
-            '#suffix' => '</div>',
-            '#states' => array(
-                'invisible' => array(
-                    ':input[name="lab"]' => array(
-                        'value' => 0
-                    )
-                )
-            )
-        );
-        // $form['download_experiment'] = array(
-        //     '#type' => 'item',
-        //     '#markup' => '<div id="ajax_download_experiments"></div>'
-        // );
-        $form['download_experiment'] = [
-          '#type' => 'container',
-          'ajax_download_experiments' => [
-            '#type' => 'markup',
-            '#markup' => '<div id="ajax_download_experiments"></div>',
-          ],
-        ];
-        $form['lab_solution_list'] = array(
-            '#type' => 'select',
-            '#title' => t('Solution'),
-            '#options' => $this->_ajax_get_solution_list($select_two),
-            //'#default_value' => isset($form_state['values']['lab_solution_list']) ? 
-            //$form_state['values']['lab_solution_list'] : '',
-            '#ajax' => array(
-                'callback' => '::ajax_solution_files_callback'
-            ),
-            '#prefix' => '<div id="ajax_selected_solution">',
-            '#suffix' => '</div>',
-            '#states' => array(
-                'invisible' => array(
-                    ':input[name="lab"]' => array(
-                        'value' => 0
-                    )
-                )
-            )
-        );
-        // $form['download_solution'] = array(
-        //     '#type' => 'item',
-        //     '#markup' => '<div id="ajax_download_experiment_solution"></div>'
-        // );
-        // $form['download_solution'] = [
-        //   '#type' => 'container',
-        //   'ajax_download_solution' => [
-        //     '#type' => 'markup',
-        //     '#markup' => '<div id="ajax_download_solution"></div>',
-        //   ],
-        // ];
-        // $form['download_solution'] = [
-        //   '#type' => 'container',
-        //   'ajax_download_solution' => [
-        //     '#type' => 'markup',
-        //     '#markup' => Markup::create('<div id="ajax_download_solution"></div>'),
-        //   ],
-        // ];
+    // if (!$url_lab_id)
+    //   {
+    //     $form['selected_lab'] = array(
+    //         '#type' => 'item',
+    //         '#markup' => '<div id="ajax_selected_lab"></div>'
+    //     );
+    //     $form['selected_lab_r'] = array(
+    //         '#type' => 'item',
+    //         '#markup' => '<div id="ajax_selected_lab_r"></div>'
+    //     );
+    //     $form['selected_lab_pdf'] = array(
+    //         '#type' => 'item',
+    //         '#markup' => '<div id="ajax_selected_lab_pdf"></div>'
+    //     );
+    //     $form['lab_details'] = array(
+    //         '#type' => 'item',
+    //         '#markup' => '<div id="ajax_lab_details"></div>'
+    //     );
+    //     $form['lab_experiment_list'] = array(
+    //         '#type' => 'select',
+    //         '#title' => t('Title of the experiment'),
+    //         '#options' => $this->_ajax_get_experiment_list($selected),
+    //         //'#default_value' => isset($form_state['values']['lab_experiment_list']) ? $form_state['values']['lab_experiment_list'] : '',
+    //         '#ajax' => array(
+    //             'callback' => '::ajax_solution_list_callback'
+    //         ),
+    //         '#prefix' => '<div id="ajax_selected_experiment">',
+    //         '#suffix' => '</div>',
+    //         '#states' => array(
+    //             'invisible' => array(
+    //                 ':input[name="lab"]' => array(
+    //                     'value' => 0
+    //                 )
+    //             )
+    //         )
+    //     );
+    //     // $form['download_experiment'] = array(
+    //     //     '#type' => 'item',
+    //     //     '#markup' => '<div id="ajax_download_experiments"></div>'
+    //     // );
+    //     $form['download_experiment'] = [
+    //       '#type' => 'container',
+    //       'ajax_download_experiments' => [
+    //         '#type' => 'markup',
+    //         '#markup' => '<div id="ajax_download_experiments">Download Experiment</div>',
+    //       ],
+    //     ];
         
-        $form['edit_solution'] = array(
-            '#type' => 'item',
-            '#markup' => '<div id="ajax_edit_experiment_solution"></div>'
-        );
-        // $form['solution_files'] = array(
-        //     '#type' => 'item',
-        //      '#title' => t('List of solution_files'),
-        //     '#markup' => '<div id="ajax_solution_files"></div>',
-        //     '#states' => array(
-        //         'invisible' => array(
-        //             ':input[name="lab"]' => array(
-        //                 'value' => 0
-        //             )
-        //         )
-        //     )
-        // );
-        $form['solution_files'] = [
-          '#type' => 'container', // Using 'container' allows flexibility for AJAX and theming.
-          '#title' => $this->t('List of solution files'), // Updated for translation compatibility.
-          'content' => [
-            '#type' => 'markup',
-            '#markup' => Markup::create('<div id="ajax_solution_files"></div>'),
-          ],
-          '#states' => [
-            'invisible' => [
-              ':input[name="lab"]' => ['value' => 0],
-            ],
-          ],
-        ];
-      }
-    else
-      {
+      
+
+    //     $form['lab_solution_list'] = array(
+    //         '#type' => 'select',
+    //         '#title' => t('Title of the Solution'),
+    //         '#options' => $this->_ajax_get_solution_list($select_two),
+    //         //'#default_value' => isset($form_state['values']['lab_solution_list']) ? 
+    //         //$form_state['values']['lab_solution_list'] : '',
+    //         '#ajax' => array(
+    //             'callback' => '::ajax_solution_files_callback'
+    //         ),
+    //         '#prefix' => '<div id="ajax_selected_solution">',
+    //         '#suffix' => '</div>',
+    //         '#states' => array(
+    //             'invisible' => array(
+    //                 ':input[name="lab"]' => array(
+    //                     'value' => 0
+    //                 )
+    //             )
+    //         )
+    //     );
+       
+    //   //   $form['download_solution'] = [
+    //   //     '#type' => 'markup',
+    //   //     '#markup' => '<div id="ajax_download_experiment_solution"></div>',
+    //   // ];
+    //   $form['download_solution'] = [
+    //     '#type' => 'container',
+    //     'ajax_download_solution' => [
+    //       '#type' => 'markup',
+    //       '#markup' => '<div id="ajax_download_solution"></div>',
+    //     ],
+    //   ];
+      
+        
+        
+    //     $form['edit_solution'] = array(
+    //         '#type' => 'item',
+    //         '#markup' => '<div id="ajax_edit_experiment_solution"></div>'
+    //     );
+    //     $form['solution_files'] = array(
+    //         '#type' => 'item',
+    //          '#title' => t('List of solution_files'),
+    //         '#markup' => '<div id="ajax_solution_files">List of Solution Files</div>',
+    //         '#states' => array(
+    //             'invisible' => array(
+    //                 ':input[name="lab"]' => array(
+    //                     'value' => 0
+    //                 )
+    //             )
+    //         )
+    //     );
+        
+    //   }
+    // else
+    //   {
         $lab_default_value = $url_lab_id;
         $form['selected_lab'] = array(
             '#type' => 'item',
-            // '#markup' => '<div id="ajax_selected_lab">' . l('Download Lab Solutions', 'lab-migration/download/lab/' . $lab_default_value) . '</div>'
+           
             $form['selected_lab'] = [
               '#type' => 'markup',
               '#markup' => Markup::create(
@@ -198,6 +185,7 @@ $url_lab_id = (int) $route_match->getParameter('url_lab_id');
               ),
             ]
             );
+            
       
         /* $form['selected_lab_pdf'] = array(
         '#type' => 'item',
@@ -221,9 +209,9 @@ $url_lab_id = (int) $route_match->getParameter('url_lab_id');
             '#title' => t('Title of the experiment'),
             '#options' => $this->_ajax_get_experiment_list($selected),
             // '#default_value' => isset($form_state['values']['lab_experiment_list']) ? $form_state['values']['lab_experiment_list'] : '',
-            '#ajax' => array(
+            '#ajax' => [
                 'callback' => '::ajax_solution_list_callback'
-            ),
+        ],
             '#prefix' => '<div id="ajax_selected_experiment">',
             '#suffix' => '</div>',
             '#states' => array(
@@ -243,10 +231,10 @@ $url_lab_id = (int) $route_match->getParameter('url_lab_id');
             '#title' => t('Solution'),
             '#options' => $this->_ajax_get_solution_list($select_two),
             // '#default_value' => isset($form_state['values']['lab_solution_list']) ? $form_state['values']['lab_solution_list'] : '',
-            '#default_value' => $form_state->getValue('lab_solution_list', ''),
-            '#ajax' => array(
+            //'#default_value' => $form_state->getValue('lab_solution_list', ''),
+            '#ajax' => [
                 'callback' => '::ajax_solution_files_callback'
-            ),
+            ],
             '#prefix' => '<div id="ajax_selected_solution">',
             '#suffix' => '</div>',
             '#states' => array(
@@ -260,6 +248,7 @@ $url_lab_id = (int) $route_match->getParameter('url_lab_id');
         $form['download_solution'] = array(
             '#type' => 'item',
             '#markup' => '<div id="ajax_download_experiment_solution"></div>'
+            
         );
         $form['edit_solution'] = array(
             '#type' => 'item',
@@ -267,7 +256,7 @@ $url_lab_id = (int) $route_match->getParameter('url_lab_id');
         );
         $form['solution_files'] = array(
             '#type' => 'item',
-            //  '#title' => t('List of solution_files'),
+             '#title' => t('List of solution_files'),
             '#markup' => '<div id="ajax_solution_files"></div>',
             '#states' => array(
                 'invisible' => array(
@@ -277,24 +266,8 @@ $url_lab_id = (int) $route_match->getParameter('url_lab_id');
                 )
             )
         );
-      }
-      // var_dump($this->_lab_details(62));die;
-    /*
-    $form['message'] = array(
-    '#type' => 'textarea',
-    '#title' => t('If Dis-Approved please specify reason for Dis-Approval'),
-    '#prefix' => '<div id= "message_submit">',   
-    '#states' => array('invisible' => array(':input[name="lab"]' => array('value' => 0,),),), 
-    
-    );
-    
-    $form['submit'] = array(
-    '#type' => 'submit',
-    '#value' => t('Submit'),      
-    '#suffix' => '</div>',
-    '#states' => array('invisible' => array(':input[name="lab"]' => array('value' => 0,),),),
-    
-    );*/
+
+    //  }
     return $form;
   }
   public function ajax_experiment_list_callback(array &$form, \Drupal\Core\Form\FormStateInterface $form_state) {
@@ -374,7 +347,7 @@ $url_lab_id = (int) $route_match->getParameter('url_lab_id');
   public function ajax_solution_list_callback(array &$form, \Drupal\Core\Form\FormStateInterface $form_state) {
     $response = new AjaxResponse();
     $commands = [];
-
+//var_dump("hi");die;
     $experiment_list_default_value = $form_state->getValue('lab_experiment_list');
     //var_dump($experiment_list_default_value);die;
     if ($experiment_list_default_value != 0) {
@@ -417,7 +390,8 @@ return $response;
   
   public function ajax_solution_files_callback(array &$form, \Drupal\Core\Form\FormStateInterface $form_state) {
     $response = new AjaxResponse();
-    $commands = [];
+   // $commands = [];
+   var_dump("hi");die;
     $solution_list_default_value = $form_state->getValue('lab_solution_list');
   
     if ($solution_list_default_value != 0) {
@@ -456,26 +430,7 @@ return $response;
         }
   
         // Query dependencies
-        $query = \Drupal::database()->select('lab_migration_solution_dependency', 'd');
-        $query->fields('d');
-        $query->condition('solution_id', $solution_list_default_value);
-        $dependency_q = $query->execute();
-  
-        while ($dependency_data = $dependency_q->fetchObject()) {
-          $query = \Drupal::database()->select('lab_migration_dependency_files', 'df');
-          $query->fields('df');
-          $query->condition('id', $dependency_data->dependency_id);
-          $dependency_files_q = $query->execute();
-          $dependency_files_data = $dependency_files_q->fetchObject();
-          $solution_file_type = 'Dependency file';
-  
-          // Add dependency file to the rows
-          $solution_files_rows[] = [
-            Link::fromTextAndUrl($dependency_files_data->filename, Url::fromUri('internal:/lab-migration/download/dependency/' . $dependency_files_data->id))->toString(),
-            $solution_file_type
-          ];
-        }
-  
+        
         // Build the table of files
         $solution_files_header = ['Filename', 'Type'];
         $solution_files = \Drupal::service('renderer')->render([
@@ -485,23 +440,33 @@ return $response;
         ]);
       }
   
-      // Set the table markup for solution files
-      $form['solution_files']['#title'] = 'List of solution files';
-      $form['solution_files']['#markup'] = $solution_files;
-  
+      // // Set the table markup for solution files
+      // $form['solution_files']['#title'] = 'List of solution files';
+      // $form['solution_files']['#markup'] = $solution_files;
+    //   $form['solution_files'] = [
+    //     '#type' => 'details',
+    //     '#title' => $this->t('List of solution files'),
+    //     '#open' => TRUE,
+    //     'content' => [
+    //         '#theme' => 'table',
+    //         '#header' => ['File Name', 'Size', 'Actions'],
+    //         '#rows' => $solution_files_rows, // An array of rows with file details.
+    //     ],
+    // ];
+    
       // Add the download and edit links
-      // Build the link.
-$link = Link::fromTextAndUrl(t('Download Solution'), // Text for the link.
-  Url::fromUri('internal:/lab-migration/download/solution/' . $solution_list_default_value)
+     
+$link = Link::fromTextAndUrl(
+  $this->t('Download Solution'),
+  Url::fromRoute('lab_migration.download_solution', ['solution' => $solution_list_default_value])
 )->toString();
-
 // Add the AJAX command to update the element with ID `#ajax_download_experiment_solution`.
 $response->addCommand(new HtmlCommand('#ajax_download_experiment_solution', $link));
       // Uncomment if needed
       // $commands[] = new HtmlCommand('#ajax_edit_experiment_solution', Link::fromTextAndUrl('Edit Solution', Url::fromUri('internal:/code_approval/editcode/' . $solution_list_default_value))->toString());
   
       // Add the solution files table to the page
-      $response->addCommand(new HtmlCommand('#ajax_solution_files', \Drupal::service('renderer')->render($form['solution_files'])));
+     // $response->addCommand(new HtmlCommand('#ajax_solution_files', \Drupal::service('renderer')->render($form['solution_files'])));
     } else {
       // If no solution is selected, clear the areas
       $commands[] = new HtmlCommand('#ajax_selected_lab_experiment_solution_action', '');

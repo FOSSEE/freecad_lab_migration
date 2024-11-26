@@ -39,6 +39,10 @@ class LabMigrationBulkApprovalForm extends FormBase {
         ],
       '#suffix' => '<div id="ajax_selected_lab"></div><div id="ajax_selected_lab_pdf"></div>',
     ];
+    $form['download_experiment'] = [
+      '#type' => 'item',
+      '#markup' => '<div id="download_experiment">Download</div>',
+    ];
     $form['lab_actions'] = [
       '#type' => 'select',
       '#title' => t('Please select action for Entire Lab'),
@@ -74,10 +78,10 @@ class LabMigrationBulkApprovalForm extends FormBase {
           ]
         ],
     ];
-    $form['download_experiment'] = [
-      '#type' => 'item',
-      '#markup' => '<div id="download_experiment"></div>',
-    ];
+    // $form['download_experiment'] = [
+    //   '#type' => 'item',
+    //   '#markup' => '<div id="download_experiment"></div>',
+    // ];
     $form['lab_experiment_actions'] = [
       '#type' => 'select',
       '#title' => t('Please select action for Entire Experiment'),
@@ -145,7 +149,7 @@ class LabMigrationBulkApprovalForm extends FormBase {
     ];
     $form['solution_files'] = [
       '#type' => 'item',
-      //'#title' => t('List of solution_files'),
+      // '#title' => t('List of solution_files'),
         '#markup' => '<div id="ajax_solution_files"></div>',
       '#states' => [
         'invisible' => [
