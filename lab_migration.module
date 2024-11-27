@@ -74,8 +74,7 @@ function lab_migration_mail($key, &$message, $params)
           $query->condition('proposal_id', $params['proposal_received']['proposal_id']);
           $query->orderBy('number', 'ASC');
           $experiment_q = $query->execute();
-          $experiment_list = '
-      ';
+          $experiment_list = '';
           while ($experiment_data = $experiment_q->fetchObject())
             {
               $experiment_list .= '<p>' . $experiment_data->number . ') ' . $experiment_data->title . '<br> Description: ' . $experiment_data->description . '<br>';
@@ -90,13 +89,13 @@ function lab_migration_mail($key, &$message, $params)
           ), array(
               'language' => '$language'
           ));
-          $message['body'] = array(
-              'body' => $this->t('
+          $message['body'][] = 
+              t('
 Dear ' . $proposal_data->name . ',
 
 We have received your proposal for lab migration with the following details:
 
-Full Name: ' . $proposal_data->name_title . ' ' . $proposal_data->name . '
+Full Name: @full_name ' . $proposal_data->name_title . ' ' . $proposal_data->name . '
 Email: ' . $user_data->mail . '
 Contact No.: ' . $proposal_data->contact_ph . '
 Department/Branch: ' . $proposal_data->department . '
@@ -114,13 +113,13 @@ The proposal is under review. You will be notified of the decision.
 Best Wishes,
 
 !site_name Team
-FOSSEE, IIT Bombay', array(
-                  '!site_name' => \Drupal::config('site_name', ''),
-                  '!user_name' => $user_data->name
-              ), array(
+FOSSEE, IIT Bombay',[
+                  '@site_name' => \Drupal::config('site_name', ''),
+                  '@full_name' => $user_data->name
+], [
                   'language' => '$language'
-              ))
-          );
+              ]
+              );
           break;
         }
 }

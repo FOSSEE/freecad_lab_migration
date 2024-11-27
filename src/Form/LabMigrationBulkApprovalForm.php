@@ -11,6 +11,7 @@ use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Render\Element;
 use Drupal\Core\Database\Database;
+use Drupal\Component\Render\Markup;
 
 class LabMigrationBulkApprovalForm extends FormBase {
 
@@ -39,10 +40,7 @@ class LabMigrationBulkApprovalForm extends FormBase {
         ],
       '#suffix' => '<div id="ajax_selected_lab"></div><div id="ajax_selected_lab_pdf"></div>',
     ];
-    $form['download_experiment'] = [
-      '#type' => 'item',
-      '#markup' => '<div id="download_experiment">Download</div>',
-    ];
+   
     $form['lab_actions'] = [
       '#type' => 'select',
       '#title' => t('Please select action for Entire Lab'),
@@ -78,10 +76,11 @@ class LabMigrationBulkApprovalForm extends FormBase {
           ]
         ],
     ];
-    // $form['download_experiment'] = [
-    //   '#type' => 'item',
-    //   '#markup' => '<div id="download_experiment"></div>',
-    // ];
+   
+    $form['download_experiment'] = [
+      '#type' => 'item',
+      '#markup' => '<div id="download_experiment"></div>',
+    ];
     $form['lab_experiment_actions'] = [
       '#type' => 'select',
       '#title' => t('Please select action for Entire Experiment'),
@@ -809,7 +808,7 @@ FOSSEE,IIT Bombay', [
   
     // Execute the query and fetch results.
     $experiments_q = $query->execute();
-  
+  var_dump($experiment_q);die;
     foreach ($experiments_q as $experiments_data) {
       $experiments[$experiments_data->id] = $experiments_data->number . '. ' . $experiments_data->title;
     }
@@ -844,14 +843,55 @@ FOSSEE,IIT Bombay', [
   
     // Execute the query and fetch results.
     $results = $query->execute();
-  
+  // var_dump($results);die;
     foreach ($results as $lab_titles_data) {
       $lab_titles[$lab_titles_data->id] = $lab_titles_data->lab_title . ' (Proposed by ' . $lab_titles_data->name . ')';
     }
-  
+  // var_dump($lab_titles);die;
     return $lab_titles;
   }
+  function ajax_bulk_experiment_list_callback(array &$form, \Drupal\Core\Form\FormStateInterface $form_state) {
+    $response = new AjaxResponse();
   
+    // Get the selected lab value.
+    $lab_default_value = $form_state->getValue('lab');
+  // var_dump($lab_default_value);die;
+    if ($lab_default_value != 0) {
+      // Generate a link for download.
+      $download_url = Url::fromUserInput('/lab-migration/full-download/lab/' . $lab_default_value);
+      $download_link = Link::fromTextAndUrl(t('Download'), $download_url)->toString();
+      $response->addCommand(new HtmlCommand('#ajax_selected_lab', $download_link . ' ' . t('(Download all the approved and unapproved solutions of the entire lab)')));
+  // var_dump(hii);die;
+      // Update lab actions and experiment list.
+      $form['lab_actions']['#options'] = _bulk_list_lab_actions();
+      $form['lab_experiment_list']['#options'] = _ajax_bulk_get_experiment_list($lab_default_value);
+  
+      $renderer = \Drupal::service('renderer');
+      $response->addCommand(new ReplaceCommand('#ajax_selected_experiment', $renderer->render($form['lab_experiment_list'])));
+      $response->addCommand(new ReplaceCommand('#ajax_selected_lab_action', $renderer->render($form['lab_actions'])));
+  
+      // Clear other sections.
+      $response->addCommand(new HtmlCommand('#ajax_selected_solution', ''));
+      $response->addCommand(new HtmlCommand('#ajax_selected_lab_experiment_action', ''));
+      $response->addCommand(new HtmlCommand('#ajax_selected_lab_experiment_solution_action', ''));
+      $response->addCommand(new HtmlCommand('#ajax_solution_files', ''));
+      $response->addCommand(new HtmlCommand('#ajax_download_experiment_solution', ''));
+      $response->addCommand(new HtmlCommand('#ajax_edit_experiment_solution', ''));
+    } else {
+      // Clear all sections if no lab is selected.
+      $response->addCommand(new HtmlCommand('#ajax_selected_lab', ''));
+      $response->addCommand(new HtmlCommand('#ajax_selected_lab_pdf', ''));
+      $response->addCommand(new HtmlCommand('#ajax_selected_experiment', ''));
+      $response->addCommand(new HtmlCommand('#ajax_selected_lab_action', ''));
+      $response->addCommand(new HtmlCommand('#ajax_selected_lab_experiment_action', ''));
+      $response->addCommand(new HtmlCommand('#ajax_selected_lab_experiment_solution_action', ''));
+      $response->addCommand(new HtmlCommand('#ajax_solution_files', ''));
+      $response->addCommand(new HtmlCommand('#ajax_download_experiment_solution', ''));
+      $response->addCommand(new HtmlCommand('#ajax_edit_experiment_solution', ''));
+    }
+  
+    return $response;
+  }
 
 function _ajax_bulk_get_solution_list($lab_experiment_list = ''): array {
   $solutions = [

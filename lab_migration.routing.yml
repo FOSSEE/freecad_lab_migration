@@ -154,7 +154,7 @@ lab_migration.download_solution_file:
   requirements:
     _permission: 'lab migration download code'
 lab_migration.download_solution:
-  path: /lab_migration/download/solution
+  path: /lab_migration/download/solution/{solution_id}
   defaults:
     _title: 'Code Download'
     _controller: '\Drupal\lab_migration\Controller\DefaultController::lab_migration_download_solution'
