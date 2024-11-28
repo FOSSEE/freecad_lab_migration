@@ -13,7 +13,7 @@ use Drupal\Core\Render\Element;
 use Symfony\Component\HttpFoundation\RedirectResponse;
 use Drupal\user\Entity\User;
 use Drupal\Core\Url;
-
+use Drupal\Core\Link;
 class LabMigrationProposalEditForm extends FormBase {
 
   /**
@@ -44,15 +44,17 @@ $proposal_id = (int) $route_match->getParameter('id');
         // RedirectResponse('lab-migration/manage-proposal');
         
 
-return new RedirectResponse('/lab-migration/manage-proposal');
+return new RedirectResponse('/lab-migration/manage-proposal/pending');
 
         return;
       }
     }
     else {
        \Drupal::messenger()->addmessage(t('Invalid proposal selected. Please try again.'), 'error');
-      RedirectResponse('lab-migration/manage-proposal');
-      return;
+      // RedirectResponse('lab-migration/manage-proposal');
+      return new RedirectResponse('/lab-migration/manage-proposal/pending');
+
+      // return;
     }
     $user_data = User::load($proposal_data->uid);
     //var_dump($user_data->getEmail());die;
@@ -345,6 +347,7 @@ return new RedirectResponse('/lab-migration/manage-proposal');
     $form['cancel'] = [
       '#type' => 'item',
       // '#markup' => Link::fromTextAndUrl(t('Cancel'), 'lab-migration/manage-proposal'),
+      '#markup' => Link::fromTextAndUrl(t('Cancel'), Url::fromRoute('lab_migration.proposal_all'))->toString(),
     ];
     return $form;
   }
@@ -394,7 +397,7 @@ $proposal_id = (int) $route_match->getParameter('id');
       else {
          \Drupal::messenger()->addmessage(t('Invalid proposal selected. Please try again.'), 'error');
         // RedirectResponse('lab-migration/manage-proposal');
-        $response = new RedirectResponse(Url::fromRoute('lab_migration/manage-proposal/pending')->toString());
+        $response = new RedirectResponse(Url::fromRoute('lab_migration.proposal_all')->toString());
         // Send the redirect response
            $response->send();
         return;
@@ -403,7 +406,7 @@ $proposal_id = (int) $route_match->getParameter('id');
     else {
        \Drupal::messenger()->addmessage(t('Invalid proposal selected. Please try again.'), 'error');
       // RedirectResponse('lab-migration/manage-proposal/pending');
-      $response = new RedirectResponse(Url::fromRoute('lab_migration/manage-proposal/pending')->toString());
+      $response = new RedirectResponse(Url::fromRoute('lab_migration.proposal_all')->toString());
       // Send the redirect response
          $response->send();
       return;
@@ -422,7 +425,7 @@ $proposal_id = (int) $route_match->getParameter('id');
       // RedirectResponse('lab-migration/manage-proposal');
       // $url = Url::fromRoute('lab_migration/manage-proposal/pending')->toString();
     // Redirect to the URL.
-    $response = new RedirectResponse(Url::fromRoute('lab_migration/manage-proposal/pending')->toString());
+    $response = new RedirectResponse(Url::fromRoute('lab_migration.proposal_all')->toString());
       // Send the redirect response
          $response->send();
       return;
@@ -622,7 +625,7 @@ $proposal_id = (int) $route_match->getParameter('id');
     }
     }*/
     \Drupal::messenger()->addmessage(t('Proposal Updated'), 'status');
-    $response = new RedirectResponse(Url::fromRoute('lab_migration.proposal_pending')->toString());
+    $response = new RedirectResponse(Url::fromRoute('lab_migration.proposal_all')->toString());
     // Send the redirect response
        $response->send();
        return;

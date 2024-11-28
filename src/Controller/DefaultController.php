@@ -826,30 +826,6 @@ $link = Link::fromTextAndUrl(t('Edit'), $url)->toString();
     return;
   }
 
-//   public function lab_migration_download_solution_file() {
-    
-//     $route_match = \Drupal::routeMatch();
-
-//     $solution_file_id = (int) $route_match->getParameter('solution_file_id');
-    
-    
-//     // $solution_files_q = \Drupal::database()->query("SELECT * FROM {lab_migration_solution_files} WHERE id = %d LIMIT 1", $solution_file_id);
-//     $solution_files_q = \Drupal::database()->query("SELECT lmsf.*, lmp.directory_name FROM lab_migration_solution_files lmsf JOIN lab_migration_solution lms JOIN lab_migration_experiment lme JOIN lab_migration_proposal lmp WHERE lms.id = lmsf.solution_id AND lme.id = lms.experiment_id AND lmp.id = lme.proposal_id AND lmsf.id = :solution_id LIMIT 1", [
-//       ':solution_id' => $solution_file_id
-//       ]);
-//     /*$query = \Drupal::database()->select('lab_migration_solution_files');
-//     $query->fields('lab_migration_solution_files');
-//     $query->condition('id', $solution_file_id);
-//     $query->range(0, 1);
-//     $solution_files_q = $query->execute();*/
-//     $solution_file_data = $solution_files_q->fetchObject();
-//     header('Content-Type: ' . $solution_file_data->filename);
-//     header('Content-disposition: attachment; filename="' . str_replace(' ', '_', ($solution_file_data->filename)) . '"');
-//     header('Content-Length: ' . filesize($root_path . $solution_file_data->directory_name . '/' . $solution_file_data->filepath));
-//     ob_clean();
-//     readfile($root_path . $solution_file_data->directory_name . '/' . $solution_file_data->filepath);
-// return 'lab_migration_proposal';
-//   }
 
 function lab_migration_download_solution_file(RouteMatchInterface $route_match) {
   // Get the solution file ID from the route.
@@ -1597,74 +1573,43 @@ public function verify_lab_migration_certificates($qr_code = 0) {
   return new Response($page_content);
 }
 
-//   public function lab_migration_download_syllabus_copy() {
-   
-//     $route_match = \Drupal::routeMatch();
-
-// $proposal_id = (int) $route_match->getParameter('proposal_id');
-//     $root_path = \Drupal::service('lab_migration_global')->lab_migration_path();
-//     $query = \Drupal::database()->select('lab_migration_proposal');
-//     $query->fields('lab_migration_proposal');
-//     $query->condition('id', $proposal_id);
-//     $query->range(0, 1);
-//     $result = $query->execute();
-//     $syllabus_copy_file_data = $result->fetchObject();
-//     // $syllabus_copy_file_name = substr($syllabus_copy_file_data->syllabus_copy_file_path, strrpos($syllabus_copy_file_data->syllabus_copy_file_path, '/') + 1);
-//     $syllabus_copy_file_path = $syllabus_copy_file_data->syllabus_copy_file_path ?? ''; // Default to an empty string if null.
-
-// if ($syllabus_copy_file_path !== '') {
-//   $syllabus_copy_file_name = substr($syllabus_copy_file_path, strrpos($syllabus_copy_file_path, '/') + 1);
-// } else {
-//   // Handle the case where the path is empty.
-//   $syllabus_copy_file_name = 'default_file_name.txt'; // Provide a fallback file name if needed.
-// }
-
-    
-//     error_reporting(0); //Errors may corrupt download
-//     ob_start(); //Insert this
-//     header('Content-Description: File Transfer');
-//     header('Content-Type: application/octet-stream');
-//     header('Content-disposition: attachment; filename="' . $syllabus_copy_file_name . '"');
-//     header('Content-Length: ' . filesize($root_path . $syllabus_copy_file_data->syllabus_copy_file_path));
-//     ob_clean();
-//     ob_end_flush();
-//     readfile($root_path . $syllabus_copy_file_data->syllabus_copy_file_path);
-//     exit;
-//   }
 /**
  * Downloads the syllabus copy file for the given proposal.
  */
+
+
 public function lab_migration_download_syllabus_copy() {
   // Get the proposal ID from the route.
   $route_match = \Drupal::routeMatch();
   $proposal_id = (int) $route_match->getParameter('proposal_id');
 
-  // Retrieve the root path and file details.
-  $root_path = \Drupal::service('lab_migration_global')->lab_migration_path();
-  $query = \Drupal::database()->select('lab_migration_proposal', 'p');
-  $query->fields('p', ['syllabus_copy_file_path']);
-  $query->condition('id', $proposal_id);
-  $syllabus_copy_file_path = $query->execute()->fetchField();
-
-  // Ensure the file path is valid.
-  if (!$syllabus_copy_file_path) {
-    \Drupal::messenger()->addmessage(t('The syllabus copy file could not be found.'));
-    $response = new RedirectResponse(Url::fromRoute('<front>')->toString());
-  
-// //   // Send the redirect response
-  $response->send();
-    // return $this->redirect('<front>'); // Redirect to the front page or an appropriate route.
+  // Validate the proposal ID.
+  if (!$proposal_id) {
+    \Drupal::messenger()->addMessage(t('Invalid proposal ID.'));
+    return new RedirectResponse(Url::fromRoute('<front>')->toString());
   }
 
+  // Retrieve the root path and file details.
+  $root_path = \Drupal::service('lab_migration_global')->lab_migration_path();
+  $connection = \Drupal::database();
+  $query = $connection->select('lab_migration_proposal', 'p')
+    ->fields('p', ['syllabus_copy_file_path'])
+    ->condition('id', $proposal_id);
+  $syllabus_copy_file_path = $query->execute()->fetchField();
+
+  // Check if the file path exists in the database.
+  if (!$syllabus_copy_file_path) {
+    \Drupal::messenger()->addMessage(t('The syllabus copy file could not be found.'));
+    return new RedirectResponse(Url::fromRoute('<front>')->toString());
+  }
+var_dump($syllabus_copy_file_path);die;
   // Construct the full file path.
   $full_path = $root_path . $syllabus_copy_file_path;
 
   // Validate the file exists.
   if (!file_exists($full_path)) {
-    \Drupal::messenger()->addmessage(t('The requested file does not exist.'));
-    // return $this->redirect('<front>'); // Redirect to the front page or an appropriate route.
-    $response = new RedirectResponse(Url::fromRoute('<front>')->toString());
-
+    \Drupal::messenger()->addMessage(t('The requested file does not exist.'));
+    return new RedirectResponse(Url::fromRoute('<front>')->toString());
   }
 
   // Extract the file name from the path.
@@ -2178,5 +2123,9 @@ function lab_migration_category_edit_form(array $form, FormStateInterface $form_
 
   return $form;
 }
+
+
+
+
 }
 ?>

@@ -82,10 +82,10 @@ function lab_migration_mail($key, &$message, $params)
               $experiment_list .= '</p>';
             }
           $user_data = User::load($params['proposal_received']['user_id']);
-          var_dump($user_data);die;
+          // var_dump($user_data);die;
           $message['headers'] = $params['proposal_received']['headers'];
-          $message['subject'] = $this->t('[!site_name] Your Lab migration proposal has been received', array(
-              '!site_name' => \Drupal::config('site_name', '')
+          $message['subject'] = $this->t('[!site_name] [Lab Migration Project]Your Lab migration proposal has been received  ', array(
+              '@site_name' => \Drupal::config('site_name', '')
           ), array(
               'language' => '$language'
           ));
@@ -95,13 +95,13 @@ Dear ' . $proposal_data->name . ',
 
 We have received your proposal for lab migration with the following details:
 
-Full Name: @full_name ' . $proposal_data->name_title . ' ' . $proposal_data->name . '
-Email: ' . $user_data->mail . '
-Contact No.: ' . $proposal_data->contact_ph . '
-Department/Branch: ' . $proposal_data->department . '
-University/Institute: ' . $proposal_data->university . '
-City: ' . $proposal_data->city . '
-State: ' . $proposal_data->state . '
+Full Name: @full_name
+Email: @user_email 
+Contact No.: @contact no.
+Department/Branch: 
+University/Institute: @university/@Institute
+City: @city
+State: @state
 
 
 Solution Provided By: ' . $solution_provider_user . '
@@ -114,8 +114,8 @@ Best Wishes,
 
 !site_name Team
 FOSSEE, IIT Bombay',[
-                  '@site_name' => \Drupal::config('site_name', ''),
-                  '@full_name' => $user_data->name
+                  '@site_name' => \Drupal::config('site_name')->get('name'),
+                  'Full Name: @full_name' => $user_data->name
 ], [
                   'language' => '$language'
               ]

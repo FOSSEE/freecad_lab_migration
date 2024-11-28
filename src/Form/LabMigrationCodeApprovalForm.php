@@ -310,7 +310,7 @@ $solution_id = (int) $route_match->getParameter('solution_id');
         ];
         \Drupal::database()->query($query, $args);
         /* sending email */
-        $email_to = $user_data->getEmail();
+        // $email_to = $user_data->getEmail();
       // $from = $this->configFactory->get('lab_migration.settings')->get('lab_migration_from_email');
 
       //   // $from = $config->get('lab_migration_from_email', '');
@@ -361,7 +361,7 @@ $solution_id = (int) $route_match->getParameter('solution_id');
             // }
           }
           else {
-            \Drupal::messenger()->addmessage('Error disapproving and deleting solution. Please contact administrator.', 'error');
+            \Drupal::messenger()->addError('Error disapproving and deleting solution. Please contact administrator.', 'error');
           }
         }
       }

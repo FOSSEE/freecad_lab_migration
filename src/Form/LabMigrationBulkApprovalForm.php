@@ -138,26 +138,26 @@ class LabMigrationBulkApprovalForm extends FormBase {
           ]
         ],
     ];
-    $form['download_solution'] = [
-      '#type' => 'item',
-      '#markup' => '<div id="ajax_download_experiment_solution"></div>',
-    ];
-    $form['edit_solution'] = [
-      '#type' => 'item',
-      '#markup' => '<div id="ajax_edit_experiment_solution"></div>',
-    ];
-    $form['solution_files'] = [
-      '#type' => 'item',
-      // '#title' => t('List of solution_files'),
-        '#markup' => '<div id="ajax_solution_files"></div>',
-      '#states' => [
-        'invisible' => [
-          ':input[name="lab"]' => [
-            'value' => 0
-            ]
-          ]
-        ],
-    ];
+    // $form['download_solution'] = [
+    //   '#type' => 'item',
+    //   '#markup' => '<div id="ajax_download_experiment_solution"></div>',
+    // ];
+    // $form['edit_solution'] = [
+    //   '#type' => 'item',
+    //   '#markup' => '<div id="ajax_edit_experiment_solution"></div>',
+    // ];
+    // $form['solution_files'] = [
+    //   '#type' => 'item',
+    //   // '#title' => t('List of solution_files'),
+    //     '#markup' => '<div id="ajax_solution_files"></div>',
+    //   '#states' => [
+    //     'invisible' => [
+    //       ':input[name="lab"]' => [
+    //         'value' => 0
+    //         ]
+    //       ]
+    //     ],
+    // ];
     $form['message'] = [
       '#type' => 'textarea',
       '#title' => t('If Dis-Approved please specify reason for Dis-Approval'),
@@ -792,7 +792,7 @@ FOSSEE,IIT Bombay', [
     return;
   }
 
-  function _ajax_bulk_get_experiment_list($lab_default_value = '') {
+  public function _ajax_bulk_get_experiment_list($lab_default_value = '') {
     $experiments = [
       '0' => 'Please select...',
     ];
@@ -808,7 +808,7 @@ FOSSEE,IIT Bombay', [
   
     // Execute the query and fetch results.
     $experiments_q = $query->execute();
-  var_dump($experiment_q);die;
+  // var_dump($experiment_q);die;
     foreach ($experiments_q as $experiments_data) {
       $experiments[$experiments_data->id] = $experiments_data->number . '. ' . $experiments_data->title;
     }
@@ -816,7 +816,7 @@ FOSSEE,IIT Bombay', [
     return $experiments;
   }
   
-  function _bulk_list_lab_actions(): array {
+  public function _bulk_list_lab_actions(): array {
     return [
       0 => 'Please select...',
       1 => 'Approve Entire Lab',
@@ -827,7 +827,7 @@ FOSSEE,IIT Bombay', [
   }
   
 
-  function _bulk_list_of_labs(): array {
+  public function _bulk_list_of_labs(): array {
     $lab_titles = [
       '0' => 'Please select...',
     ];
@@ -850,7 +850,7 @@ FOSSEE,IIT Bombay', [
   // var_dump($lab_titles);die;
     return $lab_titles;
   }
-  function ajax_bulk_experiment_list_callback(array &$form, \Drupal\Core\Form\FormStateInterface $form_state) {
+ public function ajax_bulk_experiment_list_callback(array &$form, \Drupal\Core\Form\FormStateInterface $form_state) {
     $response = new AjaxResponse();
   
     // Get the selected lab value.
@@ -893,7 +893,7 @@ FOSSEE,IIT Bombay', [
     return $response;
   }
 
-function _ajax_bulk_get_solution_list($lab_experiment_list = ''): array {
+public function _ajax_bulk_get_solution_list($lab_experiment_list = ''): array {
   $solutions = [
     0 => 'Please select...',
   ];
@@ -928,7 +928,7 @@ var_dump($solutions);die;
   return $solutions;
 }
 
-function _bulk_list_solution_actions(): array {
+public function _bulk_list_solution_actions(): array {
   return [
     0 => 'Please select...',
     1 => 'Approve Entire Solution',
@@ -936,7 +936,7 @@ function _bulk_list_solution_actions(): array {
     3 => 'Dis-approve Solution (This will delete the solution)',
   ];
 }
-function _bulk_list_experiment_actions()
+public function _bulk_list_experiment_actions()
   {
     $lab_experiment_actions = array(
         0 => 'Please select...'

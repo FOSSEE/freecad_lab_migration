@@ -202,68 +202,73 @@ $url_lab_id = (int) $route_match->getParameter('url_lab_id');
             '#type' => 'item',
             '#markup' => '<div id="ajax_lab_details">' . $this->_lab_details($lab_default_value) . '</div>'
         );
-        $form['lab_experiment_list'] = array(
-            '#type' => 'select',
-            '#title' => t('Title of the experiment'),
-            '#options' => $this->_ajax_get_experiment_list($selected),
-            // '#default_value' => isset($form_state['values']['lab_experiment_list']) ? $form_state['values']['lab_experiment_list'] : '',
-            '#ajax' => [
-                'callback' => '::ajax_solution_list_callback'
-        ],
-            '#prefix' => '<div id="ajax_selected_experiment">',
-            '#suffix' => '</div>',
-            '#states' => array(
-                'invisible' => array(
-                    ':input[name="lab"]' => array(
-                        'value' => 0
-                    )
-                )
-            )
-        );
-        $form['download_experiment'] = array(
-            '#type' => 'item',
-            '#markup' => '<div id="ajax_download_experiments"></div>'
-        );
-        $form['lab_solution_list'] = array(
-            '#type' => 'select',
-            '#title' => t('Solution'),
-            '#options' => $this->_ajax_get_solution_list($select_two),
-            // '#default_value' => isset($form_state['values']['lab_solution_list']) ? $form_state['values']['lab_solution_list'] : '',
-            //'#default_value' => $form_state->getValue('lab_solution_list', ''),
-            '#ajax' => [
-                'callback' => '::ajax_solution_files_callback'
-            ],
-            '#prefix' => '<div id="ajax_selected_solution">',
-            '#suffix' => '</div>',
-            '#states' => array(
-                'invisible' => array(
-                    ':input[name="lab_experiment_list"]' => array(
-                        'value' => 0
-                    )
-                )
-            )
-        );
-        $form['download_solution'] = array(
-            '#type' => 'item',
-            '#markup' => '<div id="ajax_download_experiment_solution"></div>'
+        // $form['lab_experiment_list'] = array(
+        //     '#type' => 'select',
+        //     '#title' => t('Title of the experiment'),
+        //     '#options' => $this->_ajax_get_experiment_list($selected),
+        //     // '#default_value' => isset($form_state['values']['lab_experiment_list']) ? $form_state['values']['lab_experiment_list'] : '',
+        //     '#ajax' => [
+        //         'callback' => '::ajax_solution_list_callback'
+        // ],
+        //     '#prefix' => '<div id="ajax_selected_experiment">',
+        //     '#suffix' => '</div>',
+        //     '#states' => array(
+        //         'invisible' => array(
+        //             ':input[name="lab"]' => array(
+        //                 'value' => 0
+        //             )
+        //         )
+        //     )
+        // );
+        // $form['download_experiment'] = array(
+        //     '#type' => 'item',
+        //     '#markup' => '<div id="ajax_download_experiments"></div>'
+        // );
+         // Add the experiment list as a table in the form.
+    $form['experiment_list'] = [
+      '#type' => 'item',
+      '#markup' => '<div id ="_ajax_get_experiment_list"></div>'
+    ];
+        // $form['lab_solution_list'] = array(
+        //     '#type' => 'select',
+        //     '#title' => t('Solution'),
+        //     '#options' => $this->_ajax_get_solution_list($select_two),
+        //     // '#default_value' => isset($form_state['values']['lab_solution_list']) ? $form_state['values']['lab_solution_list'] : '',
+        //     //'#default_value' => $form_state->getValue('lab_solution_list', ''),
+        //     '#ajax' => [
+        //         'callback' => '::ajax_solution_files_callback'
+        //     ],
+        //     '#prefix' => '<div id="ajax_selected_solution">',
+        //     '#suffix' => '</div>',
+        //     '#states' => array(
+        //         'invisible' => array(
+        //             ':input[name="lab_experiment_list"]' => array(
+        //                 'value' => 0
+        //             )
+        //         )
+        //     )
+        // );
+        // $form['download_solution'] = array(
+        //     '#type' => 'item',
+        //     '#markup' => '<div id="ajax_download_experiment_solution"></div>'
             
-        );
-        $form['edit_solution'] = array(
-            '#type' => 'item',
-            '#markup' => '<div id="ajax_edit_experiment_solution"></div>'
-        );
-        $form['solution_files'] = array(
-            '#type' => 'item',
-             '#title' => t('List of solution_files'),
-            '#markup' => '<div id="ajax_solution_files"></div>',
-            '#states' => array(
-                'invisible' => array(
-                    ':input[name="lab_experiment_list"]' => array(
-                        'value' => 0
-                    )
-                )
-            )
-        );
+        // );
+        // $form['edit_solution'] = array(
+        //     '#type' => 'item',
+        //     '#markup' => '<div id="ajax_edit_experiment_solution"></div>'
+        // );
+        // $form['solution_files'] = array(
+        //     '#type' => 'item',
+        //      '#title' => t('List of solution_files'),
+        //     '#markup' => '<div id="ajax_solution_files"></div>',
+        //     '#states' => array(
+        //         'invisible' => array(
+        //             ':input[name="lab_experiment_list"]' => array(
+        //                 'value' => 0
+        //             )
+        //         )
+        //     )
+        // );
 
     //  }
     return $form;
@@ -337,6 +342,7 @@ $url_lab_id = (int) $route_match->getParameter('url_lab_id');
       $commands[] = new HtmlCommand('#ajax_edit_experiment_solution', '');
     }
     
+    
     // Return the response with commands
     
    // $response->addCommands($commands);
@@ -353,7 +359,7 @@ $url_lab_id = (int) $route_match->getParameter('url_lab_id');
       $form['lab_solution_list']['#options'] = $this->_ajax_get_solution_list($experiment_list_default_value);
       
       // Add the commands to update the DOM
-      $response->addCommand(new HtmlCommand('#ajax_download_experiments', Link::fromTextAndUrl('Download Experiment', Url::fromUri('internal:/lab-migration/download/experiment/' . $experiment_list_default_value))->toString()));
+      // $response->addCommand(new HtmlCommand('#ajax_download_experiments', Link::fromTextAndUrl('Download Experiment', Url::fromUri('internal:/lab-migration/download/experiment/' . $experiment_list_default_value))->toString()));
       $response->addCommand(new HtmlCommand('#ajax_selected_experiment', \Drupal::service('renderer')->render($form['lab_experiment_list'])));
       $response->addCommand(new HtmlCommand('#ajax_selected_solution', \Drupal::service('renderer')->render($form['lab_solution_list'])));
       // Uncomment if needed
@@ -567,6 +573,13 @@ public function _lab_information($proposal_id)
 $lab_q = $query->execute();
 $lab_data = $lab_q->fetchObject();
 //var_dump($lab_data);die;
+// Get the database connection.
+$connection = \Drupal::database();
+
+// Define the query with INNER JOIN.
+$query = $connection->select('lab_migration_proposal', 'p') // Alias for lab_migration_proposal table
+  ->fields('p', ['title']) // Select the title field from lab_migration_proposal
+  ->innerJoin('lab_migration_experiment', 'e', 'p.id = e.proposal_id'); // Inner join with lab_migration_experiment
 
 if ($lab_data) {
     return $lab_data;
@@ -612,11 +625,16 @@ $response->send();
           
       }
     $form['lab_details']['#markup'] = '<span style="color: rgb(128, 0, 0);"><strong>About the Lab</strong></span></td><td style="width: 35%;"><br />' . '<ul>' . '<li><strong>Proposer Name:</strong> ' . $lab_details->name_title . ' ' . $lab_details->name . '</li>' . '<li><strong>Title of the Lab:</strong> ' . $lab_details->lab_title . '</li>' . '<li><strong>Department:</strong> ' . $lab_details->department . '</li>' . '<li><strong>University:</strong> ' . $lab_details->university . '</li>' . '<li><strong>Version:</strong> ' . $lab_details->version . '</li>' . '<li><strong>Operating System:</strong> ' . $lab_details->operating_system . '</li>' . '</ul>' . $solution_provider;
+
     $details = $form['lab_details']['#markup'];
     return $details;
+    
+      }
+      
     }
-  }
-  function ajax_bulk_experiment_list_callback(array &$form, \Drupal\Core\Form\FormStateInterface $form_state) {
+  
+
+  public function ajax_bulk_experiment_list_callback(array &$form,\Drupal\Core\Form\FormStateInterface $form_state) {
     $response = new AjaxResponse();
   
     // Get the selected lab value.
@@ -630,7 +648,7 @@ $response->send();
   // var_dump(hii);die;
       // Update lab actions and experiment list.
       $form['lab_actions']['#options'] = _bulk_list_lab_actions();
-      $form['lab_experiment_list']['#options'] = _ajax_bulk_get_experiment_list($lab_default_value);
+      $form['lab_experiment_list']['#options'] = $this->_ajax_bulk_get_experiment_list($lab_default_value);
   
       $renderer = \Drupal::service('renderer');
       $response->addCommand(new ReplaceCommand('#ajax_selected_experiment', $renderer->render($form['lab_experiment_list'])));
@@ -659,7 +677,29 @@ $response->send();
     return $response;
   }
   
+  public function _ajax_bulk_get_experiment_list($lab_default_value = '') {
+    $experiments = [
+      '0' => 'Please select...',
+    ];
   
+    // Get the database connection.
+    $connection = Database::getConnection();
+  
+    // Prepare the query.
+    $query = $connection->select('lab_migration_experiment', 'lme')
+      ->fields('lme', ['id', 'number', 'title'])
+      ->condition('proposal_id', $lab_default_value)
+      ->orderBy('number', 'ASC');
+  
+    // Execute the query and fetch results.
+    $experiments_q = $query->execute();
+  // var_dump($experiment_q);die;
+    foreach ($experiments_q as $experiments_data) {
+      $experiments[$experiments_data->id] = $experiments_data->number . '. ' . $experiments_data->title;
+    }
+  
+    return $experiments;
+  }
 
   public function submitForm(array &$form, \Drupal\Core\Form\FormStateInterface $form_state) {
   }
