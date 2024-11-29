@@ -331,7 +331,7 @@ return $response;
       $response = new RedirectResponse('/lab_migration/open-proposal');
       $response->send();
     }
-    $query = "UPDATE {lab_migration_proposal} set solution_provider_uid = :uid, solution_status = :solution_status, solution_provider_name_title = :solution_provider_name_title, solution_provider_name = :solution_provider_contact_name, solution_provider_contact_ph = :solution_provider_contact_ph, solution_provider_department = :solution_provider_department, solution_provider_university = :solution_provider_university , solution_provider_city = :solution_provider_city, solution_provider_pincode = :solution_provider_pincode, solution_provider_state = :solution_provider_state,solution_provider_country = :solution_provider_country, version = :r_version WHERE id = :proposal_id";
+    $query = "UPDATE {lab_migration_proposal} set solution_provider_uid = :uid, solution_status = :solution_status, solution_provider_name_title = :solution_provider_name_title, solution_provider_name = :solution_provider_contact_name, solution_provider_contact_ph = :solution_provider_contact_ph, solution_provider_department = :solution_provider_department, solution_provider_university = :solution_provider_university , solution_provider_city = :solution_provider_city, solution_provider_pincode = :solution_provider_pincode, solution_provider_state = :solution_provider_state,solution_provider_country = :solution_provider_country, version = :freecad_version WHERE id = :proposal_id";
     $args = [
       'uid' => \Drupal::currentUser()->id(),
       "solution_status" => 1,
@@ -344,7 +344,7 @@ return $response;
       "solution_provider_pincode" => $form_state->getValue(['pincode']),
       "solution_provider_state" => $form_state->getValue(['all_state']),
       "solution_provider_country" => $form_state->getValue(['country']),
-      "r_version" => $form_state->getValue(['version']),
+      "freecad_version" => $form_state->getValue(['version']),
       "proposal_id" => $proposal_id,
     ];
 

@@ -102,13 +102,13 @@ function _lm_list_of_cities()
   function _lm_list_of_software_version()
   {
     $software_version = array();
-    $query = \Drupal::database()->select('r_software_version');
-    $query->fields('r_software_version');
+    $query = \Drupal::database()->select('freecad_lm_software_version');
+    $query->fields('freecad_lm_software_version');
     //$query->orderBy('id', 'DESC');
     $software_version_list = $query->execute();
     while ($software_version_list_data = $software_version_list->fetchObject())
       {
-        $software_version[$software_version_list_data->r_version] = $software_version_list_data->r_version;
+        $software_version[$software_version_list_data->freecad_version] = $software_version_list_data->freecad_version;
       }
     return $software_version;
   }
@@ -596,9 +596,9 @@ $lab_id = (int) $route_match->getParameter('lab_id');
     ),
     '#required' => TRUE,
   );
-  $form['r_version'] = array(
+  $form['version'] = array(
     '#type' => 'select',
-    '#title' => t('R version used'),
+    '#title' => t('FreeCAD version used'),
     '#options' => _lm_list_of_software_version(),
     '#required' => TRUE,
   );

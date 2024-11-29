@@ -24,6 +24,7 @@ use Drupal\Core\Render\Markup;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\ResponseHeaderBag;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
+
 /**
  * Default controller for the lab_migration module.
  */
@@ -493,8 +494,8 @@ $link = Link::fromTextAndUrl(t('Edit'), $url)->toString();
     );
     $form['version'] = array(
         '#type' => 'item',
-        '#markup' => $proposal_data->r_version,
-        '#title' => t('R Version')
+        '#markup' => $proposal_data->version,
+        '#title' => t('Version')
     );
     $form['syllabus_link'] = array(
         '#type' => 'item',
@@ -526,10 +527,18 @@ $link = Link::fromTextAndUrl(t('Edit'), $url)->toString();
     );
     if ($proposal_data->syllabus_copy_file_path != "None")
     {
-        $form['syllabus_copy_file_path'] = array(
-            '#type' => 'markup',
-            '#markup' => Link::fromTextAndUrl('Click here to download uploaded syllabus copy', 'lab-migration/download/syllabus-copy-file/' . $proposal_id) . "<br><br>"
-        );
+        // $form['syllabus_copy_file_path'] = array(
+        //     '#type' => 'markup',
+        //     '#markup' => Link::fromTextAndUrl('Click here to download uploaded syllabus copy', 'lab_migration.download_syllabus_copy' . $proposal_id) . "<br><br>"
+        
+        //   );
+        $form['syllabus_copy_file_path'] = [
+          '#type' => 'markup',
+          '#markup' => Link::fromTextAndUrl(
+            'Click here to download uploaded syllabus copy', 
+            Url::fromRoute('/lab_migration/download/syllabus-copy-file', ['proposal_id' => $proposal_id])
+          )->toString() . '<br><br>',
+        ];
     } //$row->samplefilepath != "None"
     if ($proposal_data->solution_provider_uid == 0)
       {
@@ -1578,14 +1587,63 @@ public function verify_lab_migration_certificates($qr_code = 0) {
  */
 
 
+// public function lab_migration_download_syllabus_copy() {
+//   // Get the proposal ID from the route.
+//   $route_match = \Drupal::routeMatch();
+//   $proposal_id = (int) $route_match->getParameter('proposal_id');
+
+//   // Validate the proposal ID.
+//   if (!$proposal_id) {
+//     \Drupal::messenger()->addMessage(t('Invalid proposal ID.'));
+//     return new RedirectResponse(Url::fromRoute('<front>')->toString());
+//   }
+
+//   // Retrieve the root path and file details.
+//   $root_path = \Drupal::service('lab_migration_global')->lab_migration_path();
+//   $connection = \Drupal::database();
+//   $query = $connection->select('lab_migration_proposal', 'p')
+//     ->fields('p', ['syllabus_copy_file_path'])
+//     ->condition('id', $proposal_id);
+//   $syllabus_copy_file_path = $query->execute()->fetchField();
+// // var_dump($root_path);die;
+//   // Check if the file path exists in the database.
+//   if (!$syllabus_copy_file_path) {
+//     \Drupal::messenger()->addMessage(t('The syllabus copy file could not be found.'));
+//     return new RedirectResponse(Url::fromRoute('<front>')->toString());
+//   }
+// // var_dump($syllabus_copy_file_path);die;
+//   // Construct the full file path.
+//   $full_path = $root_path . $syllabus_copy_file_path;
+
+//   // Validate the file exists.
+//   if (!file_exists($full_path)) {
+//     \Drupal::messenger()->addMessage(t('The requested file does not exist.'));
+//     return new RedirectResponse(Url::fromRoute('<front>')->toString());
+//   }
+
+//   // Extract the file name from the path.
+//   $syllabus_copy_file_name = basename($syllabus_copy_file_path);
+// // var_dump($syllabus_copy_file_name);die;
+//   // Create the response using Symfony components.
+//   $response = new Response();
+//   $response->setContent(file_get_contents($full_path));
+//   $response->headers->set('Content-Type', 'application/octet-stream');
+//   $response->headers->set('Content-Disposition', ResponseHeaderBag::DISPOSITION_ATTACHMENT, $syllabus_copy_file_name);
+//   $response->headers->set('Content-Length', filesize($full_path));
+// var_dump($syllabus_copy_file_name);die;
+
+//   return $response;
+// }
+
+
 public function lab_migration_download_syllabus_copy() {
   // Get the proposal ID from the route.
   $route_match = \Drupal::routeMatch();
   $proposal_id = (int) $route_match->getParameter('proposal_id');
-
+//var_dump($proposal_id);die;
   // Validate the proposal ID.
   if (!$proposal_id) {
-    \Drupal::messenger()->addMessage(t('Invalid proposal ID.'));
+    \Drupal::messenger()->addError(t('Invalid proposal ID.'));
     return new RedirectResponse(Url::fromRoute('<front>')->toString());
   }
 
@@ -1599,27 +1657,30 @@ public function lab_migration_download_syllabus_copy() {
 
   // Check if the file path exists in the database.
   if (!$syllabus_copy_file_path) {
-    \Drupal::messenger()->addMessage(t('The syllabus copy file could not be found.'));
+    \Drupal::messenger()->addError(t('The syllabus copy file could not be found.'));
     return new RedirectResponse(Url::fromRoute('<front>')->toString());
   }
-var_dump($syllabus_copy_file_path);die;
-  // Construct the full file path.
-  $full_path = $root_path . $syllabus_copy_file_path;
 
-  // Validate the file exists.
-  if (!file_exists($full_path)) {
-    \Drupal::messenger()->addMessage(t('The requested file does not exist.'));
+  // Construct the full file path.
+  $full_path = $root_path . DIRECTORY_SEPARATOR . $syllabus_copy_file_path;
+
+  // Validate that the file exists and is readable.
+  if (!file_exists($full_path) || !is_readable($full_path)) {
+    \Drupal::messenger()->addError(t('The requested file does not exist or is not accessible.'));
     return new RedirectResponse(Url::fromRoute('<front>')->toString());
   }
 
   // Extract the file name from the path.
   $syllabus_copy_file_name = basename($syllabus_copy_file_path);
-
-  // Create the response using Symfony components.
+//var_dump($syllabus_copy_file_name);die;
+  // Create the response for file download.
   $response = new Response();
   $response->setContent(file_get_contents($full_path));
   $response->headers->set('Content-Type', 'application/octet-stream');
-  $response->headers->set('Content-Disposition', ResponseHeaderBag::DISPOSITION_ATTACHMENT, $syllabus_copy_file_name);
+  $response->headers->set('Content-Disposition', $response->headers->makeDisposition(
+    ResponseHeaderBag::DISPOSITION_ATTACHMENT,
+    $syllabus_copy_file_name
+  ));
   $response->headers->set('Content-Length', filesize($full_path));
 
   return $response;
@@ -1725,7 +1786,7 @@ var_dump($syllabus_copy_file_path);die;
       ),
       '#required' => TRUE,
     );
-    $form['r_version'] = array(
+    $form['freecad_version'] = array(
       '#type' => 'select',
       '#title' => t('R version used'),
       '#options' => _lm_list_of_software_version(),

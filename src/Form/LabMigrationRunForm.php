@@ -566,7 +566,8 @@ public function _lab_information($proposal_id)
       //var_dump($proposal_id);die;
     //$lab_q = db_query("SELECT * FROM {lab_migration_proposal} WHERE id = %d", $proposal_id);
     $query = \Drupal::database()->select('lab_migration_proposal', 'l')
-    ->fields('l') // Use the table alias here
+    ->fields('l')
+    // ->fields('e',[])
     ->condition('l.id', $proposal_id)
     ->condition('l.approval_status', 3);
 
@@ -574,12 +575,8 @@ $lab_q = $query->execute();
 $lab_data = $lab_q->fetchObject();
 //var_dump($lab_data);die;
 // Get the database connection.
-$connection = \Drupal::database();
 
-// Define the query with INNER JOIN.
-$query = $connection->select('lab_migration_proposal', 'p') // Alias for lab_migration_proposal table
-  ->fields('p', ['title']) // Select the title field from lab_migration_proposal
-  ->innerJoin('lab_migration_experiment', 'e', 'p.id = e.proposal_id'); // Inner join with lab_migration_experiment
+
 
 if ($lab_data) {
     return $lab_data;
@@ -591,10 +588,35 @@ if ($lab_data) {
 
    
   }
+ public function _lab_experiment_information($proposal_id) {
+    // Get the database connection.
+    $connection = \Drupal::database();
+
+    // Build the query.
+    $query = $connection->select('lab_migration_proposal', 'p') // Alias for lab_migration_proposal.
+        ->fields('p') // Select all fields from lab_migration_proposal.
+        ->leftJoin('lab_migration_experiment', 'e', 'p.id = e.proposal_id') // Left join with lab_migration_experiment.
+        // ->fields('e',[]) // Select all fields from lab_migration_experiment.
+        ->condition('p.id', $proposal_id) // Condition to match the proposal_id.
+        ->condition('p.approval_status', 3); // Only fetch records with approval_status = 3.
+
+    // Execute the query.
+    $lab_q = $query->execute();
+
+    // Fetch the result as an object.
+    $e_data = $lab_q->fetchObject();
+
+    // Return the result if available; otherwise, return NULL.
+    return $e_data ?: NULL;
+}
+
+
+  // }
 public function _lab_details($lab_default_value)
   {
     // $lab_default_value = $form_state['values']['lab'];
     $lab_details = $this->_lab_information($lab_default_value);
+    $experiment_details = $this->_lab_experiment_information($lab_default_value);
     //var_dump($lab_details->name_title);die;
     if ($lab_default_value != 0)
       {
@@ -624,7 +646,8 @@ $response = new RedirectResponse($url->toString());
 $response->send();
           
       }
-    $form['lab_details']['#markup'] = '<span style="color: rgb(128, 0, 0);"><strong>About the Lab</strong></span></td><td style="width: 35%;"><br />' . '<ul>' . '<li><strong>Proposer Name:</strong> ' . $lab_details->name_title . ' ' . $lab_details->name . '</li>' . '<li><strong>Title of the Lab:</strong> ' . $lab_details->lab_title . '</li>' . '<li><strong>Department:</strong> ' . $lab_details->department . '</li>' . '<li><strong>University:</strong> ' . $lab_details->university . '</li>' . '<li><strong>Version:</strong> ' . $lab_details->version . '</li>' . '<li><strong>Operating System:</strong> ' . $lab_details->operating_system . '</li>' . '</ul>' . $solution_provider;
+      $experiment_details = '';
+    $form['lab_details']['#markup'] = '<span style="color: rgb(128, 0, 0);"><strong>About the Lab</strong></span></td><td style="width: 35%;"><br />' . '<ul>' . '<li><strong>Proposer Name:</strong> ' . $lab_details->name_title . ' ' . $lab_details->name . '</li>' . '<li><strong>Title of the Lab:</strong> ' . $lab_details->lab_title . '</li>' . '<li><strong>Department:</strong> ' . $lab_details->department . '</li>' . '<li><strong>University:</strong> ' . $lab_details->university . '</li>' . '<li><strong>Version:</strong> ' . $lab_details->version . '</li>' . '<li><strong>Operating System:</strong> ' . $lab_details->operating_system . '</li>' . '</ul>' . $solution_provider . $experiment_details;
 
     $details = $form['lab_details']['#markup'];
     return $details;

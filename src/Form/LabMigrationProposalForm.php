@@ -83,14 +83,14 @@ class LabMigrationProposalForm extends FormBase {
     $proposal_data = $proposal_q->fetchObject();
     if ($proposal_data) {
       if ($proposal_data->approval_status == 0 || $proposal_data->approval_status == 1) {
-        \Drupal::messenger()->addmessage(t('We have already received your proposal.'));
+         \Drupal::messenger()->addmessage(t('We have already received your proposal.'));
         // Create a redirect response to the front page
 $response = new RedirectResponse(Url::fromRoute('<front>')->toString());
 
 // Send the redirect response
-$response->send();
+//$response->send();
 
-      return;
+      return $response;
       }
     }
     $form['#attributes'] = ['enctype' => "multipart/form-data"];
@@ -697,7 +697,7 @@ $form = \Drupal::config('lab_migration.settings')->get('lab_migration_from_email
 $bcc = \Drupal::config('lab_migration.settings')->get('lab_migration_emails');
 $cc = \Drupal::config('lab_migration.settings')->get('lab_migration_cc_emails');
 $params['proposal_received']['proposal_id'] = $proposal_id;
-$params['proposal_received']['user_id'] = $user->uid;
+$params['proposal_received']['user_id'] = $user->id();
 $params['proposal_received']['headers'] = [
   'From' => $form,
   'MIME-Version' => '1.0',
@@ -708,7 +708,7 @@ $params['proposal_received']['headers'] = [
   'Bcc' => $bcc,
 ];
 //\Drupal::service('plugin.manager.mail')->mail('lab_migration', 'proposal_received', $email_to, 'en', $params, $form, TRUE);
-if (!\Drupal::service('plugin.manager.mail')->mail('lab_migration', 'proposal_received', $email_to, 'en', $params, $form, TRUE)) {
+if (!\Drupal::service('lab_migration_email')->lab_migration_mail('lab_migration', 'proposal_received', $email_to, 'en', $params, $form, TRUE)) {
   \Drupal::messenger()->addError('Error sending email message.');
 }
     \Drupal::messenger()->addmessage($this->t('We have received you Lab migration proposal. We will get back to you soon.'));

@@ -286,7 +286,7 @@ lab_migration.verify_lab_migration_certificates:
   requirements:
     _permission: 'Verify custom Certificate of lab'
 lab_migration.download_syllabus_copy:
-  path: /lab_migration/download/syllabus-copy-file
+  path: /lab_migration/download/syllabus-copy-file/{proposal_id}
   defaults:
     _title: 'Syllabus Copy Download'
     _controller: '\Drupal\lab_migration\Controller\DefaultController::lab_migration_download_syllabus_copy'
