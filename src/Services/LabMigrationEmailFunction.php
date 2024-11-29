@@ -2,11 +2,12 @@
 namespace Drupal\lab_migration\Services;
 use Drupal\Core\LabMigration\PluginMail;
 class LabMigrationEmailFunction {
-public function lab_migration_mail($key, &$message, $params)
+public function lab_migration_mail($key, $message, $params)
   {
     //var_dump($key);die;
     global $user;
-    $language = $message['language'];
+    //$language = $message['language'];
+    // var_dump($message);die;
     //$language = user_preferred_language($user);
     switch ($key)
      {

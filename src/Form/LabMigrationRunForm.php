@@ -575,49 +575,40 @@ $lab_q = $query->execute();
 $lab_data = $lab_q->fetchObject();
 //var_dump($lab_data);die;
 // Get the database connection.
-
-
-
 if ($lab_data) {
     return $lab_data;
 } else {
     return;
 }
-
-    
-
-   
-  }
- public function _lab_experiment_information($proposal_id) {
-    // Get the database connection.
-    $connection = \Drupal::database();
-
-    // Build the query.
-    $query = $connection->select('lab_migration_proposal', 'p') // Alias for lab_migration_proposal.
-        ->fields('p') // Select all fields from lab_migration_proposal.
-        ->leftJoin('lab_migration_experiment', 'e', 'p.id = e.proposal_id') // Left join with lab_migration_experiment.
-        // ->fields('e',[]) // Select all fields from lab_migration_experiment.
-        ->condition('p.id', $proposal_id) // Condition to match the proposal_id.
-        ->condition('p.approval_status', 3); // Only fetch records with approval_status = 3.
-
-    // Execute the query.
-    $lab_q = $query->execute();
-
-    // Fetch the result as an object.
-    $e_data = $lab_q->fetchObject();
-
-    // Return the result if available; otherwise, return NULL.
-    return $e_data ?: NULL;
 }
+  public function _lab_experiment_information($proposal_id){
+    $database = \Drupal::database();
+    $query = $database->query ("SELECT title FROM lab_migration_proposal
+    INNER JOIN  lab_migration_experiment
+    ON lab_migration_proposal.id = lab_migration_experiment.proposal_id");
+    $result = $query->fetchAll();$database = \Drupal::database();
+    $query = $database->query ("SELECT title
+    FROM lab_migration_proposal
+    INNER JOIN  lab_migration_experiment
+    ON lab_migration_proposal.id = lab_migration_experiment.proposal_id where lab_migration_proposal.id = :proposal_id", [":proposal_id" => $proposal_id]);
+    // $result = $query->fetchAll();
+    // if ($result) {
+    $experiment_details = '<strong>Experiment Details</strong><ul>';
+      while ($row = $query->fetchObject()){
+        //$row['title'];
+        $experiment_details .= '<li><strong>Title of the Experiment: </strong>' . $row->title . '</li>';
+    }
+   
+   return $experiment_details;
+    //var_dump($result);die;
+  }
 
-
-  // }
 public function _lab_details($lab_default_value)
   {
     // $lab_default_value = $form_state['values']['lab'];
     $lab_details = $this->_lab_information($lab_default_value);
-    $experiment_details = $this->_lab_experiment_information($lab_default_value);
-    //var_dump($lab_details->name_title);die;
+    //$experiment_details = $this->_lab_experiment_information($lab_default_value);
+    //var_dump($experiment_details);die;
     if ($lab_default_value != 0)
       {
         if ($lab_details){
@@ -646,8 +637,8 @@ $response = new RedirectResponse($url->toString());
 $response->send();
           
       }
-      $experiment_details = '';
-    $form['lab_details']['#markup'] = '<span style="color: rgb(128, 0, 0);"><strong>About the Lab</strong></span></td><td style="width: 35%;"><br />' . '<ul>' . '<li><strong>Proposer Name:</strong> ' . $lab_details->name_title . ' ' . $lab_details->name . '</li>' . '<li><strong>Title of the Lab:</strong> ' . $lab_details->lab_title . '</li>' . '<li><strong>Department:</strong> ' . $lab_details->department . '</li>' . '<li><strong>University:</strong> ' . $lab_details->university . '</li>' . '<li><strong>Version:</strong> ' . $lab_details->version . '</li>' . '<li><strong>Operating System:</strong> ' . $lab_details->operating_system . '</li>' . '</ul>' . $solution_provider . $experiment_details;
+      
+    $form['lab_details']['#markup'] = '<span style="color: rgb(128, 0, 0);"><strong>About the Lab</strong></span></td><td style="width: 35%;"><br />' . '<ul>' . '<li><strong>Proposer Name:</strong> ' . $lab_details->name_title . ' ' . $lab_details->name . '</li>' . '<li><strong>Title of the Lab:</strong> ' . $lab_details->lab_title . '</li>' . '<li><strong>Department:</strong> ' . $lab_details->department . '</li>' . '<li><strong>University:</strong> ' . $lab_details->university . '</li>' . '<li><strong>Version:</strong> ' . $lab_details->version . '</li>' . '<li><strong>Operating System:</strong> ' . $lab_details->operating_system . '</li>' . '</ul>' . $solution_provider;
 
     $details = $form['lab_details']['#markup'];
     return $details;
