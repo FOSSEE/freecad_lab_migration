@@ -455,10 +455,11 @@ $lab_id = (int) $route_match->getParameter('lab_id');
   {
     global $user;
     $user = \Drupal\user\Entity\User::load(\Drupal::currentUser()->id());
+    //var_dump($user->id()        );die;
     //$proposal_q = db_query("SELECT * FROM {lab_migration_proposal} WHERE solution_provider_uid = ".$user->uid." AND solution_status = 2 ORDER BY id DESC LIMIT 1");
     $query = Database::getConnection()->select('lab_migration_proposal');
     $query->fields('lab_migration_proposal');
-    $query->condition('solution_provider_uid',  $user->get('uid')->value);
+    $query->condition('solution_provider_uid',  $user->id());
     $query->condition('solution_status', 2);
     $query->orderBy('id', 'DESC');
     $query->range(0, 1);
@@ -477,24 +478,24 @@ $lab_id = (int) $route_match->getParameter('lab_id');
 // \Drupal::messenger()->addMessage("Check out the proposal: " . $link);
 // }
     
-    // switch ($proposal_data->approval_status)
-    // {
-    //     case 0:
-    //         \Drupal::messenger()->addmessage(t('Proposal is awaiting approval.'), 'status');
-    //         return FALSE;
-    //     case 1:
-    //         return $proposal_data;
-    //     case 2:
-    //       \Drupal::messenger()->addmessage(t('Proposal has been dis-approved.'), 'error');
-    //         return FALSE;
-    //     case 3:
-    //       \Drupal::messenger()->addmessage(t('Proposal has been marked as completed.'), 'status');
-    //         return FALSE;
-    //     default:
-    //     \Drupal::messenger()->addmessage(t('Invalid proposal state. Please contact site administrator for further information.'), 'error');
-    //         return FALSE;
-    // }
-    return $proposal_data;
+    switch ($proposal_data->approval_status)
+    {
+        case 0:
+            \Drupal::messenger()->addmessage(t('Proposal is awaiting approval.'), 'status');
+            return FALSE;
+        case 1:
+            return $proposal_data;
+        case 2:
+          \Drupal::messenger()->addmessage(t('Proposal has been dis-approved.'), 'error');
+            return FALSE;
+        case 3:
+          \Drupal::messenger()->addmessage(t('Proposal has been marked as completed.'), 'status');
+            return FALSE;
+        default:
+        \Drupal::messenger()->addmessage(t('Invalid proposal state. Please contact site administrator for further information.'), 'error');
+            return FALSE;
+    }
+   // return $proposal_data;
   }
   function lab_migration_upload_code_form($form,$form_state)
 {

@@ -147,7 +147,7 @@ lab_migration.upload_code_delete:
   requirements:
     _permission: 'lab migration upload code'
 lab_migration.download_solution_file:
-  path: /lab_migration/download/file
+  path: /lab_migration/download/file/{solution_file_id}
   defaults:
     _title: 'Code Download'
     _controller: '\Drupal\lab_migration\Controller\DefaultController::lab_migration_download_solution_file'
@@ -161,7 +161,7 @@ lab_migration.download_solution:
   requirements:
     _permission: 'lab migration download code'
 lab_migration.download_experiment:
-  path: /lab_migration/download/experiment
+  path: /lab_migration/download/experiment/{experiment_id}
   defaults:
     _title: 'Code Download'
     _controller: '\Drupal\lab_migration\Controller\DefaultController::lab_migration_download_experiment'

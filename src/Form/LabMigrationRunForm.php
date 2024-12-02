@@ -39,7 +39,7 @@ class LabMigrationRunForm extends FormBase {
     $select_two = $form_state->getValue('lab_experiment_list') ?: key($options_two);
     // $url_lab_id = (int) arg(2);
     $route_match = \Drupal::routeMatch();
-$url_lab_id = (int) $route_match->getParameter('url_lab_id');
+    $url_lab_id = (int) $route_match->getParameter('url_lab_id');
     if (!$url_lab_id)
       {
         // $selected = isset($form_state['values']['lab']) ? $form_state['values']['lab'] : key($options_first);
@@ -64,109 +64,10 @@ $url_lab_id = (int) $route_match->getParameter('url_lab_id');
             'callback' => '::ajax_experiment_list_callback'
         ]
     );
-    // var_dump($this->_list_of_labs());die;
-    // if (!$url_lab_id)
-    //   {
-    //     $form['selected_lab'] = array(
-    //         '#type' => 'item',
-    //         '#markup' => '<div id="ajax_selected_lab"></div>'
-    //     );
-    //     $form['selected_lab_r'] = array(
-    //         '#type' => 'item',
-    //         '#markup' => '<div id="ajax_selected_lab_r"></div>'
-    //     );
-    //     $form['selected_lab_pdf'] = array(
-    //         '#type' => 'item',
-    //         '#markup' => '<div id="ajax_selected_lab_pdf"></div>'
-    //     );
-    //     $form['lab_details'] = array(
-    //         '#type' => 'item',
-    //         '#markup' => '<div id="ajax_lab_details"></div>'
-    //     );
-    //     $form['lab_experiment_list'] = array(
-    //         '#type' => 'select',
-    //         '#title' => t('Title of the experiment'),
-    //         '#options' => $this->_ajax_get_experiment_list($selected),
-    //         //'#default_value' => isset($form_state['values']['lab_experiment_list']) ? $form_state['values']['lab_experiment_list'] : '',
-    //         '#ajax' => array(
-    //             'callback' => '::ajax_solution_list_callback'
-    //         ),
-    //         '#prefix' => '<div id="ajax_selected_experiment">',
-    //         '#suffix' => '</div>',
-    //         '#states' => array(
-    //             'invisible' => array(
-    //                 ':input[name="lab"]' => array(
-    //                     'value' => 0
-    //                 )
-    //             )
-    //         )
-    //     );
-        // $form['download_experiment'] = array(
-        //     '#type' => 'item',
-        //     '#markup' => '<div id="ajax_download_experiments"></div>'
-        // );
-    //     $form['download_experiment'] = [
-    //       '#type' => 'container',
-    //       'ajax_download_experiments' => [
-    //         '#type' => 'markup',
-    //         '#markup' => '<div id="ajax_download_experiments">Download Experiment</div>',
-    //       ],
-    //     ];
-        
-      
-
-    //     $form['lab_solution_list'] = array(
-    //         '#type' => 'select',
-    //         '#title' => t('Title of the Solution'),
-    //         '#options' => $this->_ajax_get_solution_list($select_two),
-    //         //'#default_value' => isset($form_state['values']['lab_solution_list']) ? 
-    //         //$form_state['values']['lab_solution_list'] : '',
-    //         '#ajax' => array(
-    //             'callback' => '::ajax_solution_files_callback'
-    //         ),
-    //         '#prefix' => '<div id="ajax_selected_solution">',
-    //         '#suffix' => '</div>',
-    //         '#states' => array(
-    //             'invisible' => array(
-    //                 ':input[name="lab"]' => array(
-    //                     'value' => 0
-    //                 )
-    //             )
-    //         )
-    //     );
-       
-    //   //   $form['download_solution'] = [
-    //   //     '#type' => 'markup',
-    //   //     '#markup' => '<div id="ajax_download_experiment_solution"></div>',
-    //   // ];
-    // 
-      
-        
-        
-    //     $form['edit_solution'] = array(
-    //         '#type' => 'item',
-    //         '#markup' => '<div id="ajax_edit_experiment_solution"></div>'
-    //     );
-    //     $form['solution_files'] = array(
-    //         '#type' => 'item',
-    //          '#title' => t('List of solution_files'),
-    //         '#markup' => '<div id="ajax_solution_files">List of Solution Files</div>',
-    //         '#states' => array(
-    //             'invisible' => array(
-    //                 ':input[name="lab"]' => array(
-    //                     'value' => 0
-    //                 )
-    //             )
-    //         )
-    //     );
-        
-    //   }
-    // else
-    //   {
-      $form['download_solution'] = [
-              '#type' => 'markup',
-              '#markup' => '<div id="ajax_download_experiment_solution"></div>',
-          ];
+      // $form['download_solution'] = [
+      //         '#type' => 'markup',
+      //         '#markup' => '<div id="ajax_download_experiment_solution"></div>',
+      //     ];
         $lab_default_value = $url_lab_id;
         $form['selected_lab'] = array(
             '#type' => 'item',
@@ -183,94 +84,43 @@ $url_lab_id = (int) $route_match->getParameter('url_lab_id');
               ),
             ]
             );
-            
-      
-        /* $form['selected_lab_pdf'] = array(
-        '#type' => 'item',
-        '#markup' => '<div id="ajax_selected_lab_pdf">'. l('Download PDF of Lab Solutions', 'lab-migration/generate-lab/' . $lab_default_value . '/1') .'</div>',
-        
-        );*/
-        /*if ($lab_default_value == '2')
-          {
-            $form['selected_lab_r'] = array(
-                '#type' => 'item',
-                '#markup' => '<div id="ajax_selected_lab_r">' . l('Download Lab Solutions (r Version)', 'lab-migration-uploads/r_Version.zip') . '</div>'
-            );
-          }*/
-          //var_dump($this->_lab_details($lab_default_value));die;
         $form['lab_details'] = array(
             '#type' => 'item',
             '#markup' => '<div id="ajax_lab_details">' . $this->_lab_details($lab_default_value) . '</div>'
         );
-        // $form['lab_experiment_list'] = array(
-        //     '#type' => 'select',
-        //     '#title' => t('Title of the experiment'),
-        //     '#options' => $this->_ajax_get_experiment_list($selected),
-        //     // '#default_value' => isset($form_state['values']['lab_experiment_list']) ? $form_state['values']['lab_experiment_list'] : '',
-        //     '#ajax' => [
-        //         'callback' => '::ajax_solution_list_callback'
-        // ],
-        //     '#prefix' => '<div id="ajax_selected_experiment">',
-        //     '#suffix' => '</div>',
-        //     '#states' => array(
-        //         'invisible' => array(
-        //             ':input[name="lab"]' => array(
-        //                 'value' => 0
-        //             )
-        //         )
-        //     )
-        // );
-        // $form['download_experiment'] = array(
-        //     '#type' => 'item',
-        //     '#markup' => '<div id="ajax_download_experiments"></div>'
-        // );
-         // Add the experiment list as a table in the form.
-    $form['experiment_list'] = [
-      '#type' => 'item',
-      '#markup' => '<div id ="_ajax_get_experiment_list"></div>'
-    ];
-        // $form['lab_solution_list'] = array(
-        //     '#type' => 'select',
-        //     '#title' => t('Solution'),
-        //     '#options' => $this->_ajax_get_solution_list($select_two),
-        //     // '#default_value' => isset($form_state['values']['lab_solution_list']) ? $form_state['values']['lab_solution_list'] : '',
-        //     //'#default_value' => $form_state->getValue('lab_solution_list', ''),
-        //     '#ajax' => [
-        //         'callback' => '::ajax_solution_files_callback'
-        //     ],
-        //     '#prefix' => '<div id="ajax_selected_solution">',
-        //     '#suffix' => '</div>',
-        //     '#states' => array(
-        //         'invisible' => array(
-        //             ':input[name="lab_experiment_list"]' => array(
-        //                 'value' => 0
-        //             )
-        //         )
-        //     )
-        // );
-        // $form['download_solution'] = array(
-        //     '#type' => 'item',
-        //     '#markup' => '<div id="ajax_download_experiment_solution"></div>'
-            
-        // );
-        // $form['edit_solution'] = array(
-        //     '#type' => 'item',
-        //     '#markup' => '<div id="ajax_edit_experiment_solution"></div>'
-        // );
-        // $form['solution_files'] = array(
-        //     '#type' => 'item',
-        //      '#title' => t('List of solution_files'),
-        //     '#markup' => '<div id="ajax_solution_files"></div>',
-        //     '#states' => array(
-        //         'invisible' => array(
-        //             ':input[name="lab_experiment_list"]' => array(
-        //                 'value' => 0
-        //             )
-        //         )
-        //     )
-        // );
-
-    //  }
+        $form['lab_experiment_list'] = array(
+            '#type' => 'select',
+            '#title' => t('Title of the experiment'),
+            '#options' => $this->_ajax_get_experiment_list($selected),
+            // '#default_value' => isset($form_state['values']['lab_experiment_list']) ? $form_state['values']['lab_experiment_list'] : '',
+            '#ajax' => [
+                'callback' => '::ajax_solution_list_callback',
+                'wrapper'  => 'ajax_download_experiments'
+              ],
+            '#prefix' => '<div id="ajax_selected_experiment">',
+            '#suffix' => '</div>',
+            '#states' => array(
+                'invisible' => array(
+                    ':input[name="lab"]' => array(
+                        'value' => 0
+                    )
+                )
+            )
+        );
+        $form['download_experiment_wrapper'] = [
+          '#type' => 'container',
+          '#attributes' => ['id' => 'ajax_download_experiments'],
+        ];
+        $form['download_experiment_wrapper']['download_experiment'] = array(
+            '#type' => 'item',
+            '#markup' => Link::fromTextAndUrl('Download Experiment', Url::fromUri('internal:/lab_migration/download/experiment/' . $form_state->getValue('lab_experiment_list')))->toString()
+        );
+        $form['download_experiment_wrapper']['solution_list'] = [
+          '#type' => 'select',
+            '#title' => t('Title of the solution'),
+            '#options' => $this->_ajax_get_solution_list($form_state->getValue('lab_experiment_list')),
+        ];
+       
     return $form;
   }
   public function ajax_experiment_list_callback(array &$form, \Drupal\Core\Form\FormStateInterface $form_state) {
@@ -348,48 +198,51 @@ $url_lab_id = (int) $route_match->getParameter('url_lab_id');
    // $response->addCommands($commands);
     return $response;
   }
-  public function ajax_solution_list_callback(array &$form, \Drupal\Core\Form\FormStateInterface $form_state) {
-    $response = new AjaxResponse();
-    $commands = [];
-//var_dump("hi");die;
-    $experiment_list_default_value = $form_state->getValue('lab_experiment_list');
-    //var_dump($experiment_list_default_value);die;
-    if ($experiment_list_default_value != 0) {
-      // Update the solution list options
-      $form['lab_solution_list']['#options'] = $this->_ajax_get_solution_list($experiment_list_default_value);
+  public function ajax_solution_list_callback(array &$form, FormStateInterface $form_state) {
+    return $form['download_experiment_wrapper'];
+//     $response = new AjaxResponse();
+//     $experiment_list_default_value = $form_state->getValue('lab_experiment_list');
+//     // var_dump($experiment_list_default_value);die;
+//     if ($experiment_list_default_value != 0) {
+//       $exp_download_link = Link::fromTextAndUrl(
+//         $this->t('Download Experiment'),
+//         Url::fromRoute('lab_migration.download_experiment', ['experiment_id' => $experiment_list_default_value])
+//       )->toString();
+//       // Update the solution list options
+     
       
-      // Add the commands to update the DOM
-      // $response->addCommand(new HtmlCommand('#ajax_download_experiments', Link::fromTextAndUrl('Download Experiment', Url::fromUri('internal:/lab-migration/download/experiment/' . $experiment_list_default_value))->toString()));
-      $response->addCommand(new HtmlCommand('#ajax_selected_experiment', \Drupal::service('renderer')->render($form['lab_experiment_list'])));
-      $response->addCommand(new HtmlCommand('#ajax_selected_solution', \Drupal::service('renderer')->render($form['lab_solution_list'])));
-      // Uncomment if needed
-      // $commands[] = new HtmlCommand('#ajax_solution_files', '');
-      // $commands[] = new HtmlCommand('#ajax_download_experiment_solution', '');
-      // $commands[] = new HtmlCommand('#ajax_edit_experiment_solution', '');
-    }
-    else {
-      // Default options when no experiment is selected
-      $form['lab_solution_list']['#options'] = $this->_ajax_get_solution_list();
+//       // Add the commands to update the DOM
       
-      // Clear the DOM elements
-          $commands = [];
-          $response->addCommand(new HtmlCommand('#ajax_selected_solution', \Drupal::service('renderer')->render($form['lab_solution_list'])));
-      $commands[] = new HtmlCommand('#ajax_download_experiments', '');
-      $commands[] = new HtmlCommand('#ajax_selected_solution', '');
-      $commands[] = new HtmlCommand('#ajax_solution_files', '');
-      $commands[] = new HtmlCommand('#ajax_download_experiment_solution', '');
-      $commands[] = new HtmlCommand('#ajax_edit_experiment_solution', '');
-      // Uncomment if needed
-      // $commands[] = new ReplaceCommand('#ajax_selected_experiment', \Drupal::service('renderer')->render($form['lab_experiment_list']));
-    }
+//       $response->addCommand(new HtmlCommand('#ajax_download_experiments', Link::fromTextAndUrl('Download Experiment', Url::fromUri('internal:/lab_migration/download/experiment/' . $experiment_list_default_value))->toString()));
+//       $response->addCommand(new HtmlCommand('#ajax_selected_experiment', \Drupal::service('renderer')->render($form['lab_experiment_list'])));
+//       //$form['lab_solution_list']['#options'] = $this->_ajax_get_solution_list($experiment_list_default_value);
+//       //$response->addCommand(new HtmlCommand('#ajax_download_experiments'), $exp_download_link);
+//       //$response->addCommand(new HtmlCommand('#ajax_selected_solution', \Drupal::service('renderer')->render($form['lab_solution_list'])));
+//       $form_state->setRebuild(TRUE);
+//     }
+//     // else {
+//     //   // Default options when no experiment is selected
+//     //   $form['lab_solution_list']['#options'] = $this->_ajax_get_solution_list();
+      
+//     //   // Clear the DOM elements
+//     //       $commands = [];
+//     //       $response->addCommand(new HtmlCommand('#ajax_selected_solution', \Drupal::service('renderer')->render($form['lab_solution_list'])));
+//     //   $commands[] = new HtmlCommand('#ajax_download_experiments', '');
+//     //   $commands[] = new HtmlCommand('#ajax_selected_solution', '');
+//     //   $commands[] = new HtmlCommand('#ajax_solution_files', '');
+//     //   $commands[] = new HtmlCommand('#ajax_download_experiment_solution', '');
+//     //   $commands[] = new HtmlCommand('#ajax_edit_experiment_solution', '');
+//     //   // Uncomment if needed
+//     //   // $commands[] = new ReplaceCommand('#ajax_selected_experiment', \Drupal::service('renderer')->render($form['lab_experiment_list']));
+//     // }
     
-    // Return the response with commands
-    // $response = new AjaxResponse();
-    // $response->addCommand(new AppendCommand('#element-id', 'Updated content'));
-    //return $response;
+//     // Return the response with commands
+//     // $response = new AjaxResponse();
+//     // $response->addCommand(new AppendCommand('#element-id', 'Updated content'));
+//     //return $response;
   
 
-return $response;
+// return $response;
   }
   
   public function ajax_solution_files_callback(array &$form, \Drupal\Core\Form\FormStateInterface $form_state) {
@@ -648,7 +501,7 @@ $response->send();
     }
   
 
-  public function ajax_bulk_experiment_list_callback(array &$form,\Drupal\Core\Form\FormStateInterface $form_state) {
+  public function ajax_bulk_experimeng1t_list_callback(array &$form,\Drupal\Core\Form\FormStateInterface $form_state) {
     $response = new AjaxResponse();
   
     // Get the selected lab value.
