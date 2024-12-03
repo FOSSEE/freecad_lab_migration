@@ -410,12 +410,12 @@ $response = new RedirectResponse(Url::fromRoute('<front>')->toString());
       '#description' => 'If yes, solutions will be made available to everyone for downloading.',
       '#disabled' => FALSE,
     ];
-    $form['sample_syllabus_file'] = [
-      '#type' => 'item',
-      // '#attributes' => array('class' => array('form-control')),
-'#title' => $this->t('<h5>Ideal Sample Lab Migration Submission</h5>'),
-      '#markup' => $this->t('Kindly refer to the ') . t('<a href= "https://r.fossee.in/lab-migration/lab-migration-run/12" target="_blank">Sample Lab Migration (Statistical Quality Control using R)</a> and <a href= "https://r.fossee.in/lab-migration/lab-migration-run/6" target="_blank">Sample Lab Migration (Analysis using R)</a>') . '' . t(' to know the ideal submission.'),
-    ];
+//     $form['sample_syllabus_file'] = [
+//       '#type' => 'item',
+//       // '#attributes' => array('class' => array('form-control')),
+// '#title' => $this->t('<h5>Ideal Sample Lab Migration Submission</h5>'),
+//       '#markup' => $this->t('Kindly refer to the ') . t('<a href= "https://r.fossee.in/lab-migration/lab-migration-run/12" target="_blank">Sample Lab Migration (Statistical Quality Control using R)</a> and <a href= "https://r.fossee.in/lab-migration/lab-migration-run/6" target="_blank">Sample Lab Migration (Analysis using R)</a>') . '' . t(' to know the ideal submission.'),
+//     ];
     $form['submit'] = [
       '#type' => 'submit',
       '#value' => $this->t('Submit'),

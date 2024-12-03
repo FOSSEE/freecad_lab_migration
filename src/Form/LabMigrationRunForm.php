@@ -52,7 +52,6 @@ class LabMigrationRunForm extends FormBase {
     else
       {
         $selected = $url_lab_id;
-        ;
       }
     $form = array();
     $form['lab'] = array(
@@ -61,37 +60,32 @@ class LabMigrationRunForm extends FormBase {
         '#options' => $this->_list_of_labs(),
         '#default_value' => $selected,
         '#ajax' => [
-            'callback' => '::ajax_experiment_list_callback'
+            'callback' => '::ajax_experiment_list_callback',
+            'wrapper' => 'ajax_selected_lab'
         ]
     );
-      // $form['download_solution'] = [
-      //         '#type' => 'markup',
-      //         '#markup' => '<div id="ajax_download_experiment_solution"></div>',
-      //     ];
-        $lab_default_value = $url_lab_id;
-        $form['selected_lab'] = array(
-            '#type' => 'item',
-           
-            $form['selected_lab'] = [
+    $form['download_lab_wrapper'] = [
+      '#type' => 'container',
+      '#attributes' => ['id' => 'ajax_selected_lab'],
+    ];
+        $lab_default_value = $form_state->getValue('lab') ?: $url_lab_id;
+  //var_dump($lab_default_value);die;
+            $form['download_lab_wrapper']['selected_lab'] = [
               '#type' => 'markup',
-              '#markup' => Markup::create(
-                '<div id="ajax_selected_lab">' . 
+              '#markup' => 
                 Link::fromTextAndUrl(
                   $this->t('Download Lab Solutions'), 
                   Url::fromUri('internal:/lab_migration/download/lab/' . $lab_default_value)
-                )->toString() . 
-                '</div>'
-              ),
-            ]
-            );
-        $form['lab_details'] = array(
+                )->toString()
+            ];
+        $form['download_lab_wrapper']['lab_details'] = array(
             '#type' => 'item',
-            '#markup' => '<div id="ajax_lab_details">' . $this->_lab_details($lab_default_value) . '</div>'
+            '#markup' => $this->_lab_details($lab_default_value)
         );
-        $form['lab_experiment_list'] = array(
+        $form['download_lab_wrapper']['lab_experiment_list'] = array(
             '#type' => 'select',
             '#title' => t('Title of the experiment'),
-            '#options' => $this->_ajax_get_experiment_list($selected),
+            '#options' => $this->_ajax_get_experiment_list($lab_default_value),
             // '#default_value' => isset($form_state['values']['lab_experiment_list']) ? $form_state['values']['lab_experiment_list'] : '',
             '#ajax' => [
                 'callback' => '::ajax_solution_list_callback',
@@ -111,95 +105,105 @@ class LabMigrationRunForm extends FormBase {
           '#type' => 'container',
           '#attributes' => ['id' => 'ajax_download_experiments'],
         ];
-        $form['download_experiment_wrapper']['download_experiment'] = array(
+        $form['download_experiment_wrapper']['download_experiment'] = [
             '#type' => 'item',
             '#markup' => Link::fromTextAndUrl('Download Experiment', Url::fromUri('internal:/lab_migration/download/experiment/' . $form_state->getValue('lab_experiment_list')))->toString()
-        );
+        ];
         $form['download_experiment_wrapper']['solution_list'] = [
           '#type' => 'select',
             '#title' => t('Title of the solution'),
             '#options' => $this->_ajax_get_solution_list($form_state->getValue('lab_experiment_list')),
+            '#ajax' => [
+                'callback' => '::ajax_solution_files_callback',
+                'wrapper'  => 'ajax_download_solution_file'
+              ],
         ];
+       //for download solution
+
+        $form['download_solution_wrapper'] = [
+          '#type' => 'container',
+          '#attributes' => ['id' => 'ajax_download_solution_file'],
+        ];
+        $form['download_solution_wrapper']['download_solution'] = [
+          '#type' => 'item',
+          '#markup' => Link::fromTextAndUrl('Download Solution', Url::fromUri('internal:/lab_migration/download/solution/' . $form_state->getValue('solution_list')))->toString()
+        ];
+      //   if ($solution_list_default_value != 0) {
+      //     //       // Render experiment solution actions
+      //           $response->addCommand(new HtmlCommand('#ajax_selected_lab_experiment_solution_action', \Drupal::service('renderer')->render($form['lab_experiment_solution_actions'])));
+      // $solution_list_default_value = $form_state->getValue('lab_solution_list');      
+        // Query solution files
+      $query = \Drupal::database()->select('lab_migration_solution_files', 's');
+      $query->fields('s');
+      $query->condition('solution_id', $form_state->getValue('solution_list'));
+      $solution_list_q = $query->execute();
+      if ($solution_list_q) {
+        $solution_files_rows = [];
+        while ($solution_list_data = $solution_list_q->fetchObject()) {
+ 
+//var_dump($solution_list_data);die;
+          $solution_file_type = '';
+          switch ($solution_list_data->filetype) {
+            case 'S':
+              $solution_file_type = 'Source or Main file';
+              break;
+            case 'R':
+              $solution_file_type = 'Result file';
+              break;
+            case 'X':
+              $solution_file_type = 'xcos file';
+              break;
+            default:
+              $solution_file_type = 'Unknown';
+              break;
+          }
+        
+          // Create file download link
+          $items = [
+           
+             Link::fromTextAndUrl($solution_list_data->filename, Url::fromUri('internal:/lab_migration/download/file/' . $solution_list_data->id))->toString(),
+            "{$solution_file_type}"
+          ];
+        }
+      }
+      array_push($solution_files_rows, $items);
+      //var_dump($solution_rows);die;
+        $form['download_solution_wrapper']['solution_files'] = [
+          '#type' => 'fieldset',
+          '#title' => t('List of solution files'),
+        ];
+        $solution_files_header = ['Filename', 'Type']; // Table headers
+
+        $table = [
+          '#type' => 'table',
+          '#header' => $solution_files_header,
+          '#rows' => $solution_files_rows,
+        
+        '#attributes' => [
+          'style' => 'width: 100%;',
+          
+        ],
+      ];
+            // Add the table to the fieldset
+$form['download_solution_wrapper']['solution_files']['table'] = $table;
+        
+      
+        
+        
        
-    return $form;
-  }
-  public function ajax_experiment_list_callback(array &$form, \Drupal\Core\Form\FormStateInterface $form_state) {
-    $response = new AjaxResponse();
-    $commands = [];
-    $lab_default_value = $form_state->getValue('lab');
-    // var_dump($lab_default_value);die;
-    if ($lab_default_value != 0) {
-      // Set the lab details markup
-      $form['lab_details']['#markup'] = $this->_lab_details($lab_default_value);
+      return $form;
+}
+
+  
+
     
-      // Get the lab details
-      $lab_details = $this->_lab_information($lab_default_value);
-      // var_dump($lab_details->solution_provider_uid);die;
-      // var_dump($lab_details);die;
-      $user_solution_provider = \Drupal\user\Entity\User::load($lab_details->solution_provider_uid);
-      // If solution provider exists
-      if ($lab_details->solution_provider_uid > 0) {
-        // Download Lab Solutions link
-        
-        $response->addCommand(new HtmlCommand('#ajax_selected_lab', Link::fromTextAndUrl('Download Lab Solutions', Url::fromUri('internal:/lab_migration/download/lab/' . $lab_default_value))->toString()));
-        $response->addCommand(new HtmlCommand('#ajax_lab_details', $this->_lab_details($lab_default_value)));
-        
-        // Additional conditions can be handled here as needed
-        /*if ($lab_default_value == '2') {
-          $commands[] = new HtmlCommand('#ajax_selected_lab_r', Link::fromTextAndUrl('Download Lab Solutions (r Version)', Url::fromUri('internal:/lab-migration_uploads/r_Version.zip'))->toString());
-        }*/
-      }
-      else {
-        // Clear the download links if no solution provider exists
-        $commands[] = new HtmlCommand('#ajax_selected_lab', '');
-        $commands[] = new HtmlCommand('#ajax_selected_lab_pdf', '');
-        $commands[] = new HtmlCommand('#ajax_selected_lab_r', '');
-      }
-      
-      // Set the lab details again
-     
-      
-      // Update the experiment list options
-      $form['lab_experiment_list']['#options'] = $this->_ajax_get_experiment_list($lab_default_value);
-      
-      // Replace the experiment list
-      $response->addCommand(new ReplaceCommand('#ajax_selected_experiment', \Drupal::service('renderer')->render($form['lab_experiment_list'])));
-      
-      // Clear solution-related elements
-      // $commands[] = new HtmlCommand('#ajax_selected_solution', '');
-      // $commands[] = new HtmlCommand('#ajax_solution_files', '');
-      // $commands[] = new HtmlCommand('#ajax_download_experiment_solution', '');
-      // $commands[] = new HtmlCommand('#ajax_edit_experiment_solution', '');
-      // $commands[] = new HtmlCommand('#ajax_download_experiments', '');
-    }
-    else {
-      // Default options when no lab is selected
-      $form['lab_experiment_list']['#options'] = $this->_ajax_get_experiment_list();
-      
-      // Replace experiment list with default options
-      $commands[] = new ReplaceCommand('#ajax_selected_experiment', \Drupal::service('renderer')->render($form['lab_experiment_list']));
-      
-      // Clear all the other elements
-      $commands[] = new HtmlCommand('#ajax_lab_details', '');
-      $commands[] = new HtmlCommand('#ajax_selected_lab', '');
-      $commands[] = new HtmlCommand('#ajax_selected_lab_r', '');
-      $commands[] = new HtmlCommand('#ajax_selected_lab_pdf', '');
-      $commands[] = new HtmlCommand('#ajax_selected_experiment', '');
-      $commands[] = new HtmlCommand('#ajax_download_experiments', '');
-      $commands[] = new HtmlCommand('#ajax_selected_solution', '');
-      $commands[] = new HtmlCommand('#ajax_solution_files', '');
-      $commands[] = new HtmlCommand('#ajax_download_experiment_solution', '');
-      $commands[] = new HtmlCommand('#ajax_edit_experiment_solution', '');
-    }
-    
-    
-    // Return the response with commands
-    
-   // $response->addCommands($commands);
-    return $response;
+  public function ajax_experiment_list_callback(array &$form, FormStateInterface $form_state) {
+    return $form['download_lab_wrapper'];
+
   }
   public function ajax_solution_list_callback(array &$form, FormStateInterface $form_state) {
     return $form['download_experiment_wrapper'];
+    
 //     $response = new AjaxResponse();
 //     $experiment_list_default_value = $form_state->getValue('lab_experiment_list');
 //     // var_dump($experiment_list_default_value);die;
@@ -246,83 +250,85 @@ class LabMigrationRunForm extends FormBase {
   }
   
   public function ajax_solution_files_callback(array &$form, \Drupal\Core\Form\FormStateInterface $form_state) {
-    $response = new AjaxResponse();
-   // $commands = [];
-  //  var_dump("hi");die;
-    $solution_list_default_value = $form_state->getValue('lab_solution_list');
+
+return $form['download_solution_wrapper'];
+    //     $response = new AjaxResponse();
+//    // $commands = [];
+//   //  var_dump("hi");die;
+    // $solution_list_default_value = $form_state->getValue('lab_solution_list');
   
-    if ($solution_list_default_value != 0) {
-      // Render experiment solution actions
-      $response->addCommand(new HtmlCommand('#ajax_selected_lab_experiment_solution_action', \Drupal::service('renderer')->render($form['lab_experiment_solution_actions'])));
+//     if ($solution_list_default_value != 0) {
+//       // Render experiment solution actions
+//       $response->addCommand(new HtmlCommand('#ajax_selected_lab_experiment_solution_action', \Drupal::service('renderer')->render($form['lab_experiment_solution_actions'])));
   
-      // Query solution files
-      $query = \Drupal::database()->select('lab_migration_solution_files', 's');
-      $query->fields('s');
-      $query->condition('solution_id', $solution_list_default_value);
-      $solution_list_q = $query->execute();
+//       // Query solution files
+//       $query = \Drupal::database()->select('lab_migration_solution_files', 's');
+//       $query->fields('s');
+//       $query->condition('solution_id', $solution_list_default_value);
+//       $solution_list_q = $query->execute();
   
-      if ($solution_list_q) {
-        $solution_files_rows = [];
-        while ($solution_list_data = $solution_list_q->fetchObject()) {
-          $solution_file_type = '';
-          switch ($solution_list_data->filetype) {
-            case 'S':
-              $solution_file_type = 'Source or Main file';
-              break;
-            case 'R':
-              $solution_file_type = 'Result file';
-              break;
-            case 'X':
-              $solution_file_type = 'xcos file';
-              break;
-            default:
-              $solution_file_type = 'Unknown';
-              break;
-          }
-          // Create file download link
-          $solution_files_rows[] = [
-            Link::fromTextAndUrl($solution_list_data->filename, Url::fromUri('internal:/lab-migration/download/file/' . $solution_list_data->id))->toString(),
-            $solution_file_type
-          ];
-        }
+//       if ($solution_list_q) {
+//         $solution_files_rows = [];
+//         while ($solution_list_data = $solution_list_q->fetchObject()) {
+//           $solution_file_type = '';
+//           switch ($solution_list_data->filetype) {
+//             case 'S':
+//               $solution_file_type = 'Source or Main file';
+//               break;
+//             case 'R':
+//               $solution_file_type = 'Result file';
+//               break;
+//             case 'X':
+//               $solution_file_type = 'xcos file';
+//               break;
+//             default:
+//               $solution_file_type = 'Unknown';
+//               break;
+//           }
+//           // Create file download link
+//           $solution_files_rows[] = [
+//             Link::fromTextAndUrl($solution_list_data->filename, Url::fromUri('internal:/lab-migration/download/file/' . $solution_list_data->id))->toString(),
+//             $solution_file_type
+//           ];
+//         }
   
-        // Query dependencies
+//         // Query dependencies
         
-        // Build the table of files
-        $solution_files_header = ['Filename', 'Type'];
-        $solution_files = \Drupal::service('renderer')->render([
-          '#theme' => 'table',
-          '#header' => $solution_files_header,
-          '#rows' => $solution_files_rows
-        ]);
-      }
+//         // Build the table of files
+//         $solution_files_header = ['Filename', 'Type'];
+//         $solution_files = \Drupal::service('renderer')->render([
+//           '#theme' => 'table',
+//           '#header' => $solution_files_header,
+//           '#rows' => $solution_files_rows
+//         ]);
+//       }
   
      
     
-      // Add the download and edit links
+//       // Add the download and edit links
      
-$link = Link::fromTextAndUrl(
-  $this->t('Download Solution'),
-  Url::fromRoute('lab_migration.download_solution', ['solution' => $solution_list_default_value])
-)->toString();
-// Add the AJAX command to update the element with ID `#ajax_download_experiment_solution`.
-$response->addCommand(new HtmlCommand('#ajax_download_experiment_solution', $link));
-      // Uncomment if needed
-      // $commands[] = new HtmlCommand('#ajax_edit_experiment_solution', Link::fromTextAndUrl('Edit Solution', Url::fromUri('internal:/code_approval/editcode/' . $solution_list_default_value))->toString());
+// $link = Link::fromTextAndUrl(
+//   $this->t('Download Solution'),
+//   Url::fromRoute('lab_migration.download_solution', ['solution' => $solution_list_default_value])
+// )->toString();
+// // Add the AJAX command to update the element with ID `#ajax_download_experiment_solution`.
+// $response->addCommand(new HtmlCommand('#ajax_download_experiment_solution', $link));
+//       // Uncomment if needed
+//       // $commands[] = new HtmlCommand('#ajax_edit_experiment_solution', Link::fromTextAndUrl('Edit Solution', Url::fromUri('internal:/code_approval/editcode/' . $solution_list_default_value))->toString());
   
-      // Add the solution files table to the page
-     $response->addCommand(new HtmlCommand('#ajax_solution_files', \Drupal::service('renderer')->render($form['solution_files'])));
-    } else {
-      // If no solution is selected, clear the areas
-      $commands[] = new HtmlCommand('#ajax_selected_lab_experiment_solution_action', '');
-      $commands[] = new HtmlCommand('#ajax_download_experiment_solution', '');
-      $commands[] = new HtmlCommand('#ajax_edit_experiment_solution', '');
-      $commands[] = new HtmlCommand('#ajax_solution_files', '');
-    }
+//       // Add the solution files table to the page
+//      $response->addCommand(new HtmlCommand('#ajax_solution_files', \Drupal::service('renderer')->render($form['solution_files'])));
+//     } else {
+//       // If no solution is selected, clear the areas
+//       $commands[] = new HtmlCommand('#ajax_selected_lab_experiment_solution_action', '');
+//       $commands[] = new HtmlCommand('#ajax_download_experiment_solution', '');
+//       $commands[] = new HtmlCommand('#ajax_edit_experiment_solution', '');
+//       $commands[] = new HtmlCommand('#ajax_solution_files', '');
+//     }
   
     // Return the AJAX response
     // $response->addCommands($commands);
-    return $response;
+    // return $response;
   }
   
   public function bootstrap_table_format(array $headers, array $rows) {
@@ -392,6 +398,7 @@ public function _ajax_get_experiment_list($lab_default_value = '')
     return $experiments;
   }
   public function _ajax_get_solution_list($lab_experiment_list = '') {
+    
     $solutions = [
       '0' => t('Please select...'),
     ];
@@ -501,7 +508,7 @@ $response->send();
     }
   
 
-  public function ajax_bulk_experimeng1t_list_callback(array &$form,\Drupal\Core\Form\FormStateInterface $form_state) {
+  public function ajax_bulk_experiment_list_callback(array &$form,\Drupal\Core\Form\FormStateInterface $form_state) {
     $response = new AjaxResponse();
   
     // Get the selected lab value.
@@ -567,6 +574,8 @@ $response->send();
   
     return $experiments;
   }
+
+
 
   public function submitForm(array &$form, \Drupal\Core\Form\FormStateInterface $form_state) {
   }

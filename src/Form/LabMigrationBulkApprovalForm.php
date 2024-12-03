@@ -12,6 +12,8 @@ use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\Render\Element;
 use Drupal\Core\Database\Database;
 use Drupal\Component\Render\Markup;
+use Drupal\Core\Link;
+use Drupal\Core\Url;
 
 class LabMigrationBulkApprovalForm extends FormBase {
 
@@ -22,7 +24,7 @@ class LabMigrationBulkApprovalForm extends FormBase {
     return 'lab_migration_bulk_approval_form';
   }
 
-  public function buildForm(array $form, \Drupal\Core\Form\FormStateInterface $form_state) {
+  public function buildForm(array $form, FormStateInterface $form_state) {
     $options_first = $this->_bulk_list_of_labs();
     $options_two = $this->_ajax_bulk_get_experiment_list();
     $selected = !$form_state->getValue(['lab']) ? $form_state->getValue(['lab']) : key($options_first);
@@ -36,9 +38,11 @@ class LabMigrationBulkApprovalForm extends FormBase {
       '#options' => $this->_bulk_list_of_labs(),
       '#default_value' => $selected,
       '#ajax' => [
-        'callback' => '::ajax_bulk_experiment_list_callback'
+        'callback' => '::ajax_bulk_experiment_list_callback',
+        'wrapper' => 'ajax_selected_lab'
+        
         ],
-      '#suffix' => '<div id="ajax_selected_lab"></div><div id="ajax_selected_lab_pdf"></div>',
+      //'#suffix' => '<div id="ajax_selected_lab"></div><div id="ajax_selected_lab_pdf"></div>',
     ];
    
     $form['lab_actions'] = [
@@ -56,15 +60,20 @@ class LabMigrationBulkApprovalForm extends FormBase {
           ]
         ],
     ];
-    $form['lab_experiment_list'] = [
+    $form['update_exp'] = [
+      '#type' => 'container',
+      '#attributes' => ['id' => 'ajax_selected_lab']
+    ];
+    $form['update_exp']['lab_experiment_list'] = [
       '#type' => 'select',
       '#title' => t('Title of the experiment'),
-      '#options' => $this->_ajax_bulk_get_experiment_list($selected),
+      '#options' => $this->_ajax_bulk_get_experiment_list($form_state->getValue('lab')),
       '#default_value' => !$form_state->getValue([
         'lab_experiment_list'
         ]) ? $form_state->getValue(['lab_experiment_list']) : '',
       '#ajax' => [
-        'callback' => '::ajax_bulk_solution_list_callback'
+        'callback' => '::ajax_bulk_solution_list_callback',
+        'wrapper' => 'ajax_download_experiment'
         ],
       '#prefix' => '<div id="ajax_selected_experiment">',
       '#suffix' => '</div>',
@@ -76,10 +85,30 @@ class LabMigrationBulkApprovalForm extends FormBase {
           ]
         ],
     ];
-   
-    $form['download_experiment'] = [
+    $form['download_experiment_wrapper'] = [
+      '#type' => 'container',
+      '#attributes' => ['id' => 'ajax_download_experiments'],
+    ];
+    $form['download_experiment_wrapper']['download_experiment'] = [
+        '#type' => 'item',
+        '#markup' => Link::fromTextAndUrl('Download Experiment', Url::fromUri('internal:/lab_migration/download/experiment/' . $form_state->getValue('lab_experiment_list')))->toString()
+    ];
+    $form['download_experiment_wrapper']['solution_list'] = [
+      '#type' => 'select',
+        '#title' => t('Title of the solution'),
+        '#options' => $this->_ajax_get_solution_list($form_state->getValue('lab_experiment_list')),
+        '#ajax' => [
+            'callback' => '::ajax_solution_files_callback',
+            'wrapper'  => 'ajax_download_solution_file'
+          ],
+    ];
+    $form['download_solution_wrapper'] = [
+      '#type' => 'container',
+      '#attributes' => ['id' => 'ajax_download_solution_file'],
+    ];
+    $form['download_solution_wrapper']['download_solution'] = [
       '#type' => 'item',
-      '#markup' => '<div id="download_experiment"></div>',
+      '#markup' => Link::fromTextAndUrl('Download Solution', Url::fromUri('internal:/lab_migration/download/solution/' . $form_state->getValue('solution_list')))->toString()
     ];
     $form['lab_experiment_actions'] = [
       '#type' => 'select',
@@ -111,7 +140,8 @@ class LabMigrationBulkApprovalForm extends FormBase {
         'lab_solution_list'
         ]) ? $form_state->getValue(['lab_solution_list']) : '',
       '#ajax' => [
-        'callback' => '::ajax_bulk_solution_files_callback'
+        'callback' => '::ajax_bulk_solution_files_callback',
+        'wrapper' => 'ajax_bulk_solution_files'
         ],
       '#prefix' => '<div id="ajax_selected_solution">',
       '#suffix' => '</div>',
@@ -137,27 +167,27 @@ class LabMigrationBulkApprovalForm extends FormBase {
             ]
           ]
         ],
+    ]; $form['download_solution_wrapper'] = [
+      '#type' => 'container',
+      '#attributes' => ['id' => 'ajax_download_solution_file'],
     ];
-    // $form['download_solution'] = [
-    //   '#type' => 'item',
-    //   '#markup' => '<div id="ajax_download_experiment_solution"></div>',
-    // ];
-    // $form['edit_solution'] = [
-    //   '#type' => 'item',
-    //   '#markup' => '<div id="ajax_edit_experiment_solution"></div>',
-    // ];
-    // $form['solution_files'] = [
-    //   '#type' => 'item',
-    //   // '#title' => t('List of solution_files'),
-    //     '#markup' => '<div id="ajax_solution_files"></div>',
-    //   '#states' => [
-    //     'invisible' => [
-    //       ':input[name="lab"]' => [
-    //         'value' => 0
-    //         ]
-    //       ]
-    //     ],
-    // ];
+    $form['download_solution_wrapper']['download_solution'] = [
+      '#type' => 'item',
+      '#markup' => Link::fromTextAndUrl('Download Solution', Url::fromUri('internal:/lab_migration/download/solution/' . $form_state->getValue('solution_list')))->toString()
+    ];
+   
+    $form['solution_files'] = [
+      '#type' => 'item',
+      // '#title' => t('List of solution_files'),
+        '#markup' => '<div id="ajax_solution_files"></div>',
+      '#states' => [
+        'invisible' => [
+          ':input[name="lab"]' => [
+            'value' => 0
+            ]
+          ]
+        ],
+    ];
     $form['message'] = [
       '#type' => 'textarea',
       '#title' => t('If Dis-Approved please specify reason for Dis-Approval'),
@@ -791,31 +821,57 @@ FOSSEE,IIT Bombay', [
     }
     return;
   }
-
-  public function _ajax_bulk_get_experiment_list($lab_default_value = '') {
-    $experiments = [
-      '0' => 'Please select...',
-    ];
+  public function _ajax_get_solution_list($lab_experiment_list = '') {
+    // return $form['download_solution_wrapper'];
+    // $solutions = [
+    //   '0' => t('Please select...'),
+    // ];
   
-    // Get the database connection.
-    $connection = Database::getConnection();
+    // if (empty($lab_experiment_list)) {
+    //   return $solutions;
+    // }
   
-    // Prepare the query.
-    $query = $connection->select('lab_migration_experiment', 'lme')
-      ->fields('lme', ['id', 'number', 'title'])
-      ->condition('proposal_id', $lab_default_value)
-      ->orderBy('number', 'ASC');
+    // // Query the database to get solutions for the given experiment.
+    // $connection = Database::getConnection();
+    // $query = $connection->select('lab_migration_solution', 'lms');
+    // $query->fields('lms', ['id', 'code_number', 'caption']);
+    // $query->condition('experiment_id', $lab_experiment_list);
+    // $results = $query->execute();
   
-    // Execute the query and fetch results.
-    $experiments_q = $query->execute();
-  // var_dump($experiment_q);die;
-    foreach ($experiments_q as $experiments_data) {
-      $experiments[$experiments_data->id] = $experiments_data->number . '. ' . $experiments_data->title;
-    }
+    // // Process the query results and populate the solutions array.
+    // foreach ($results as $record) {
+    //   $solutions[$record->id] = $record->code_number . ' (' . $record->caption . ')';
+    // }
   
-    return $experiments;
+    // return $solutions;
   }
+  public function _ajax_bulk_get_experiment_list($lab_default_value = '') {
+    // return $form['download_lab_wrapper'];
+  //   $experiments = [
+  //     '0' => 'Please select...',
+  //   ];
   
+  //   // Get the database connection.
+  //   $connection = Database::getConnection();
+  
+  //   // Prepare the query.
+  //   $query = $connection->select('lab_migration_experiment', 'lme')
+  //     ->fields('lme', ['id', 'number', 'title'])
+  //     ->condition('proposal_id', $lab_default_value)
+  //     ->orderBy('number', 'ASC');
+  
+  //   // Execute the query and fetch results.
+  //   $experiments_q = $query->execute();
+  // // var_dump($experiment_q);die;
+  //   foreach ($experiments_q as $experiments_data) {
+  //     $experiments[$experiments_data->id] = $experiments_data->number . '. ' . $experiments_data->title;
+  //   }
+  
+  //   return $experiments;
+  }
+  public function ajax_solution_list_callback(array &$form, FormStateInterface $form_state) {
+    return $form['download_experiment_wrapper'];
+  }
   public function _bulk_list_lab_actions(): array {
     return [
       0 => 'Please select...',
@@ -851,46 +907,47 @@ FOSSEE,IIT Bombay', [
     return $lab_titles;
   }
  public function ajax_bulk_experiment_list_callback(array &$form, \Drupal\Core\Form\FormStateInterface $form_state) {
-    $response = new AjaxResponse();
+  return $form['update_exp'];
+  //   $response = new AjaxResponse();
   
-    // Get the selected lab value.
-    $lab_default_value = $form_state->getValue('lab');
-  // var_dump($lab_default_value);die;
-    if ($lab_default_value != 0) {
-      // Generate a link for download.
-      $download_url = Url::fromUserInput('/lab-migration/full-download/lab/' . $lab_default_value);
-      $download_link = Link::fromTextAndUrl(t('Download'), $download_url)->toString();
-      $response->addCommand(new HtmlCommand('#ajax_selected_lab', $download_link . ' ' . t('(Download all the approved and unapproved solutions of the entire lab)')));
-  // var_dump(hii);die;
-      // Update lab actions and experiment list.
-      $form['lab_actions']['#options'] = _bulk_list_lab_actions();
-      $form['lab_experiment_list']['#options'] = _ajax_bulk_get_experiment_list($lab_default_value);
+  //   // Get the selected lab value.
+  //   $lab_default_value = $form_state->getValue('lab');
+  // // var_dump($lab_default_value);die;
+  //   if ($lab_default_value != 0) {
+  //     // Generate a link for download.
+  //     $download_url = Url::fromUserInput('/lab-migration/full-download/lab/' . $lab_default_value);
+  //     $download_link = Link::fromTextAndUrl(t('Download'), $download_url)->toString();
+  //     $response->addCommand(new HtmlCommand('#ajax_selected_lab', $download_link . ' ' . t('(Download all the approved and unapproved solutions of the entire lab)')));
+  // // var_dump(hii);die;
+  //     // Update lab actions and experiment list.
+  //     $form['lab_actions']['#options'] = _bulk_list_lab_actions();
+  //     $form['lab_experiment_list']['#options'] = _ajax_bulk_get_experiment_list($lab_default_value);
   
-      $renderer = \Drupal::service('renderer');
-      $response->addCommand(new ReplaceCommand('#ajax_selected_experiment', $renderer->render($form['lab_experiment_list'])));
-      $response->addCommand(new ReplaceCommand('#ajax_selected_lab_action', $renderer->render($form['lab_actions'])));
+  //     $renderer = \Drupal::service('renderer');
+  //     $response->addCommand(new ReplaceCommand('#ajax_selected_experiment', $renderer->render($form['lab_experiment_list'])));
+  //     $response->addCommand(new ReplaceCommand('#ajax_selected_lab_action', $renderer->render($form['lab_actions'])));
   
-      // Clear other sections.
-      $response->addCommand(new HtmlCommand('#ajax_selected_solution', ''));
-      $response->addCommand(new HtmlCommand('#ajax_selected_lab_experiment_action', ''));
-      $response->addCommand(new HtmlCommand('#ajax_selected_lab_experiment_solution_action', ''));
-      $response->addCommand(new HtmlCommand('#ajax_solution_files', ''));
-      $response->addCommand(new HtmlCommand('#ajax_download_experiment_solution', ''));
-      $response->addCommand(new HtmlCommand('#ajax_edit_experiment_solution', ''));
-    } else {
-      // Clear all sections if no lab is selected.
-      $response->addCommand(new HtmlCommand('#ajax_selected_lab', ''));
-      $response->addCommand(new HtmlCommand('#ajax_selected_lab_pdf', ''));
-      $response->addCommand(new HtmlCommand('#ajax_selected_experiment', ''));
-      $response->addCommand(new HtmlCommand('#ajax_selected_lab_action', ''));
-      $response->addCommand(new HtmlCommand('#ajax_selected_lab_experiment_action', ''));
-      $response->addCommand(new HtmlCommand('#ajax_selected_lab_experiment_solution_action', ''));
-      $response->addCommand(new HtmlCommand('#ajax_solution_files', ''));
-      $response->addCommand(new HtmlCommand('#ajax_download_experiment_solution', ''));
-      $response->addCommand(new HtmlCommand('#ajax_edit_experiment_solution', ''));
-    }
+  //     // Clear other sections.
+  //     $response->addCommand(new HtmlCommand('#ajax_selected_solution', ''));
+  //     $response->addCommand(new HtmlCommand('#ajax_selected_lab_experiment_action', ''));
+  //     $response->addCommand(new HtmlCommand('#ajax_selected_lab_experiment_solution_action', ''));
+  //     $response->addCommand(new HtmlCommand('#ajax_solution_files', ''));
+  //     $response->addCommand(new HtmlCommand('#ajax_download_experiment_solution', ''));
+  //     $response->addCommand(new HtmlCommand('#ajax_edit_experiment_solution', ''));
+  //   } else {
+  //     // Clear all sections if no lab is selected.
+  //     $response->addCommand(new HtmlCommand('#ajax_selected_lab', ''));
+  //     $response->addCommand(new HtmlCommand('#ajax_selected_lab_pdf', ''));
+  //     $response->addCommand(new HtmlCommand('#ajax_selected_experiment', ''));
+  //     $response->addCommand(new HtmlCommand('#ajax_selected_lab_action', ''));
+  //     $response->addCommand(new HtmlCommand('#ajax_selected_lab_experiment_action', ''));
+  //     $response->addCommand(new HtmlCommand('#ajax_selected_lab_experiment_solution_action', ''));
+  //     $response->addCommand(new HtmlCommand('#ajax_solution_files', ''));
+  //     $response->addCommand(new HtmlCommand('#ajax_download_experiment_solution', ''));
+  //     $response->addCommand(new HtmlCommand('#ajax_edit_experiment_solution', ''));
+  //   }
   
-    return $response;
+  //   return $response;
   }
 
 public function _ajax_bulk_get_solution_list($lab_experiment_list = ''): array {
