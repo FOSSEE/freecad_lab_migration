@@ -526,11 +526,11 @@ $response = new RedirectResponse(Url::fromRoute('<front>')->toString());
   }
 
   public function submitForm(array &$form, \Drupal\Core\Form\FormStateInterface $form_state) {
-    $user = \Drupal\user\Entity\User::load(\Drupal::currentUser()->id());
-    // if (!$user->uid) {
-    //   \Drupal::messenger()->addError('It is mandatory to login on this website to access the proposal form');
-    //   return;
-    // }
+    $user = currentUser();
+    if (!$user->uid) {
+      \Drupal::messenger()->addmessage('It is mandatory to login on this website to access the proposal form');
+      return;
+    }
     $solution_provider_uid = 0;
     $solution_status = 0;
     $solution_provider_name_title = '';

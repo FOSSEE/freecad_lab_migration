@@ -53,7 +53,7 @@ class LabMigrationRunForm extends FormBase {
       {
         $selected = $url_lab_id;
       }
-    $form = array();
+    $form = [];
     $form['lab'] = array(
         '#type' => 'select',
         '#title' => t('Title of the lab'),

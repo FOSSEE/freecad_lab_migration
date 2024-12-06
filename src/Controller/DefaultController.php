@@ -1261,7 +1261,7 @@ $root_path = \Drupal::service("lab_migration_global")->lab_migration_path();
     // var_dump($LAB_PATH);die;
     /* zip filename */
     $zip_filename = $root_path . 'zip-' . time() . '-' . rand(0, 999999) . '.zip';
-    // var_dump($zip_filename);die;
+    var_dump($zip_filename);die;
     /* creating zip archive on the server */
     $zip = new \ZipArchive();
     $zip->open($zip_filename, \ZipArchive::CREATE);
