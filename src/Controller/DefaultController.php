@@ -91,38 +91,7 @@ class DefaultController extends ControllerBase {
 
 
   public function lab_migration_solution_proposal_pending() {
-    /* get list of solution proposal where the solution_provider_uid is set to some userid except 0 and solution_status is also 1 */
-    // $pending_rows = [];
-    // //$pending_q = \Drupal::database()->query("SELECT * FROM {lab_migration_proposal} WHERE solution_provider_uid != 0 AND solution_status = 1 ORDER BY id DESC");
-    // $query = \Drupal::database()->select('lab_migration_proposal');
-    // $query->fields('lab_migration_proposal');
-    // $query->condition('solution_provider_uid', 0, '!=');
-    // $query->condition('solution_status', 1);
-    // $query->orderBy('id', 'DESC');
-    // $pending_q = $query->execute();
-    // while ($pending_data = $pending_q->fetchObject()) {
-    //   $pending_rows[$pending_data->id] = [
-    //     // Link::fromTextAndUrl($pending_data->name, 'user/' . $pending_data->uid),
-    //     $pending_data->lab_title,
-    //     // Link::fromTextAndUrl('Approve', 'lab-migration/manage-proposal/solution-proposal-approve/' . $pending_data->id),
-    //   ];
-    // }
-    // /* check if there are any pending proposals */
-    // if (!$pending_rows) {
-    //   \Drupal::messenger()->addMessage(t('There are no pending solution proposals.'), 'status');
-    //   return '';
-    // }
-    // $pending_header = [
-    //   'Proposer Name',
-    //   'Title of the Lab',
-    //   'Action',
-    // ];
-    // $output =  [
-    //   '#type' => 'table',
-    //   '#header' => $pending_header,
-    //   '#rows' => $pending_rows,
     
-    // ];
     $pending_rows = [];
     //$pending_q = \Drupal::database()->query("SELECT * FROM {lab_migration_proposal} WHERE approval_status = 0 ORDER BY id DESC");
     $query =\Drupal::database()->select('lab_migration_proposal');
@@ -397,7 +366,7 @@ $link = Link::fromTextAndUrl(t('Edit'), $url)->toString();
       'Solution Provider',
       'Actions',
     ];
-    //$output = drupal_render()_table($header, $pending_solution_rows);
+   
     $output =  [
       '#type' => 'table',
       '#header' => $header,
@@ -662,10 +631,7 @@ $link = Link::fromTextAndUrl(t('Edit'), $url)->toString();
           'Status',
           'Action',
       );
-      // $output = _theme('table', array(
-      //     'header' => $proposal_header,
-      //     'rows' => $proposal_rows
-      // ));
+      
       $output = [
         '#type' => 'table',
         '#header' => $proposal_header,
@@ -673,7 +639,7 @@ $link = Link::fromTextAndUrl(t('Edit'), $url)->toString();
     ];
       return $output;   
       }
-      function lab_migration_category_all()
+      public function lab_migration_category_all()
       {
         /* get pending proposals to be approved */
         $proposal_rows = array();
@@ -774,7 +740,7 @@ $link = Link::fromTextAndUrl(t('Edit'), $url)->toString();
 
     $experiment_data = $experiment_q->fetchObject();
     if (!$experiment_data) {
-      \Drupal::messenger()->addMessage('You do not have permission to delete this solution.', 'error');
+      // \Drupal::messenger()->addMessage('You do not have permission to delete this solution.', 'error');
       RedirectResponse('lab-migration/code');
       return;
     }
@@ -1261,7 +1227,7 @@ $root_path = \Drupal::service("lab_migration_global")->lab_migration_path();
     // var_dump($LAB_PATH);die;
     /* zip filename */
     $zip_filename = $root_path . 'zip-' . time() . '-' . rand(0, 999999) . '.zip';
-    var_dump($zip_filename);die;
+    //var_dump($zip_filename);die;
     /* creating zip archive on the server */
     $zip = new \ZipArchive();
     $zip->open($zip_filename, \ZipArchive::CREATE);

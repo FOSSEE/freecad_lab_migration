@@ -182,7 +182,7 @@ lab_migration.download_full_experiment:
   requirements:
     _permission: 'lab migration approve code'
 lab_migration.download_full_lab:
-  path: /lab_migration/full-download/lab
+  path: /lab_migration/full-download/lab/{lab_id}
   defaults:
     _title: 'Code Download'
     _controller: '\Drupal\lab_migration\Controller\DefaultController::lab_migration_download_full_lab'

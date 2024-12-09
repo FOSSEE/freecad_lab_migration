@@ -21,6 +21,7 @@ use Drupal\Core\Render\RendererInterface;
 use Drupal\Core\Ajax\AjaxResponse;
 use Drupal\Core\Ajax\HtmlCommand;
 use Drupal\Core\Ajax\ReplaceCommand;
+use Drupal\Core\Session\AccountInterface;
 
 	
 class LabMigrationBulkApprovalForm extends FormBase {
@@ -137,9 +138,7 @@ class LabMigrationBulkApprovalForm extends FormBase {
       '#states' => [
         'invisible' => [
           [
-            [':input[name="lab"]' => ['value' => 0]],
-            'or',
-            [':input[name="lab_actions"]' => ['value' => 0]],
+            [':input[name="lab"]' => ['value' => 0]]
           ],
         ],
       ],
@@ -202,25 +201,25 @@ $form['message'] = [
   '#title' => $this->t('If Dis-Approved, please specify reason for Dis-Approval'),
   '#prefix' => '<div id="message_submit">',
   '#states' => [
-    'visible' => [
-      [
-        [
-          ':input[name="lab_actions"]' => ['value' => 3],
-        ],
-        'or',
-        [
-          ':input[name="lab_experiment_actions"]' => ['value' => 3],
-        ],
-        'or',
-        [
-          ':input[name="lab_experiment_solution_actions"]' => ['value' => 3],
-        ],
-        'or',
-        [
-          ':input[name="lab_actions"]' => ['value' => 4],
-        ],
-      ],
-    ],
+    // 'visible' => [
+    //   [
+    //     [
+    //       ':input[name="lab_actions"]' => ['value' => 3],
+    //     ],
+    //     'or',
+    //     [
+    //       ':input[name="lab_experiment_actions"]' => ['value' => 3],
+    //     ],
+    //     'or',
+    //     [
+    //       ':input[name="lab_experiment_solution_actions"]' => ['value' => 3],
+    //     ],
+    //     'or',
+    //     [
+    //       ':input[name="lab_actions"]' => ['value' => 4],
+    //     ],
+    //   ],
+    // ],
     'required' => [
       [
         [
@@ -298,7 +297,7 @@ $query = \Drupal::database()->select('lab_migration_solution_files', 's');
 $form['download_solution_wrapper']['solution_files']['table'] = $table;
    
 
-$form['actions']['submit'] = [
+$form['submit'] = [
   '#type' => 'submit',
   '#value' => $this->t('Submit'),
 ];
@@ -501,19 +500,23 @@ public function _bulk_list_experiment_actions()
 
   public function submitForm(array &$form, \Drupal\Core\Form\FormStateInterface $form_state) {
     $user = \Drupal::currentUser();
+    //var_dump($user->id());die;
     $root_path = \Drupal::service("lab_migration_global")->lab_migration_path();
-    if ($form_state->get(['clicked_button', '#value']) == 'Submit') {
+    // var_dump($form_state->get(['clicked_button', '#value']));die;
+    // if ($form_state->get(['clicked_button', '#value']) == 'Submit') {
       if ($form_state->getValue(['lab']))
         //lab_migration_del_lab_pdf($form_state['values']['lab']);
  {
-        if (user/accountInterface('lab migration bulk manage code')) {
+  //var_dump($form_state->getValue(['lab_actions']));die;
+        if ($user->hasPermission('lab migration bulk manage code')) {
           $query = \Drupal::database()->select('lab_migration_proposal');
           $query->fields('lab_migration_proposal');
           $query->condition('id', $form_state->getValue(['lab']));
           $user_query = $query->execute();
           $user_info = $user_query->fetchObject();
-          $user_data = loadMultiple($user_info->uid);
+          $user_data = User::load($user_info->uid);
           if (($form_state->getValue(['lab_actions']) == 1) && ($form_state->getValue(['lab_experiment_actions']) == 0) && ($form_state->getValue(['lab_experiment_solution_actions']) == 0)) {
+           // var_dump("hi");die;
             /* approving entire lab */
             //   $experiment_q = \Drupal::database()->query("SELECT * FROM {lab_migration_experiment} WHERE proposal_id = %d", $form_state['values']['lab']);
             $query = \Drupal::database()->select('lab_migration_experiment');
@@ -525,37 +528,38 @@ public function _bulk_list_experiment_actions()
             while ($experiment_data = $experiment_q->fetchObject()) {
               //  \Drupal::database()->query("UPDATE {lab_migration_solution} SET approval_status = 1, approver_uid = %d WHERE experiment_id = %d AND approval_status = 0", $user->uid, $experiment_data->id);
               \Drupal::database()->query("UPDATE {lab_migration_solution} SET approval_status = 1, approver_uid = :approver_uid WHERE experiment_id = :experiment_id AND approval_status = 0", [
-                ':approver_uid' => $user->uid,
+                ':approver_uid' => $user->id(),
                 ':experiment_id' => $experiment_data->id,
               ]);
               $experiment_list .= '<p>' . $experiment_data->number . ') ' . $experiment_data->title . '<br> Description :  ' . $experiment_data->description . '<br>';
               $experiment_list .= ' ';
               $experiment_list .= '</p>';
             }
-            \Drupal::messenger()->addmessage(t('Approved Entire Lab.'), 'status');
+            $msg = \Drupal::messenger()->addmessage(t('Approved Entire Lab. Click on the checkbox below to mark this lab completed'), 'status');
+            // fromUri('internal:/lab_migration/manage-proposal/status/' . $form_state->getValue(['lab']))
             /* email */
-            $email_subject = t('[!site_name] Your uploaded Lab Migration solutions have been approved', [
-              '!site_name' => $config->get('site_name', '')
-              ]);
-            $email_body = [
-              0 => t('
+//             $email_subject = t('[!site_name] Your uploaded Lab Migration solutions have been approved', [
+//               '!site_name' => $config->get('site_name', '')
+//               ]);
+//             $email_body = [
+//               0 => t('
 
-Dear !user_name,
+// Dear !user_name,
 
-Your all the uploaded solutions for the Lab with the below detail has been approved:
+// Your all the uploaded solutions for the Lab with the below detail has been approved:
 
-Title of Lab:' . $user_info->lab_title . '
+// Title of Lab:' . $user_info->lab_title . '
 
-List of experiments: ' . $experiment_list . '
+// List of experiments: ' . $experiment_list . '
 
-Best Wishes,
+// Best Wishes,
 
-!site_name Team,
-FOSSEE,IIT Bombay', [
-                '!site_name' => $config->get('site_name', ''),
-                '!user_name' => $user_data->name,
-              ])
-              ];
+// !site_name Team,
+// FOSSEE,IIT Bombay', [
+//                 '@site_name' => $config->get('site_name', ''),
+//                 '@user_name' => $user_data->name,
+//               ])
+//               ];
           }
           elseif (($form_state->getValue(['lab_actions']) == 2) && ($form_state->getValue(['lab_experiment_actions']) == 0) && ($form_state->getValue(['lab_experiment_solution_actions']) == 0)) {
             /* pending review entire lab */
@@ -571,26 +575,26 @@ FOSSEE,IIT Bombay', [
             }
             \Drupal::messenger()->addmessage(t('Pending Review Entire Lab.'), 'status');
             /* email */
-            $email_subject = t('[!site_name] Your uploaded Lab Migration solutions have been marked as pending', [
-              '!site_name' => $config->get('site_name', '')
-              ]);
-            $email_body = [
-              0 => t('
+//             $email_subject = t('[!site_name] Your uploaded Lab Migration solutions have been marked as pending', [
+//               '!site_name' => $config->get('site_name', '')
+//               ]);
+//             $email_body = [
+//               0 => t('
 
-Dear !user_name,
+// Dear !user_name,
 
-Your all the uploaded solutions for the Lab with Title: ' . $user_info->lab_title . ' have been marked as pending to be reviewed.
+// Your all the uploaded solutions for the Lab with Title: ' . $user_info->lab_title . ' have been marked as pending to be reviewed.
  
-You will be able to see the solutions after they have been approved by one of our reviewers.
+// You will be able to see the solutions after they have been approved by one of our reviewers.
 
-Best Wishes,
+// Best Wishes,
 
-!site_name Team,
-FOSSEE,IIT Bombay', [
-                '!site_name' => $config->get('site_name', ''),
-                '!user_name' => $user_data->name,
-              ])
-              ];
+// !site_name Team,
+// FOSSEE,IIT Bombay', [
+//                 '!site_name' => $config->get('site_name', ''),
+//                 '!user_name' => $user_data->name,
+//               ])
+//               ];
             /* email */
             /* $email_subject = t('Your uploaded Lab Migration solutions have been marked as pending');
                 $email_body = array(0 => t('Your all the uploaded solutions for the Lab have been marked as pending to be review. You will be able to see the solutions after they have been approved by one of our reviewers.'));*/
@@ -598,11 +602,11 @@ FOSSEE,IIT Bombay', [
           elseif (($form_state->getValue(['lab_actions']) == 3) && ($form_state->getValue(['lab_experiment_actions']) == 0) && ($form_state->getValue(['lab_experiment_solution_actions']) == 0)) {
 
             if (strlen(trim($form_state->getValue(['message']))) <= 30) {
-              $form_state->setErrorByName('message', t(''));
+              //$form_state->setErrorByName('message', t(''));
               \Drupal::messenger()->addmessage("Please mention the reason for disapproval. Minimum 30 character required", 'error');
               return;
             }
-            if (!user/accountInterface('lab migration bulk delete code')) {
+            if ($user->hasPermission('lab migration bulk delete code')) {
               \Drupal::messenger()->addmessage(t('You do not have permission to Bulk Dis-Approved and Deleted Entire Lab.'), 'error');
               return;
             }
@@ -613,27 +617,27 @@ FOSSEE,IIT Bombay', [
               \Drupal::messenger()->addmessage(t('Error Dis-Approving and Deleting Entire Lab.'), 'error');
             }
             /* email */
-            $email_subject = t('[!site_name] Your uploaded Lab Migration solutions have been marked as dis-approved', [
-              '!site_name' => $config->get('site_name', '')
-              ]);
-            $email_body = [
-              0 => t('
+//             $email_subject = t('[!site_name] Your uploaded Lab Migration solutions have been marked as dis-approved', [
+//               '!site_name' => $config->get('site_name', '')
+//               ]);
+//             $email_body = [
+//               0 => t('
 
-Dear !user_name,
+// Dear !user_name,
 
-Your all the uploaded solutions for the whole Lab with Title: ' . $user_info->lab_title . ' have been marked as dis-approved.
+// Your all the uploaded solutions for the whole Lab with Title: ' . $user_info->lab_title . ' have been marked as dis-approved.
 
-Reason for dis-approval: ' . $form_state->getValue(['message']) . '
+// Reason for dis-approval: ' . $form_state->getValue(['message']) . '
 
-Best Wishes,
+// Best Wishes,
 
-!site_name Team,
-FOSSEE,IIT Bombay', [
-                '!site_name' => $config->get('site_name', ''),
-                '!user_name' => $user_data->name,
-              ])
-              ];
-            /* email */
+// !site_name Team,
+// FOSSEE,IIT Bombay', [
+//                 '!site_name' => $config->get('site_name', ''),
+//                 '!user_name' => $user_data->name,
+//               ])
+//               ];
+//             /* email */
             /* $email_subject = t('Your uploaded Lab Migration solutions have been marked as dis-approved');
                 $email_body = array(0 =>t('Your all the uploaded solutions for the whole Lab have been marked as dis-approved.
                 
@@ -643,7 +647,7 @@ FOSSEE,IIT Bombay', [
           }
           elseif (($form_state->getValue(['lab_actions']) == 4) && ($form_state->getValue(['lab_experiment_actions']) == 0) && ($form_state->getValue(['lab_experiment_solution_actions']) == 0)) {
             if (strlen(trim($form_state->getValue(['message']))) <= 30) {
-              $form_state->setErrorByName('message', t(''));
+              //$form_state->setErrorByName('message', t(''));
               \Drupal::messenger()->addmessage("Please mention the reason for disapproval/deletion. Minimum 30 character required", 'error');
               return;
             }
@@ -658,7 +662,7 @@ FOSSEE,IIT Bombay', [
               $experiment_list .= ' ';
               $experiment_list .= '</p>';
             }
-            if (!user/accountInterface('lab migration bulk delete code')) {
+            if ($user->hasPermission('lab migration bulk delete code')) {
               \Drupal::messenger()->addmessage(t('You do not have permission to Bulk Delete Entire Lab Including Proposal.'), 'error');
               return;
             }
@@ -709,30 +713,30 @@ FOSSEE,IIT Bombay', [
                 ]);
               \Drupal::messenger()->addmessage(t('Deleted Lab Proposal.'), 'status');
               /* email */
-              $email_subject = t('[!site_name] Your uploaded Lab Migration solutions including the Lab proposal have been deleted', [
-                '!site_name' => $config->get('site_name', '')
-                ]);
-              $email_body = [
-                0 => t('
+//               $email_subject = t('[!site_name] Your uploaded Lab Migration solutions including the Lab proposal have been deleted', [
+//                 '!site_name' => $config->get('site_name', '')
+//                 ]);
+//               $email_body = [
+//                 0 => t('
 
-Dear ' . $proposal_data->name . ',
+// Dear ' . $proposal_data->name . ',
 
-We regret to inform you that all the uploaded Experiments of your Lab with following details have been deleted permanently.
+// We regret to inform you that all the uploaded Experiments of your Lab with following details have been deleted permanently.
 
-Title of Lab:' . $user_info->lab_title . '
+// Title of Lab:' . $user_info->lab_title . '
 
-List of experiments: ' . $experiment_list . '
+// List of experiments: ' . $experiment_list . '
 
-Reason for dis-approval: ' . $form_state->getValue(['message']) . '
+// Reason for dis-approval: ' . $form_state->getValue(['message']) . '
 
-Best Wishes,
+// Best Wishes,
 
-!site_name Team
-FOSSEE, IIT Bombay', [
-                  '!site_name' => $config->get('site_name', ''),
-                  '!user_name' => $user_data->name,
-                ])
-                ];
+// !site_name Team
+// FOSSEE, IIT Bombay', [
+//                   '!site_name' => $config->get('site_name', ''),
+//                   '!user_name' => $user_data->name,
+//                 ])
+//                 ];
               /* email */
               /*  $email_subject = t('Your uploaded Lab Migration solutions including the Lab proposal have been deleted');
                     $email_body = array(0 =>t('Your all the uploaded solutions including the Lab proposal have been deleted permanently.'));*/
@@ -743,7 +747,7 @@ FOSSEE, IIT Bombay', [
           }
           elseif (($form_state->getValue(['lab_actions']) == 0) && ($form_state->getValue(['lab_experiment_actions']) == 1) && ($form_state->getValue(['lab_experiment_solution_actions']) == 0)) {
             \Drupal::database()->query("UPDATE {lab_migration_solution} SET approval_status = 1, approver_uid = :approver_uid WHERE experiment_id = :experiment_id AND approval_status = 0", [
-              ":approver_uid" => $user->uid,
+              ":approver_uid" => $user->id(),
               ":experiment_id" => $form_state->getValue(['lab_experiment_list']),
             ]);
             $query = \Drupal::database()->select('lab_migration_experiment');
@@ -760,27 +764,27 @@ FOSSEE, IIT Bombay', [
             $solution_value = $solution_q->fetchObject();
             \Drupal::messenger()->addmessage(t('Approved Entire Experiment.'), 'status');
             /* email */
-            $email_subject = t('[!site_name] Your uploaded Lab Migration solution have been approved', [
-              '!site_name' => $config->get('site_name', '')
-              ]);
-            $email_body = [
-              0 => t('
+//             $email_subject = t('[!site_name] Your uploaded Lab Migration solution have been approved', [
+//               '!site_name' => $config->get('site_name', '')
+//               ]);
+//             $email_body = [
+//               0 => t('
 
-Dear !user_name,
+// Dear !user_name,
 
-Your Experiment for R Lab Migration with the following details is approved.
+// Your Experiment for R Lab Migration with the following details is approved.
 
-Experiment name: ' . $experiment_value->title . '
-Caption: ' . $solution_value->caption . '
+// Experiment name: ' . $experiment_value->title . '
+// Caption: ' . $solution_value->caption . '
 
-Best Wishes,
+// Best Wishes,
 
-!site_name Team,
-FOSSEE,IIT Bombay', [
-                '!site_name' => $config->get('site_name', ''),
-                '!user_name' => $user_data->name,
-              ])
-              ];
+// !site_name Team,
+// FOSSEE,IIT Bombay', [
+//                 '!site_name' => $config->get('site_name', ''),
+//                 '!user_name' => $user_data->name,
+//               ])
+//               ];
             /* email */
             /* $email_subject = t('Your uploaded Lab Migration solutions have been approved');
                 $email_body = array(0 =>t('Your all the uploaded solutions for the experiment have been approved.'));*/
@@ -803,38 +807,38 @@ FOSSEE,IIT Bombay', [
             $solution_q = $query->execute();
             $solution_value = $solution_q->fetchObject();
             /* email */
-            $email_subject = t('[!site_name] Your uploaded Lab Migration solution have been marked as pending', [
-              '!site_name' => $config->get('site_name', '')
-              ]);
-            $email_body = [
-              0 => t('
+//             $email_subject = t('[!site_name] Your uploaded Lab Migration solution have been marked as pending', [
+//               '!site_name' => $config->get('site_name', '')
+//               ]);
+//             $email_body = [
+//               0 => t('
 
-Dear !user_name,
+// Dear !user_name,
 
-Your all the uploaded solutions for the experiment have been marked as pending to be reviewed.
+// Your all the uploaded solutions for the experiment have been marked as pending to be reviewed.
 
-Experiment name: ' . $experiment_value->title . '
-Caption: ' . $solution_value->caption . '
+// Experiment name: ' . $experiment_value->title . '
+// Caption: ' . $solution_value->caption . '
 
-Best Wishes,
+// Best Wishes,
 
-!site_name Team,
-FOSSEE,IIT Bombay', [
-                '!site_name' => $config->get('site_name', ''),
-                '!user_name' => $user_data->name,
-              ])
-              ];
+// !site_name Team,
+// FOSSEE,IIT Bombay', [
+//                 '!site_name' => $config->get('site_name', ''),
+//                 '!user_name' => $user_data->name,
+//               ])
+//               ];
             /* email */
             /*$email_subject = t('Your uploaded Lab Migration solutions have been marked as pending');
                 $email_body = array(0 =>t('Your all the uploaded solutions for the experiment have been marked as pending to be review.'));*/
           }
           elseif (($form_state->getValue(['lab_actions']) == 0) && ($form_state->getValue(['lab_experiment_actions']) == 3) && ($form_state->getValue(['lab_experiment_solution_actions']) == 0)) {
             if (strlen(trim($form_state->getValue(['message']))) <= 30) {
-              $form_state->setErrorByName('message', t(''));
+              //$form_state->setErrorByName('message', t(''));
               \Drupal::messenger()->addmessage("Please mention the reason for disapproval. Minimum 30 character required", 'error');
               return;
             }
-            if (!user/accountInterface('lab migration bulk delete code')) {
+            if ($user->hasPermission('lab migration bulk delete code')) {
               \Drupal::messenger()->addmessage(t('You do not have permission to Bulk Dis-Approved and Deleted Entire Experiment.'), 'error');
               return;
             }
@@ -857,31 +861,31 @@ FOSSEE,IIT Bombay', [
               \Drupal::messenger()->addmessage(t('Error Dis-Approving and Deleting Entire Experiment.'), 'error');
             }
             /* email */
-            $email_subject = t('[!site_name] Your uploaded Lab Migration solutions have been marked as dis-approved', [
-              '!site_name' => $config->get('site_name', '')
-              ]);
-            $email_body = [
-              0 => t('
+//             $email_subject = t('[!site_name] Your uploaded Lab Migration solutions have been marked as dis-approved', [
+//               '!site_name' => $config->get('site_name', '')
+//               ]);
+//             $email_body = [
+//               0 => t('
 
-Dear !user_name,
+// Dear !user_name,
 
-We regret to inform you that your experiment with the following details under R Lab Migration is disapproved and has been deleted.
+// We regret to inform you that your experiment with the following details under R Lab Migration is disapproved and has been deleted.
 
-Experiment name: ' . $experiment_value->title . '
-Caption: ' . $solution_value->caption . '
+// Experiment name: ' . $experiment_value->title . '
+// Caption: ' . $solution_value->caption . '
 
-Reason for dis-approval: ' . $form_state->getValue(['message']) . '
+// Reason for dis-approval: ' . $form_state->getValue(['message']) . '
 
-Please resubmit the modified solution.
+// Please resubmit the modified solution.
 
-Best Wishes,
+// Best Wishes,
 
-!site_name Team,
-FOSSEE,IIT Bombay', [
-                '!site_name' => $config->get('site_name', ''),
-                '!user_name' => $user_data->name,
-              ])
-              ];
+// !site_name Team,
+// FOSSEE,IIT Bombay', [
+//                 '!site_name' => $config->get('site_name', ''),
+//                 '!user_name' => $user_data->name,
+//               ])
+//               ];
             /* email */
             /*$email_subject = t('Your uploaded Lab Migration solutions have been marked as dis-approved');
                 $email_body = array(0 => t('Your uploaded solutions for the entire experiment have been marked as dis-approved.
@@ -909,27 +913,27 @@ FOSSEE,IIT Bombay', [
             ]);
             \Drupal::messenger()->addmessage(t('Solution approved.'), 'status');
             /* email */
-            $email_subject = t('[!site_name] Your uploaded Lab Migration solution has been approved', [
-              '!site_name' => $config->get('site_name', '')
-              ]);
-            $email_body = [
-              0 => t('
+//             $email_subject = t('[!site_name] Your uploaded Lab Migration solution has been approved', [
+//               '!site_name' => $config->get('site_name', '')
+//               ]);
+//             $email_body = [
+//               0 => t('
 
-Dear !user_name,
+// Dear !user_name,
 
-Your Experiment for R Lab Migration with the following details is approved.
+// Your Experiment for R Lab Migration with the following details is approved.
 
-Experiment name: ' . $experiment_value->title . '
-Caption: ' . $solution_value->caption . '
+// Experiment name: ' . $experiment_value->title . '
+// Caption: ' . $solution_value->caption . '
 
-Best Wishes,
+// Best Wishes,
 
-!site_name Team,
-FOSSEE,IIT Bombay', [
-                '!site_name' => $config->get('site_name', ''),
-                '!user_name' => $user_data->name,
-              ])
-              ];
+// !site_name Team,
+// FOSSEE,IIT Bombay', [
+//                 '!site_name' => $config->get('site_name', ''),
+//                 '!user_name' => $user_data->name,
+//               ])
+//               ];
             /* email */
             /* $email_subject = t('Your uploaded Lab Migration solution has been approved');
                 $email_body = array(0 =>t('Your uploaded solution has been approved.'));*/
@@ -952,27 +956,27 @@ FOSSEE,IIT Bombay', [
               ]);
             \Drupal::messenger()->addmessage(t('Solution marked as Pending Review.'), 'status');
             /* email */
-            $email_subject = t('[!site_name] Your uploaded Lab Migration solution has been marked as pending', [
-              '!site_name' => $config->get('site_name', '')
-              ]);
-            $email_body = [
-              0 => t('
+//             $email_subject = t('[!site_name] Your uploaded Lab Migration solution has been marked as pending', [
+//               '!site_name' => $config->get('site_name', '')
+//               ]);
+//             $email_body = [
+//               0 => t('
 
-Dear !user_name,
+// Dear !user_name,
 
-Your all the uploaded solutions for the experiment have been marked as pending to be reviewed.
+// Your all the uploaded solutions for the experiment have been marked as pending to be reviewed.
 
-Experiment name: ' . $experiment_value->title . '
-Caption: ' . $solution_value->caption . '
+// Experiment name: ' . $experiment_value->title . '
+// Caption: ' . $solution_value->caption . '
 
-Best Wishes,
+// Best Wishes,
 
-!site_name Team,
-FOSSEE,IIT Bombay', [
-                '!site_name' => $config->get('site_name', ''),
-                '!user_name' => $user_data->name,
-              ])
-              ];
+// !site_name Team,
+// FOSSEE,IIT Bombay', [
+//                 '!site_name' => $config->get('site_name', ''),
+//                 '!user_name' => $user_data->name,
+//               ])
+//               ];
             /* email */
             /*$email_subject = t('Your uploaded Lab Migration solution has been marked as pending');
                 $email_body = array(0 =>t('Your uploaded solution has been marked as pending to be review.'));*/
@@ -991,42 +995,42 @@ FOSSEE,IIT Bombay', [
             $experiment_q = $query->execute();
             $experiment_value = $experiment_q->fetchObject();
             if (strlen(trim($form_state->getValue(['message']))) <= 30) {
-              $form_state->setErrorByName('message', t(''));
+              //$form_state->setErrorByName('message', t(''));
               \Drupal::messenger()->addmessage("Please mention the reason for disapproval. Minimum 30 character required", 'error');
               return;
             }
-            if (lab_migration_delete_solution($form_state->getValue(['lab_solution_list']))) {
+            if (\Drupal::service("lab_migration_global")->lab_migration_delete_solution($form_state->getValue(['lab_solution_list']))) {
               \Drupal::messenger()->addmessage(t('Solution Dis-Approved and Deleted.'), 'status');
             }
             else {
               \Drupal::messenger()->addmessage(t('Error Dis-Approving and Deleting Solution.'), 'error');
             }
             /* email */
-            $email_subject = t('[!site_name] Your uploaded Lab Migration solution has been marked as dis-approved', [
-              '!site_name' => $config->get('site_name', '')
-              ]);
-            $email_body = [
-              0 => t('
+//             $email_subject = t('[!site_name] Your uploaded Lab Migration solution has been marked as dis-approved', [
+//               '!site_name' => $config->get('site_name', '')
+//               ]);
+//             $email_body = [
+//               0 => t('
 
-Dear !user_name,
+// Dear !user_name,
 
-We regret to inform you that your experiment with the following details under R Lab Migration is disapproved and has been deleted.
+// We regret to inform you that your experiment with the following details under R Lab Migration is disapproved and has been deleted.
 
-Experiment name: ' . $experiment_value->title . '
-Caption: ' . $solution_value->caption . '
+// Experiment name: ' . $experiment_value->title . '
+// Caption: ' . $solution_value->caption . '
 
-Reason for dis-approval: ' . $form_state->getValue(['message']) . '
+// Reason for dis-approval: ' . $form_state->getValue(['message']) . '
 
-Please resubmit the modified solution.
+// Please resubmit the modified solution.
 
-Best Wishes,
+// Best Wishes,
 
-!site_name Team,
-FOSSEE,IIT Bombay', [
-                '!site_name' => $config->get('site_name', ''),
-                '!user_name' => $user_data->name,
-              ])
-              ];
+// !site_name Team,
+// FOSSEE,IIT Bombay', [
+//                 '!site_name' => $config->get('site_name', ''),
+//                 '!user_name' => $user_data->name,
+//               ])
+//               ];
             /* email */
             /* $email_subject = t('Your uploaded Lab Migration solution has been marked as dis-approved');
                 $email_body = array(0 =>t('Your uploaded solution has been marked as dis-approved.
@@ -1040,33 +1044,33 @@ FOSSEE,IIT Bombay', [
             return;
           }
           /** sending email when everything done **/
-        if ($email_subject) {
-            $email_to = $user_data->mail;
-            $from = $config->get('lab_migration_from_email', '');
-            $bcc = $config->get('lab_migration_emails', '');
-            $cc = $config->get('lab_migration_cc_emails', '');
-            $param['standard']['subject'] = $email_subject;
-            $param['standard']['body'] = $email_body;
-            $param['standard']['headers'] = [
-              'From' => $from,
-              'MIME-Version' => '1.0',
-              'Content-Type' => 'text/plain; charset=UTF-8; format=flowed; delsp=yes',
-              'Content-Transfer-Encoding' => '8Bit',
-              'X-Mailer' => 'Drupal',
-              'Cc' => $cc,
-              'Bcc' => $bcc,
-            ];
-            if (!drupal_mail('lab_migration', 'standard', $email_to, language_default(), $param, $from, TRUE)) {
-              \Drupal::messenger()->addmessage('Error sending email message.', 'error');
-            }
-          }
+        // if ($email_subject) {
+        //     $email_to = $user_data->mail;
+        //     $from = $config->get('lab_migration_from_email', '');
+        //     $bcc = $config->get('lab_migration_emails', '');
+        //     $cc = $config->get('lab_migration_cc_emails', '');
+        //     $param['standard']['subject'] = $email_subject;
+        //     $param['standard']['body'] = $email_body;
+        //     $param['standard']['headers'] = [
+        //       'From' => $from,
+        //       'MIME-Version' => '1.0',
+        //       'Content-Type' => 'text/plain; charset=UTF-8; format=flowed; delsp=yes',
+        //       'Content-Transfer-Encoding' => '8Bit',
+        //       'X-Mailer' => 'Drupal',
+        //       'Cc' => $cc,
+        //       'Bcc' => $bcc,
+        //     ];
+        //     if (!drupal_mail('lab_migration', 'standard', $email_to, language_default(), $param, $from, TRUE)) {
+        //       \Drupal::messenger()->addmessage('Error sending email message.', 'error');
+        //     }
+        //   }
         }
-        else {
-          \Drupal::messenger()->addmessage(t('You do not have permission to bulk manage code.'), 'error');
-        }
+        // else {
+        //   \Drupal::messenger()->addmessage(t('You do not have permission to bulk manage code.'), 'error');
+        // }
       }
-    }
-    return;
+    //}
+    return $msg;
   }
  }
 ?>

@@ -527,7 +527,7 @@ $response = new RedirectResponse(Url::fromRoute('<front>')->toString());
 
   public function submitForm(array &$form, \Drupal\Core\Form\FormStateInterface $form_state) {
     $user = currentUser();
-    if (!$user->uid) {
+    if (!$user->id()) {
       \Drupal::messenger()->addmessage('It is mandatory to login on this website to access the proposal form');
       return;
     }
