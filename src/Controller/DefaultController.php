@@ -170,10 +170,10 @@ class DefaultController extends ControllerBase {
       ];
     }
     /* check if there are any pending proposals */
-    if (!$pending_rows) {
-      \Drupal::messenger()->addMessage(t('There are no proposals pending for solutions.'), 'status');
-      return new Response('');
-    }
+    // if (!$pending_rows) {
+    //   \Drupal::messenger()->addMessage(t('There are no proposals pending for solutions.'), 'status');
+    //   return new Response('');
+    // }
     $pending_header = [
       'Date of Submission',
       'Date of Approval',
@@ -186,6 +186,7 @@ class DefaultController extends ControllerBase {
       '#type' => 'table',
       '#header' => $pending_header,
       '#rows' => $pending_rows,
+      '#empty' => 'No rows found'
     ];
     return $output;
   }
@@ -230,10 +231,10 @@ class DefaultController extends ControllerBase {
       ];
     }
     /* check if there are any pending proposals */
-    if (!$proposal_rows) {
-      \Drupal::messenger()->addMessage(t('There are no proposals.'), 'status');
-      return '';
-    }
+    // if (!$proposal_rows) {
+    //   \Drupal::messenger()->addMessage(t('There are no proposals.'), 'status');
+    //   return '';
+    // }
     $proposal_header = [
       'Date of Proposal Submission',
       'Name',
@@ -603,10 +604,10 @@ $link = Link::fromTextAndUrl(t('Edit'), $url)->toString();
                 break;
         }
       
-      $approval_url =  Link::fromTextAndUrl('Status', Url::fromRoute('lab_migration.proposal_status_form',['id'=>$proposal_data->id]))->toString();
+      // $approval_url =  Link::fromTextAndUrl('Status', Url::fromRoute('lab_migration.proposal_status_form',['id'=>$proposal_data->id]))->toString();
       //var_dump($approval_url);die;
-      $edit_url =  Link::fromTextAndUrl('Edit', Url::fromRoute('lab_migration.proposal_edit_form',['id'=>$proposal_data->id]))->toString();
-      $mainLink = t('@linkApprove | @linkReject', array('@linkApprove' => $approval_url, '@linkReject' => $edit_url));
+      // $edit_url =  Link::fromTextAndUrl('Edit', Url::fromRoute('lab_migration.proposal_edit_form',['id'=>$proposal_data->id]))->toString();
+      // $mainLink = t('@linkApprove | @linkReject', array('@linkApprove' => $approval_url, '@linkReject' => $edit_url));
       
         $proposal_rows[] = array(
             date('d-m-Y', $proposal_data->creation_date),
@@ -619,7 +620,7 @@ $link = Link::fromTextAndUrl(t('Edit'), $url)->toString();
             $proposal_data->lab_title,
             $proposal_data->department,
             $approval_status,
-            $mainLink 
+            // $mainLink 
           
             );
           }

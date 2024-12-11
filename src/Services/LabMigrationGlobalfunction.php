@@ -451,7 +451,109 @@ $lab_id = (int) $route_match->getParameter('lab_id');
     RedirectResponse('lab_migration/code_approval/bulk');
     return;
   }
-  function lab_migration_get_proposal()
+
+  public function lab_migration_delete_lab($lab_id)
+{
+  $status = TRUE;
+  $root_path = \Drupal::service("lab_migration_global")->lab_migration_path();
+  $query = \Drupal::database()->select('lab_migration_proposal');
+              $query->fields('lab_migration_proposal');
+              $query->condition('id', $lab_id);
+              $proposal_q = $query->execute();
+  $proposal_data = $proposal_q->fetchObject();
+  if (!$proposal_data)
+  {
+    \Drupal::messenger()->addError('Invalid Lab.');
+    return FALSE;
+  }
+  /* delete experiments */
+  $query = \Drupal::database()->select('lab_migration_experiment');
+              $query->fields('lab_migration_experiment');
+              $query->condition('proposal_id', $proposal_data->id);
+              $experiment_q = $query->execute();
+  while ($experiment_data = $experiment_q->fetchObject())
+  {
+    if (!\Drupal::service("lab_migration_global")->lab_migration_delete_experiment($experiment_data->id))
+    {
+      $status = FALSE;
+    }
+  }
+  return $status;
+}
+
+public function lab_migration_delete_experiment($experiment_id)
+{
+    $status = TRUE;
+    $root_path = \Drupal::service("lab_migration_global")->lab_migration_path();
+    $query = \Drupal::database()->select('lab_migration_experiment');
+    $query->fields('lab_migration_experiment');
+    $query->condition('id', $experiment_id);
+    $experiment_q = $query->execute();
+    $experiment_data = $experiment_q->fetchObject();
+    $query = \Drupal::database()->select('lab_migration_proposal');
+    $query->fields('lab_migration_proposal');
+    $query->condition('id', $experiment_data->proposal_id);
+    $proposal_q = $query->execute();
+    $proposal_data = $proposal_q->fetchObject();
+    if (!$experiment_data)
+    {
+        \Drupal::messenger()->addError('Invalid experiment.');
+        return FALSE;
+    }
+  /* deleting solutions */
+    $query = \Drupal::database()->select('lab_migration_solution');
+    $query->fields('lab_migration_solution');
+    $query->condition('experiment_id', $experiment_id);
+    $solution_q = $query->execute();
+    $delete_exp_folder = FALSE;
+    while ($solution_data = $solution_q->fetchObject())
+    {
+        $delete_exp_folder = TRUE;
+        if (!\Drupal::service("lab_migration_global")->lab_migration_delete_solution($solution_data->id))
+          $status = FALSE;
+    }
+    if (!$delete_exp_folder)
+    {
+        return TRUE;
+    }
+    if ($status)
+    {
+        $dir_path = $root_path . $proposal_data->directory_name . '/EXP' . $experiment_data->number;
+        if (is_dir($dir_path))
+        {
+          $res = rmdir($dir_path);
+          if (!$res)
+          {
+            \Drupal::messenger()->addError(t('Error deleting experiment folder !folder', array('!folder' => $dir_path)));
+            /* sending email to admins */
+          //   $email_to = \Drupal::config('lab_migration.settings')->get('lab_migration_emails');
+          //   $from = \Drupal::config('lab_migration.settings')->get('lab_migration_from_email');
+          //   $bcc="";
+          //   $cc=\Drupal::config('lab_migration.settings')->get('lab_migration_cc_emails');
+          //   $param['standard']['subject'] = "[ERROR] Error deleting experiment folder";
+          //   $param['standard']['body'] = "Error deleting folder " . $dir_path;
+          //   $param['standard']['headers']=array('From'=>$from,'MIME-Version'=> '1.0',
+          //           'Content-Type'=> 'text/plain; charset=UTF-8; format=flowed; delsp=yes',
+          //           'Content-Transfer-Encoding' => '8Bit',
+          //           'X-Mailer'=> 'Drupal','Cc' => $cc, 'Bcc' => $bcc);
+          //       if (!drupal_mail('lab_migration', 'standard', $email_to, language_default(), $param,$from, TRUE))
+          //     \Drupal::messenger()->addError('Error sending email message.');
+          //   return FALSE;
+          } 
+          else 
+          {
+            return TRUE;
+          }
+        } 
+        else {
+          \Drupal::messenger()->addError(t('Cannot delete experiment folder. !folder does not exists.', array('!folder' => $dir_path)));
+          return FALSE;
+        }
+    }
+  return FALSE;
+}
+
+  public function lab_migration_get_proposal()
   {
     global $user;
     $user = \Drupal\user\Entity\User::load(\Drupal::currentUser()->id());
@@ -634,7 +736,7 @@ $lab_id = (int) $route_match->getParameter('lab_id');
   );*/
  }
 
- function lab_migration_delete_solution($solution_id)
+ public function lab_migration_delete_solution($solution_id)
 {
     global $user;
     $root_path = \Drupal::service("lab_migration_global")->lab_migration_path();
