@@ -299,7 +299,7 @@ return $response;
     if ($solution_provider_q->fetchObject()) {
       $form_state->setErrorByName('', t("You have already applied for a solution. Please compelete that before applying for another solution."));
       // RedirectResponse('lab-migration/open-proposal');
-      $response = new RedirectResponse('/lab_migration/open-proposal');
+      $response = new RedirectResponse('/lab-migration/open-proposal');
       $response->send();
     }
   }
@@ -322,13 +322,13 @@ return $response;
     if (!$proposal_data) {
       \Drupal::messenger()->addmessage("Invalid proposal.", 'error');
       // RedirectResponse('/lab-migration/open-proposal');
-      $response = new RedirectResponse('/lab_migration/open-proposal');
+      $response = new RedirectResponse('/lab-migration/open-proposal');
       $response->send();
     }
     if ($proposal_data->solution_provider_uid != 0) {
       \Drupal::messenger()->addmessage("Someone has already applied for solving this Lab.", 'error');
       // RedirectResponse('lab-migration/open-proposal');
-      $response = new RedirectResponse('/lab_migration/open-proposal');
+      $response = new RedirectResponse('/lab-migration/open-proposal');
       $response->send();
     }
     $query = "UPDATE {lab_migration_proposal} set solution_provider_uid = :uid, solution_status = :solution_status, solution_provider_name_title = :solution_provider_name_title, solution_provider_name = :solution_provider_contact_name, solution_provider_contact_ph = :solution_provider_contact_ph, solution_provider_department = :solution_provider_department, solution_provider_university = :solution_provider_university , solution_provider_city = :solution_provider_city, solution_provider_pincode = :solution_provider_pincode, solution_provider_state = :solution_provider_state,solution_provider_country = :solution_provider_country, version = :freecad_version WHERE id = :proposal_id";

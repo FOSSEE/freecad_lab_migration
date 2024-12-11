@@ -98,7 +98,7 @@ $certi_id = (int) $route_match->getParameter('certi_id');
         $form['proposal_id'] = [
           '#type' => 'textfield',
           '#title' => t('Lab Proposal Id'),
-          '#description' => 'Note: You can find it in respective completed labs url -> scilab.in/lab_migration_run/64 <- this number is the proposal id for respective lab',
+          '#description' => 'Note: You can find it in respective completed labs url -> freecad.fossee.in/lab-migration/lab-migration-run/64 <- this number is the proposal id for respective lab',
           '#default_value' => $details_list->proposal_id,
         ];
         $form['certi_id'] = [

@@ -267,7 +267,7 @@ class DefaultController extends ControllerBase {
         foreach ($proposal_data_array as $proposal_data) {
             // $proposal_link = Link::fromTextAndUrl(
             //     $proposal_data->lab_title, 
-            //     Url::fromRoute('/lab_migration/open-proposal', ['id' => $proposal_data->id])
+            //     Url::fromRoute('/lab-migration/open-proposal', ['id' => $proposal_data->id])
             // );
             $apply_link = Link::fromTextAndUrl(
                 'Apply', 
@@ -506,7 +506,7 @@ $link = Link::fromTextAndUrl(t('Edit'), $url)->toString();
           '#type' => 'markup',
           '#markup' => Link::fromTextAndUrl(
             'Click here to download uploaded syllabus copy', 
-            Url::fromRoute('/lab_migration/download/syllabus-copy-file', ['proposal_id' => $proposal_id])
+            Url::fromRoute('/lab-migration/download/syllabus-copy-file', ['proposal_id' => $proposal_id])
           )->toString() . '<br><br>',
         ];
     } //$row->samplefilepath != "None"
@@ -660,7 +660,7 @@ $link = Link::fromTextAndUrl(t('Edit'), $url)->toString();
                 date('d-m-Y', $proposal_data->creation_date),
                 // $link = Link::fromTextAndUrl(
                 //   $proposal_data->name,
-                //   Url::fromUri('internal:/lab_migration/proposal' . $proposal_data->uid)
+                //   Url::fromUri('internal:/lab-migration/proposal' . $proposal_data->uid)
                 // )->toRenderable(),
               // l($proposal_data->name, 'user/' . $proposal_data->uid),
               Link::fromTextAndUrl($proposal_data->name, Url::fromRoute('entity.user.canonical', ['user' => $proposal_data->uid])),
@@ -669,9 +669,9 @@ $link = Link::fromTextAndUrl(t('Edit'), $url)->toString();
                 $proposal_data->department,
                 $proposal_data->category,
                 $edit_url,
-//                 $url = Url::fromUri('internal:/lab_migration/manage-proposal/category/edit' . $proposal_data->id),
+//                 $url = Url::fromUri('internal:/lab-migration/manage-proposal/category/edit' . $proposal_data->id),
 // $link = Link::fromTextAndUrl('Edit/Category', $url),
-                // Link::fromTextAndUrl('Edit Category', '/lab_migration/manage-proposal/category/edit' . $proposal_data->id)
+                // Link::fromTextAndUrl('Edit Category', '/lab-migration/manage-proposal/category/edit' . $proposal_data->id)
             );
           }
         $proposal_header = array(
@@ -715,7 +715,7 @@ $link = Link::fromTextAndUrl(t('Edit'), $url)->toString();
       \Drupal::messenger()->addMessage('Invalid solution.', 'error');
       // RedirectResponse('lab-migration/code');
       // return new RedirectResponse('/lab-migration/code/list-experiments');
-      $response = new RedirectResponse(Url::fromRoute('/lab_migration/code/list-experiments')->toString());
+      $response = new RedirectResponse(Url::fromRoute('/lab-migration/code/list-experiments')->toString());
       // Send the redirect response
          //$response->send();
 
@@ -925,7 +925,7 @@ $solution_id = (int) $route_match->getParameter('solution_id');
       \Drupal::messenger()->addMessage("There are no files in this solutions to download", 'error');
      
       // RedirectResponse('lab-migration/lab-migration-run');
-      return new RedirectResponse(Url::fromUserInput('/lab_migration/lab_migration-run')->toString());
+      return new RedirectResponse(Url::fromUserInput('/lab-migration/lab-migration-run')->toString());
     }
   }
 
@@ -1000,7 +1000,7 @@ $root_path = \Drupal::service("lab_migration_global")->lab_migration_path();
 return new Response('', Response::HTTP_NO_CONTENT);
 
       // RedirectResponse('lab-migration/lab-migration-run');
-      $response = new RedirectResponse('/lab_migration/lab_migration-run');
+      $response = new RedirectResponse('/lab-migration/lab-migration-run');
 $response->send();
     }
   }
@@ -1314,7 +1314,7 @@ $root_path = \Drupal::service("lab_migration_global")->lab_migration_path();
     else {
       \Drupal::messenger()->addMessage("There are no solutions in this lab to download", 'error');
       // return new Response('lab-migration/code-approval/bulk');
-      return new RedirectResponse('/lab_migration/code-approval/bulk');
+      return new RedirectResponse('/lab-migration/code-approval/bulk');
       
     }
   }
@@ -1841,7 +1841,7 @@ public function lab_migration_list_experiments() {
         // Action link for 'Delete' if approval status is pending.
         $action_link = '';
         if ($solution_data->approval_status == 0) {
-          $delete_url = Url::fromUri('internal:/lab_migration/code/delete/' . $solution_data->id);
+          $delete_url = Url::fromUri('internal:/lab-migration/code/delete/' . $solution_data->id);
           //Url::fromRoute('lab_migration.upload_code_delete', ['id' => $solution_data->id]);
           $action_link = Link::fromTextAndUrl('Delete', $delete_url)->toString();
         }
@@ -1867,7 +1867,7 @@ public function lab_migration_list_experiments() {
             $filetype_map = ['S' => 'Source', 'R' => 'Result', 'X' => 'Xcox', 'U' => 'Unknown'];
             $code_file_type = $filetype_map[$solution_files_data->filetype] ?? 'Unknown';
 
-            $download_url = Url::fromUri('internal:/lab_migration/download/file/' . $solution_files_data->id);
+            $download_url = Url::fromUri('internal:/lab-migration/download/file/' . $solution_files_data->id);
             $experiment_rows[] = [
              
               Link::fromTextAndUrl($solution_files_data->filename, $download_url)->toString(),
@@ -1939,7 +1939,7 @@ public function lab_migration_completed_labs_all() {
       $approval_date = date("Y", $row->approval_date);
 
       // Create a URL for the lab title link.
-      $url = Url::fromUri('internal:/lab_migration/lab_migration-run/' . $row->id);
+      $url = Url::fromUri('internal:/lab-migration/lab-migration-run/' . $row->id);
       $link = Link::fromTextAndUrl($row->lab_title, $url)->toString();
 
       $preference_rows[] = [

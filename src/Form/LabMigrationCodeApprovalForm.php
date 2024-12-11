@@ -147,7 +147,7 @@ return $response;
             $code_file_type = 'Unknown';
             break;
         }
-        $url = Url::fromUri('internal:/lab_migration/download/solution/' . $solution_files_data->id);
+        $url = Url::fromUri('internal:/lab-migration/download/solution/' . $solution_files_data->id);
 
 // Create the link with Link::fromTextAndUrl.
 $link = Link::fromTextAndUrl($solution_files_data->filename, $url)->toString();
