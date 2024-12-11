@@ -78,7 +78,7 @@ class LabMigrationBulkApprovalForm extends FormBase {
       '#type' => 'markup',
       '#markup' => Link::fromTextAndUrl(
         $this->t('Download'),
-        Url::fromUri('internal:/lab_migration/full-download/lab/' . $lab_default_value)
+        Url::fromUri('internal:/lab-migration/full-download/lab/' . $lab_default_value)
       )->toString() . ' ' . $this->t('(Download all the approved and unapproved solutions of the entire lab)'),
       // '#states' => [
       //     'invisible' => [
@@ -126,7 +126,7 @@ class LabMigrationBulkApprovalForm extends FormBase {
   ];
   $form['download_experiment_wrapper']['download_experiment'] = [
     '#type' => 'item',
-    '#markup' => Link::fromTextAndUrl('Download Experiment', Url::fromUri('internal:/lab_migration/download/experiment/' . $form_state->getValue('lab_experiment_list')))->toString()
+    '#markup' => Link::fromTextAndUrl('Download Experiment', Url::fromUri('internal:/lab-migration/download/experiment/' . $form_state->getValue('lab_experiment_list')))->toString()
 ];
    $form['download_experiment_wrapper']['lab_experiment_actions'] = [
       '#type' => 'select',
@@ -160,7 +160,7 @@ $form['download_solution_wrapper'] = [
 ];
 $form['download_solution_wrapper']['download_solution'] = [
   '#type' => 'item',
-  '#markup' => Link::fromTextAndUrl('Download Solution', Url::fromUri('internal:/lab_migration/download/solution/' . $form_state->getValue('solution_list')))->toString()
+  '#markup' => Link::fromTextAndUrl('Download Solution', Url::fromUri('internal:/lab-migration/download/solution/' . $form_state->getValue('solution_list')))->toString()
 ];
 $form['download_solution_wrapper']['lab_experiment_solution_actions'] = [
   '#type' => 'select',
@@ -270,7 +270,7 @@ $query = \Drupal::database()->select('lab_migration_solution_files', 's');
         // Create file download link
         $items = [
          
-           Link::fromTextAndUrl($solution_list_data->filename, Url::fromUri('internal:/lab_migration/download/file/' . $solution_list_data->id))->toString(),
+           Link::fromTextAndUrl($solution_list_data->filename, Url::fromUri('internal:/lab-migration/download/file/' . $solution_list_data->id))->toString(),
           "{$solution_file_type}"
         ];
       }
@@ -536,7 +536,7 @@ public function _bulk_list_experiment_actions()
               $experiment_list .= '</p>';
             }
             $msg = \Drupal::messenger()->addmessage(t('Approved Entire Lab. Click on the checkbox below to mark this lab completed'), 'status');
-            // fromUri('internal:/lab_migration/manage-proposal/status/' . $form_state->getValue(['lab']))
+            // fromUri('internal:/lab-migration/manage-proposal/status/' . $form_state->getValue(['lab']))
             /* email */
 //             $email_subject = t('[!site_name] Your uploaded Lab Migration solutions have been approved', [
 //               '!site_name' => $config->get('site_name', '')

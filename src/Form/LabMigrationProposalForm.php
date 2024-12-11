@@ -72,7 +72,7 @@ class LabMigrationProposalForm extends FormBase {
   $response->send();
   return $msg;
 
-  // /lab_migration/proposal
+  // /lab-migration/proposal
     }
     $query = \Drupal::database()->select('lab_migration_proposal');
     $query->fields('lab_migration_proposal');

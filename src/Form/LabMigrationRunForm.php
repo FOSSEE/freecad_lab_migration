@@ -75,7 +75,7 @@ class LabMigrationRunForm extends FormBase {
               '#markup' => 
                 Link::fromTextAndUrl(
                   $this->t('Download Lab Solutions'), 
-                  Url::fromUri('internal:/lab_migration/download/lab/' . $lab_default_value)
+                  Url::fromUri('internal:/lab-migration/download/lab/' . $lab_default_value)
                 )->toString()
             ];
         $form['download_lab_wrapper']['lab_details'] = array(
@@ -107,7 +107,7 @@ class LabMigrationRunForm extends FormBase {
         ];
         $form['download_experiment_wrapper']['download_experiment'] = [
             '#type' => 'item',
-            '#markup' => Link::fromTextAndUrl('Download Experiment', Url::fromUri('internal:/lab_migration/download/experiment/' . $form_state->getValue('lab_experiment_list')))->toString()
+            '#markup' => Link::fromTextAndUrl('Download Experiment', Url::fromUri('internal:/lab-migration/download/experiment/' . $form_state->getValue('lab_experiment_list')))->toString()
         ];
         $form['download_experiment_wrapper']['solution_list'] = [
           '#type' => 'select',
@@ -126,7 +126,7 @@ class LabMigrationRunForm extends FormBase {
         ];
         $form['download_solution_wrapper']['download_solution'] = [
           '#type' => 'item',
-          '#markup' => Link::fromTextAndUrl('Download Solution', Url::fromUri('internal:/lab_migration/download/solution/' . $form_state->getValue('solution_list')))->toString()
+          '#markup' => Link::fromTextAndUrl('Download Solution', Url::fromUri('internal:/lab-migration/download/solution/' . $form_state->getValue('solution_list')))->toString()
         ];
       //   if ($solution_list_default_value != 0) {
       //     //       // Render experiment solution actions
@@ -161,7 +161,7 @@ class LabMigrationRunForm extends FormBase {
           // Create file download link
           $items = [
            
-             Link::fromTextAndUrl($solution_list_data->filename, Url::fromUri('internal:/lab_migration/download/file/' . $solution_list_data->id))->toString(),
+             Link::fromTextAndUrl($solution_list_data->filename, Url::fromUri('internal:/lab-migration/download/file/' . $solution_list_data->id))->toString(),
             "{$solution_file_type}"
           ];
         }
@@ -217,7 +217,7 @@ $form['download_solution_wrapper']['solution_files']['table'] = $table;
       
 //       // Add the commands to update the DOM
       
-//       $response->addCommand(new HtmlCommand('#ajax_download_experiments', Link::fromTextAndUrl('Download Experiment', Url::fromUri('internal:/lab_migration/download/experiment/' . $experiment_list_default_value))->toString()));
+//       $response->addCommand(new HtmlCommand('#ajax_download_experiments', Link::fromTextAndUrl('Download Experiment', Url::fromUri('internal:/lab-migration/download/experiment/' . $experiment_list_default_value))->toString()));
 //       $response->addCommand(new HtmlCommand('#ajax_selected_experiment', \Drupal::service('renderer')->render($form['lab_experiment_list'])));
 //       //$form['lab_solution_list']['#options'] = $this->_ajax_get_solution_list($experiment_list_default_value);
 //       //$response->addCommand(new HtmlCommand('#ajax_download_experiments'), $exp_download_link);

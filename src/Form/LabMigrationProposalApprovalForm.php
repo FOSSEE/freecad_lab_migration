@@ -162,7 +162,7 @@ $proposal_id = (int) $route_match->getParameter('id');
         // '#markup' => Link::fromTextAndUrl(t('Click here to download uploaded syllabus copy'), 'lab-migration/download/syllabus-copy-file/' . $proposal_id,$Url) ,
       '#markup' => Link::fromTextAndUrl(
   $this->t('Click here to download uploaded syllabus copy'),
-  Url::fromUri('internal:/lab_migration/download/syllabus-copy-file/' . $proposal_id)
+  Url::fromUri('internal:/lab-migration/download/syllabus-copy-file/' . $proposal_id)
 )->toString(),
         // var_dump( $proposal_id );die;
       ];
@@ -229,7 +229,7 @@ $proposal_id = (int) $route_match->getParameter('id');
       // '#markup' =>Link::fromTextAndUrl(t('Cancel'), 'lab-migration/manage-proposal'),
       '#markup' => Link::fromTextAndUrl(
   $this->t('Cancel'),
-  Url::fromUri('internal:/lab_migration/manage-proposal/pending'))->toString(),
+  Url::fromUri('internal:/lab-migration/manage-proposal/pending'))->toString(),
 
     ];
     return $form;
