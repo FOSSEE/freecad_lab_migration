@@ -33,7 +33,7 @@ class LabMigrationRunForm extends FormBase {
   public function buildForm(array $form, \Drupal\Core\Form\FormStateInterface $form_state)
 
   {
-    $options_first =$this->_list_of_labs();
+    $options_first =$this->_list_of_labs($selected);
     $options_two = $this->_ajax_get_experiment_list();
     // $select_two = isset($form_state['values']['lab_experiment_list']) ? $form_state['values']['lab_experiment_list'] : key($options_two);
     $select_two = $form_state->getValue('lab_experiment_list') ?: key($options_two);
@@ -162,7 +162,7 @@ class LabMigrationRunForm extends FormBase {
           $items = [
            
              Link::fromTextAndUrl($solution_list_data->filename, Url::fromUri('internal:/lab-migration/download/file/' . $solution_list_data->id))->toString(),
-            "{$solution_file_type}"
+            "{$experiments_file_type}"
           ];
         }
       }
@@ -187,6 +187,7 @@ class LabMigrationRunForm extends FormBase {
             // Add the table to the fieldset
 $form['download_solution_wrapper']['solution_files']['table'] = $table;
         
+        
       
         
         
@@ -204,49 +205,6 @@ $form['download_solution_wrapper']['solution_files']['table'] = $table;
   public function ajax_solution_list_callback(array &$form, FormStateInterface $form_state) {
     return $form['download_experiment_wrapper'];
     
-//     $response = new AjaxResponse();
-//     $experiment_list_default_value = $form_state->getValue('lab_experiment_list');
-//     // var_dump($experiment_list_default_value);die;
-//     if ($experiment_list_default_value != 0) {
-//       $exp_download_link = Link::fromTextAndUrl(
-//         $this->t('Download Experiment'),
-//         Url::fromRoute('lab_migration.download_experiment', ['experiment_id' => $experiment_list_default_value])
-//       )->toString();
-//       // Update the solution list options
-     
-      
-//       // Add the commands to update the DOM
-      
-//       $response->addCommand(new HtmlCommand('#ajax_download_experiments', Link::fromTextAndUrl('Download Experiment', Url::fromUri('internal:/lab-migration/download/experiment/' . $experiment_list_default_value))->toString()));
-//       $response->addCommand(new HtmlCommand('#ajax_selected_experiment', \Drupal::service('renderer')->render($form['lab_experiment_list'])));
-//       //$form['lab_solution_list']['#options'] = $this->_ajax_get_solution_list($experiment_list_default_value);
-//       //$response->addCommand(new HtmlCommand('#ajax_download_experiments'), $exp_download_link);
-//       //$response->addCommand(new HtmlCommand('#ajax_selected_solution', \Drupal::service('renderer')->render($form['lab_solution_list'])));
-//       $form_state->setRebuild(TRUE);
-//     }
-//     // else {
-//     //   // Default options when no experiment is selected
-//     //   $form['lab_solution_list']['#options'] = $this->_ajax_get_solution_list();
-      
-//     //   // Clear the DOM elements
-//     //       $commands = [];
-//     //       $response->addCommand(new HtmlCommand('#ajax_selected_solution', \Drupal::service('renderer')->render($form['lab_solution_list'])));
-//     //   $commands[] = new HtmlCommand('#ajax_download_experiments', '');
-//     //   $commands[] = new HtmlCommand('#ajax_selected_solution', '');
-//     //   $commands[] = new HtmlCommand('#ajax_solution_files', '');
-//     //   $commands[] = new HtmlCommand('#ajax_download_experiment_solution', '');
-//     //   $commands[] = new HtmlCommand('#ajax_edit_experiment_solution', '');
-//     //   // Uncomment if needed
-//     //   // $commands[] = new ReplaceCommand('#ajax_selected_experiment', \Drupal::service('renderer')->render($form['lab_experiment_list']));
-//     // }
-    
-//     // Return the response with commands
-//     // $response = new AjaxResponse();
-//     // $response->addCommand(new AppendCommand('#element-id', 'Updated content'));
-//     //return $response;
-  
-
-// return $response;
   }
   
   public function ajax_solution_files_callback(array &$form, \Drupal\Core\Form\FormStateInterface $form_state) {
@@ -362,7 +320,7 @@ return $form['download_solution_wrapper'];
   }
   
 /*****************************************************/
-public function _list_of_labs()
+public function _list_of_labs($selected)
   {
     $lab_titles = array(
         '0' => 'Please select...'

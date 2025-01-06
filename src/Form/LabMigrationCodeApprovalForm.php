@@ -376,4 +376,4 @@ $solution_id = (int) $route_match->getParameter('solution_id');
   }
 
 }
-?>
+
