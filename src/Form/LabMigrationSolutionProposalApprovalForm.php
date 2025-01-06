@@ -318,4 +318,4 @@ $proposal_id = (int) $route_match->getParameter('proposal_id');
   }
 
 }
-?>
+

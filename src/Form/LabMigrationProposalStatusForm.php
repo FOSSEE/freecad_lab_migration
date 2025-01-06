@@ -288,7 +288,7 @@ $proposal_id = (int) $route_match->getParameter('id');
       else {
         \Drupal::messenger()->addmessage(t('Invalid proposal selected. Please try again.'), 'error');
         // RedirectResponse('lab-migration/manage-proposal');
-        $response = new RedirectResponse('/lab-migration/manage-proposal');
+        $response = new RedirectResponse('/lab-migration/manage-proposal/pending-solution');
         $response->send();
         return;
       }
@@ -349,4 +349,4 @@ $response->send();
   }
 
 }
-?>
+

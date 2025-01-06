@@ -147,4 +147,4 @@ class LabMigrationSettingsForm extends ConfigFormBase {
   }
 
 }
-?>
+

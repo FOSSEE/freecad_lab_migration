@@ -640,6 +640,7 @@ $link = Link::fromTextAndUrl(t('Edit'), $url)->toString();
     ];
       return $output;   
       }
+      
       public function lab_migration_category_all()
       {
         /* get pending proposals to be approved */
@@ -1318,7 +1319,7 @@ $root_path = \Drupal::service("lab_migration_global")->lab_migration_path();
       
     }
   }
-                
+               
  
   
     public function lab_migration_labs_progress_all() {
@@ -2156,4 +2157,3 @@ function lab_migration_category_edit_form(array $form, FormStateInterface $form_
 
 
 }
-?>

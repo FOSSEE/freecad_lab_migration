@@ -108,4 +108,3 @@ class LabMigrationCertificateParticipationForm extends FormBase {
   }
 
 }
-?>
