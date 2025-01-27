@@ -320,7 +320,7 @@ return $form['download_solution_wrapper'];
   }
   
 /*****************************************************/
-public function _list_of_labs($selected)
+public function _list_of_labs()
   {
     $lab_titles = array(
         '0' => 'Please select...'

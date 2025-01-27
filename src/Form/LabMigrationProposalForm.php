@@ -22,6 +22,8 @@ use Drupal\Core\Messenger\MessengerInterface;
 use Drupal\Core\Mail\MailManager;
 use Drupal\Core\Mail\MailManagerInterface;
 use Drupal\Core\DependencyInjection\ContainerInterface;
+use Drupal\user\Entity\User;
+
 class LabMigrationProposalForm extends FormBase {
 
   /**
@@ -526,7 +528,7 @@ $response = new RedirectResponse(Url::fromRoute('<front>')->toString());
   }
 
   public function submitForm(array &$form, \Drupal\Core\Form\FormStateInterface $form_state) {
-    $user = currentUser();
+    $user = \Drupal::currentUser();
     if (!$user->id()) {
       \Drupal::messenger()->addmessage('It is mandatory to login on this website to access the proposal form');
       return;
@@ -540,7 +542,7 @@ $response = new RedirectResponse(Url::fromRoute('<front>')->toString());
     $solution_provider_university = '';
     $syllabus_copy_file_path = '';
     if ($form_state->getValue(['solution_provider_uid']) == "1") {
-      $solution_provider_uid = $user->get('uid')->value;
+      $solution_provider_uid = $this->currentUser()->id();
       $solution_status = 1;
       $solution_provider_name_title = $form_state->getValue(['name_title']);
       $solution_provider_name = $form_state->getValue(['name']);
@@ -574,7 +576,7 @@ $response = new RedirectResponse(Url::fromRoute('<front>')->toString());
      :approval_date, :solution_date, :solution_provider_name_title, :solution_provider_name,
       :solution_provider_contact_ph, :solution_provider_department, :solution_provider_university, :directory_name,:syllabus_copy_file_path)";
    $args = [
-    'uid' => $user->get('uid')->value,
+    'uid' => $this->currentUser()->id(),
     'approver_uid' => 0,
     'name_title' => $v['name_title'],
     'name' => $v['name'],
