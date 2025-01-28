@@ -604,10 +604,10 @@ $link = Link::fromTextAndUrl(t('Edit'), $url)->toString();
                 break;
         }
       
-      // $approval_url =  Link::fromTextAndUrl('Status', Url::fromRoute('lab_migration.proposal_status_form',['id'=>$proposal_data->id]))->toString();
-      //var_dump($approval_url);die;
-      // $edit_url =  Link::fromTextAndUrl('Edit', Url::fromRoute('lab_migration.proposal_edit_form',['id'=>$proposal_data->id]))->toString();
-      // $mainLink = t('@linkApprove | @linkReject', array('@linkApprove' => $approval_url, '@linkReject' => $edit_url));
+      $approval_url =  Link::fromTextAndUrl('Status', Url::fromRoute('lab_migration.proposal_status_form',['id'=>$proposal_data->id]))->toString();
+      // var_dump($approval_url);die;
+      $edit_url =  Link::fromTextAndUrl('Edit', Url::fromRoute('lab_migration.proposal_edit_form',['id'=>$proposal_data->id]))->toString();
+      $mainLink = t('@linkApprove | @linkReject', array('@linkApprove' => $approval_url, '@linkReject' => $edit_url));
       
         $proposal_rows[] = array(
             date('d-m-Y', $proposal_data->creation_date),
@@ -615,13 +615,14 @@ $link = Link::fromTextAndUrl(t('Edit'), $url)->toString();
             //  $link = Link::fromTextAndUrl($proposal_data->name, $uid_url)->toString(),
             Link::fromTextAndUrl($proposal_data->name, Url::fromRoute('entity.user.canonical', ['user' => $proposal_data->uid])),
         
-
+           
             // Link::fromTextAndUrl($pending_data->name, 'user/' . $pending_data->uid),
             $proposal_data->lab_title,
             $proposal_data->department,
             $approval_status,
-            // $mainLink 
-          
+            $mainLink 
+            // Link::fromTextAndUrl('Status', Url::fromRoute('lab_migration.proposal_status_form',['id'=>$proposal_data->id]))->toString() ,
+            // Link::fromTextAndUrl('Edit', Url::fromRoute('lab_migration.proposal_edit_form',['id'=>$proposal_data->id]))->toString(),
             );
           }
         $proposal_header = array(

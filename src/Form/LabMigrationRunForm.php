@@ -142,7 +142,8 @@ class LabMigrationRunForm extends FormBase {
         while ($solution_list_data = $solution_list_q->fetchObject()) {
  
 //var_dump($solution_list_data);die;
-          $solution_file_type = '';
+          // $solution_file_type = [];
+          // var_dump($solution_list_data->filetype);die;
           switch ($solution_list_data->filetype) {
             case 'S':
               $solution_file_type = 'Source or Main file';
@@ -162,7 +163,7 @@ class LabMigrationRunForm extends FormBase {
           $items = [
            
              Link::fromTextAndUrl($solution_list_data->filename, Url::fromUri('internal:/lab-migration/download/file/' . $solution_list_data->id))->toString(),
-            "{$experiments_file_type}"
+            "{$solution_file_type}"
           ];
         }
       }
