@@ -6,7 +6,7 @@
 use Drupal\user\Entity\User;
 function lm_ucname($string) {
   $string = ucwords(strtolower($string));
-  foreach (array('-', '\'') as $delimiter) {
+  foreach (['-', "'"] as $delimiter) {
     if (strpos($string, $delimiter) !== false) {
       $string = implode($delimiter, array_map('ucfirst', explode($delimiter, $string)));
     }
@@ -521,7 +521,8 @@ case 'standard':
   /* Body (must always be array) */
   if (!empty($params['standard']['body'])) {
     $message['body'][] = is_array($params['standard']['body'])
-      ? implode("\n", $params['standard']['body'])
+      ? implode("
+", $params['standard']['body'])
       : $params['standard']['body'];
   }
 
@@ -658,7 +659,8 @@ case 'solution_proposal_received':
   while ($experiment_data = $experiment_q->fetchObject()) {
     $experiment_list .= $experiment_data->number . ') ' .
       $experiment_data->title .
-      ' — ' . $experiment_data->description . "\n";
+      ' — ' . $experiment_data->description . "
+";
   }
 
   /* Load user */
@@ -746,7 +748,8 @@ case 'solution_proposal_approved':
   while ($experiment_data = $experiment_q->fetchObject()) {
     $experiment_list .= $experiment_data->number . ') ' .
       $experiment_data->title .
-      ' — ' . $experiment_data->description . "\n";
+      ' — ' . $experiment_data->description . "
+";
   }
 
   /* Load user */
@@ -841,7 +844,8 @@ case 'solution_proposal_disapproved':
   while ($experiment_data = $experiment_q->fetchObject()) {
     $experiment_list .= $experiment_data->number . ') ' .
       $experiment_data->title .
-      ' — ' . $experiment_data->description . "\n";
+      ' — ' . $experiment_data->description . "
+";
   }
 
   /* Site name */
@@ -942,7 +946,8 @@ FOSSEE, IIT Bombay', [
       $query->orderBy('number', 'ASC');
       $experiment_q = $query->execute();
 
-      $experiment_list = "\n";
+      $experiment_list = "
+";
       while ($experiment_data = $experiment_q->fetchObject()) {
         $experiment_list .= '<p>' . $experiment_data->number . ') ' . $experiment_data->title . '<br> Description: ' . $experiment_data->description . '<br></p>';
       }
