@@ -606,7 +606,7 @@ public function lab_migration_delete_experiment($experiment_id)
 
   $proposal_data = lab_migration_get_proposal();
   if (!$proposal_data) {
-      drupal_goto('');
+      return new \Symfony\Component\HttpFoundation\RedirectResponse(\Drupal\Core\Url::fromRoute('<front>')->toString());
       return;
   }
 
@@ -637,7 +637,7 @@ public function lab_migration_delete_experiment($experiment_id)
     });
     $('#edit-existing-depfile-dep-lab-title').trigger('change');
   }(jQuery));";
-  drupal_add_js($dep_selection_js, 'inline', 'header');
+  $form['#attached']['html_head'][] = [[ '#type' => 'html_tag', '#tag' => 'script', '#value' => $dep_selection_js, ], 'dep_selection_js'];
 
   $form['#attributes'] = array('enctype' => "multipart/form-data");
 
@@ -727,7 +727,7 @@ public function lab_migration_delete_experiment($experiment_id)
       '#title' => t('Upload main or source file'),
       '#size' => 48,
       '#description' => t('Only alphabets and numbers are allowed as a valid filename.') . '<br />' .
-      t('Allowed file extensions: ') . variable_get('lab_migration_source_extensions', ''),
+      t('Allowed file extensions: ') . \Drupal::config('lab_migration.settings')->get('lab_migration_source_extensions'),
   );
 
  /* $form['dep_files'] = array(
@@ -788,10 +788,10 @@ public function lab_migration_delete_experiment($experiment_id)
           \Drupal::messenger()->addmessage(t('Error deleting !file', array('!file' => $dir_path)), 'error');
 
           /* sending email to admins */
-            $email_to = variable_get('lab_migration_emails', '');
-            $from = variable_get('lab_migration_from_email', '');
+            $email_to = \Drupal::config('lab_migration.settings')->get('lab_migration_emails');
+            $from = \Drupal::config('lab_migration.settings')->get('lab_migration_from_email');
             $bcc="";
-            $cc=variable_get('lab_migration_cc_emails', '');
+            $cc=\Drupal::config('lab_migration.settings')->get('lab_migration_cc_emails');
             $param['standard']['subject'] = "[ERROR] Error deleting example file";
             $param['standard']['body'] = "Error deleting solution files by " . $user->uid . " at " . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] . " :
                 solution id : " . $solution_id . "
@@ -842,10 +842,10 @@ public function lab_migration_delete_experiment($experiment_id)
             \Drupal::messenger()->addmessage(t('Error deleting folder !folder', array('!folder' => $dir_path)), 'error');
 
           /* sending email to admins */
-            $email_to = variable_get('lab_migration_emails', '');
-            $from = variable_get('lab_migration_from_email', '');
+            $email_to = \Drupal::config('lab_migration.settings')->get('lab_migration_emails');
+            $from = \Drupal::config('lab_migration.settings')->get('lab_migration_from_email');
             $bcc="";
-            $cc=variable_get('lab_migration_cc_emails', '');
+            $cc=\Drupal::config('lab_migration.settings')->get('lab_migration_cc_emails');
 
 
             $param['standard']['subject'] = "[ERROR] Error deleting folder";
@@ -916,13 +916,13 @@ function lab_migration_with_morefeature($key, &$message, $params)
   if (!$solution_data)
   {
     \Drupal::messenger()->addmessage('Invalid solution.', 'error');
-    drupal_goto('lab-migration/code');
+    return new \Symfony\Component\HttpFoundation\RedirectResponse(\Drupal\Core\Url::fromUserInput('/lab-migration/code')->toString());
     return;
   }
   if ($solution_data->approval_status != 0)
   {
     \Drupal::messenger()->addmessage('You cannnot delete a solution after it has been approved. Please contact site administrator if you want to delete this solution.', 'error');
-    drupal_goto('lab-migration/code');
+    return new \Symfony\Component\HttpFoundation\RedirectResponse(\Drupal\Core\Url::fromUserInput('/lab-migration/code')->toString());
     return;
   }
 
@@ -937,7 +937,7 @@ function lab_migration_with_morefeature($key, &$message, $params)
   if (!$experiment_data)
   {
     \Drupal::messenger()->addmessage('You do not have permission to delete this solution.', 'error');
-    drupal_goto('lab-migration/code');
+    return new \Symfony\Component\HttpFoundation\RedirectResponse(\Drupal\Core\Url::fromUserInput('/lab-migration/code')->toString());
     return;
   }
 
@@ -952,7 +952,7 @@ function lab_migration_with_morefeature($key, &$message, $params)
   if (!$proposal_data)
   {
     \Drupal::messenger()->addmessage('You do not have permission to delete this solution.', 'error');
-    drupal_goto('lab-migration/code');
+    return new \Symfony\Component\HttpFoundation\RedirectResponse(\Drupal\Core\Url::fromUserInput('/lab-migration/code')->toString());
     return;
   }
 
@@ -964,9 +964,9 @@ function lab_migration_with_morefeature($key, &$message, $params)
     /* sending email */
     $email_to = $user->mail;
 
-    $from = variable_get('lab_migration_from_email', '');
-    $bcc= variable_get('lab_migration_emails', '');
-    $cc=variable_get('lab_migration_cc_emails', '');  
+    $from = \Drupal::config('lab_migration.settings')->get('lab_migration_from_email');
+    $bcc= \Drupal::config('lab_migration.settings')->get('lab_migration_emails');
+    $cc=\Drupal::config('lab_migration.settings')->get('lab_migration_cc_emails');  
     $param['solution_deleted_user']['solution_id'] = $proposal_data->id;
     $param['solution_deleted_user']['lab_title'] = $proposal_data->lab_title;
     $param['solution_deleted_user']['experiment_title'] = $experiment_data->title;
@@ -984,7 +984,7 @@ function lab_migration_with_morefeature($key, &$message, $params)
     \Drupal::messenger()->addmessage('Error deleting example.', 'status');
   }
 
-  drupal_goto('lab-migration/code');
+  return new \Symfony\Component\HttpFoundation\RedirectResponse(\Drupal\Core\Url::fromUserInput('/lab-migration/code')->toString());
   return;
 }
 
@@ -999,19 +999,36 @@ function CreateReadmeFileLabMigration($proposal_id)
     $readme_file = fopen($root_path . $proposal_data->directory_name . "/README.txt", "w") or die("Unable to open file!");
     $txt = "";
     $txt .= "About the lab";
-    $txt .= "\n" . "\n";
-    $txt .= "Title Of The Lab: " . $proposal_data->lab_title . "\n";
-    $txt .= "Proposar Name: " . $proposal_data->name_title . " " . $proposal_data->name . "\n";
-    $txt .= "Department: " . $proposal_data->department . "\n";
-    $txt .= "University: " . $proposal_data->university . "\n";
-    $txt .= "Category: " . $proposal_data->department . "\n\n";
-    $txt .= "\n" . "\n";
+    $txt .= "
+" . "
+";
+    $txt .= "Title Of The Lab: " . $proposal_data->lab_title . "
+";
+    $txt .= "Proposar Name: " . $proposal_data->name_title . " " . $proposal_data->name . "
+";
+    $txt .= "Department: " . $proposal_data->department . "
+";
+    $txt .= "University: " . $proposal_data->university . "
+";
+    $txt .= "Category: " . $proposal_data->department . "
+
+";
+    $txt .= "
+" . "
+";
     $txt .= "Solution provider";
-    $txt .= "\n" . "\n";
-    $txt .= "Solution Provider Name: " . $proposal_data->solution_provider_name_title . " " . $proposal_data->solution_provider_name . "\n";
-    $txt .= "Solution Provider University: " . $proposal_data->solution_provider_university . "\n";
-    $txt .= "\n" . "\n";
-    $txt .= "Lab Migration Project By FOSSEE, IIT Bombay" . "\n";
+    $txt .= "
+" . "
+";
+    $txt .= "Solution Provider Name: " . $proposal_data->solution_provider_name_title . " " . $proposal_data->solution_provider_name . "
+";
+    $txt .= "Solution Provider University: " . $proposal_data->solution_provider_university . "
+";
+    $txt .= "
+" . "
+";
+    $txt .= "Lab Migration Project By FOSSEE, IIT Bombay" . "
+";
     fwrite($readme_file, $txt);
     fclose($readme_file);
     return $txt;
@@ -1026,7 +1043,8 @@ function CreateReadmeFileLabMigration($proposal_id)
     $latex_filedata = "";
     $latex_dep_filedata = "";
     $depedency_list = array();
-    $eol = "\n";
+    $eol = "
+";
     $sep = "#";
     //$proposal_q = db_query("SELECT * FROM {lab_migration_proposal} WHERE id = %d", $lab_id);
     $query = \Drupal::database()->select('lab_migration_proposal');
@@ -1037,12 +1055,12 @@ function CreateReadmeFileLabMigration($proposal_id)
     if (!$proposal_data)
       {
         \Drupal::messenger()->addMessage('Invalid lab specified.', 'error');
-        // drupal_goto('');
+        // return new \Symfony\Component\HttpFoundation\RedirectResponse(\Drupal\Core\Url::fromRoute('<front>')->toString());
       }
     if ($proposal_data->approval_status == 0)
       {
         \Drupal::messenger()->addMessage('Lab proposal is still in pending review.', 'error');
-        // drupal_goto('');
+        // return new \Symfony\Component\HttpFoundation\RedirectResponse(\Drupal\Core\Url::fromRoute('<front>')->toString());
       }
     $category_data = '';
     switch ($proposal_data->category)
