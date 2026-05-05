@@ -1,11 +1,11 @@
 <?php
 
+namespace Drupal\lab_migration\Form;
+
 /**
  * @file
  * Contains \Drupal\lab_migration\Form\LabMigrationProposalForm.
  */
-
-namespace Drupal\lab_migration\Form;
 
 use Drupal\Core\Form\FormBase;
 use Drupal\Core\Form\FormStateInterface;
@@ -24,57 +24,58 @@ use Drupal\Core\Mail\MailManagerInterface;
 use Drupal\Core\DependencyInjection\ContainerInterface;
 use Drupal\user\Entity\User;
 
-class LabMigrationProposalForm extends FormBase {
+class LabMigrationProposalForm extends FormBase
+{
 
   /**
    * {@inheritdoc}
    */
-  public function getFormId() {
+  public function getFormId()
+  {
     return 'lab_migration_proposal_form';
   }
 
-  public function buildForm(array $form, FormStateInterface $form_state) {
+  public function buildForm(array $form, FormStateInterface $form_state)
+  {
     $user = \Drupal::currentUser();
     $form = [];
     $state = \Drupal::service("lab_migration_global")->_lab_migration_list_of_states();
     $selected_state = $form_state->getValue('all_state') ?: key($state);
     // $selected_state = !$form_state->getValue(['all_state']) ? $form_state->getValue([
-      // 'all_state'
-      // :key($state);
-      $district = \Drupal::service("lab_migration_global")->_lab_migration_list_of_district();
-      $selected_district = $form_state->getValue('district') ?: key($district); 
-      // $selected_district = !$form_state->getValue(['district']) ? $form_state->getValue([
-      // 'district'
-      // ]):key($district);
-      $city = \Drupal::service("lab_migration_global")->_lm_list_of_cities();
-      $selected_city = $form_state->getValue('city') ?: key($city);
+    // 'all_state'
+    // :key($state);
+    $district = \Drupal::service("lab_migration_global")->_lab_migration_list_of_district();
+    $selected_district = $form_state->getValue('district') ?: key($district);
+    // $selected_district = !$form_state->getValue(['district']) ? $form_state->getValue([
+    // 'district'
+    // ]):key($district);
+    $city = \Drupal::service("lab_migration_global")->_lm_list_of_cities();
+    $selected_city = $form_state->getValue('city') ?: key($city);
     // $selected_city = !$form_state->getValue(['city']) ? $form_state->getValue([
-      // 'city'
-      // ]):key($city);
-      $pincode = \Drupal::service("lab_migration_global")->_lab_migration_list_of_city_pincode();
-      $selected_pincode= $form_state->getValue('pincode') ?: key($pincode);
-      // $selected_pincode = !$form_state->getValue(['picode'])?$form_state->getValue([
-      // 'pincode'
-      // ]):key($pincode);
+    // 'city'
+    // ]):key($city);
+    $pincode = \Drupal::service("lab_migration_global")->_lab_migration_list_of_city_pincode();
+    $selected_pincode = $form_state->getValue('pincode') ?: key($pincode);
+    // $selected_pincode = !$form_state->getValue(['picode'])?$form_state->getValue([
+    // 'pincode'
+    // ]):key($pincode);
     /************************ start approve book details ************************/
     if ($user->isAnonymous()) {
-      // $msg = \Drupal::messenger()->addError(t('This is an error message, red in color'));
-      $url = Link::fromTextAndUrl(t('login'), Url::fromRoute('user.page'))->toString();
-      
-      $msg = \Drupal::messenger()->addmessage(t('It is mandatory to ' . Link::fromTextAndUrl(t('login'), Url::fromRoute('user.page'))->toString() . ' on this website to access the lab proposal form. If you are new user please create a new account first.'));
-      
+      // $msg = \Drupal::messenger()->addError($this->t('This is an error message, red in color'));
+      $url = Link::fromTextAndUrl($this->t('login'), Url::fromRoute('user.page'))->toString();
+
+      $msg = \Drupal::messenger()->addStatus($this->t('It is mandatory to ' . Link::fromTextAndUrl($this->t('login'), Url::fromRoute('user.page'))->toString() . ' on this website to access the lab proposal form. If you are new user please create a new account first.'));
+
       // RedirectResponse('lab-migration-project');
       // \Drupal::RedirectResponse('user');
-  //     $redirect = new RedirectResponse($url);
-  //     $redirect->send();
-  // return $msg;
-  // Redirect to the login page
-  $response = new RedirectResponse(Url::fromRoute('user.page')->toString());
+      //     $redirect = new RedirectResponse($url);
+      //     $redirect->send();
+      // return $msg;
+      // Redirect to the login page
+      // MIGRATED [NEW API]: returning RedirectResponse directly
+      return new RedirectResponse(Url::fromRoute('user.page')->toString());
 
-  $response->send();
-  return $msg;
-
-  // /lab-migration/proposal
+      // /lab-migration/proposal
     }
     $query = \Drupal::database()->select('lab_migration_proposal');
     $query->fields('lab_migration_proposal');
@@ -85,82 +86,82 @@ class LabMigrationProposalForm extends FormBase {
     $proposal_data = $proposal_q->fetchObject();
     if ($proposal_data) {
       if ($proposal_data->approval_status == 0 || $proposal_data->approval_status == 1) {
-         \Drupal::messenger()->addmessage(t('We have already received your proposal.'));
+        \Drupal::messenger()->addStatus($this->t('We have already received your proposal.'));
         // Create a redirect response to the front page
-$response = new RedirectResponse(Url::fromRoute('<front>')->toString());
+        $response = new RedirectResponse(Url::fromRoute('<front>')->toString());
 
-// Send the redirect response
+        // Send the redirect response
 //$response->send();
 
-      return $response;
+        return $response;
       }
     }
     $form['#attributes'] = ['enctype' => "multipart/form-data"];
     $form['name_title'] = [
       '#type' => 'select',
-      '#attributes' => array('class' => array('form-control')),
-'#title' => $this->t('Title'),
+      '#attributes' => ['class' => ['form-control']],
+      '#title' => $this->t('Title'),
       '#options' => [
         'Dr' => 'Dr',
         'Prof' => 'Prof',
-        
+
       ],
       '#required' => TRUE,
     ];
     $form['name'] = [
       '#type' => 'textfield',
-      // '#attributes' => array('class' => array('form-control')),
-'#title' => $this->t('Name of the Proposer'),
+      // '#attributes' => ['class' => ['form-control']],
+      '#title' => $this->t('Name of the Proposer'),
       '#size' => 100,
       '#attributes' => [
-  'class' => ['form-control'],
+        'class' => ['form-control'],
         'placeholder' => $this->t('Enter your full name')
-        ],
+      ],
       '#maxlength' => 200,
       '#required' => TRUE,
     ];
     $form['email_id'] = [
       '#type' => 'textfield',
-      // '#attributes' => array('class' => array('form-control')),
-'#title' => $this->t('Email'),
+      // '#attributes' => ['class' => ['form-control']],
+      '#title' => $this->t('Email'),
       '#size' => 30,
       '#value' => $user ? $user->getEmail() : '',
       '#disabled' => TRUE,
     ];
     $form['contact_ph'] = [
       '#type' => 'textfield',
-      '#attributes' => array('class' => array('form-control')),
-'#title' => $this->t('Contact No.'),
+      '#attributes' => ['class' => ['form-control']],
+      '#title' => $this->t('Contact No.'),
       '#size' => 30,
       '#attributes' => [
-        'placeholder' => t('Enter your contact number')
-        ],
+        'placeholder' => $this->t('Enter your contact number')
+      ],
       '#maxlength' => 15,
       '#required' => TRUE,
     ];
     $form['department'] = [
       '#type' => 'select',
-      // '#attributes' => array('class' => array('form-control')),
-'#title' => $this->t('Department/Branch'),
+      // '#attributes' => ['class' => ['form-control']],
+      '#title' => $this->t('Department/Branch'),
       '#options' => \Drupal::service("lab_migration_global")->_lm_list_of_departments(),
       '#required' => TRUE,
-      
+
     ];
     $form['university'] = [
       '#type' => 'textfield',
-      // '#attributes' => array('class' => array('form-control')),
-'#title' => $this->t('University/ Institute'),
+      // '#attributes' => ['class' => ['form-control']],
+      '#title' => $this->t('University/ Institute'),
       '#size' => 50,
       '#maxlength' => 200,
       '#required' => TRUE,
       '#attributes' => [
         'placeholder' => 'Insert full name of your institute/ university.... '
-        ],
+      ],
     ];
     $form['country'] = [
       '#type' => 'select',
-      // '#attributes' => array('class' => array('form-control')),
-'#title' => $this->t('Country'),
+      // '#attributes' => ['class' => ['form-control']],
+      '#title' => $this->t('Country'),
       '#options' => [
         'India' => 'India',
         'Others' => 'Others',
@@ -172,91 +173,91 @@ $response = new RedirectResponse(Url::fromRoute('<front>')->toString());
     ];
     $form['other_country'] = [
       '#type' => 'textfield',
-      // '#attributes' => array('class' => array('form-control')),
-'#title' => $this->t('Other than India'),
+      // '#attributes' => ['class' => ['form-control']],
+      '#title' => $this->t('Other than India'),
       '#size' => 30,
       '#attributes' => [
         'placeholder' => $this->t('Enter your country name')
-        ],
+      ],
       '#states' => [
         'visible' => [
           ':input[name="country"]' => [
             'value' => 'Others'
-            ]
           ]
-        ],
+        ]
+      ],
     ];
     $form['other_state'] = [
       '#type' => 'textfield',
-      // '#attributes' => array('class' => array('form-control')),
-'#title' => t('State other than India'),
+      // '#attributes' => ['class' => ['form-control']],
+      '#title' => $this->t('State other than India'),
       '#size' => 50,
       '#attributes' => [
-        'placeholder' => t('Enter your state/region name')
-        ],
+        'placeholder' => $this->t('Enter your state/region name')
+      ],
       '#states' => [
         'visible' => [
           ':input[name="country"]' => [
             'value' => 'Others'
-            ]
           ]
-        ],
+        ]
+      ],
     ];
     $form['other_city'] = [
       '#type' => 'textfield',
-      // '#attributes' => array('class' => array('form-control')),
-'#title' => $this->t('City other than India'),
+      // '#attributes' => ['class' => ['form-control']],
+      '#title' => $this->t('City other than India'),
       '#size' => 50,
       '#attributes' => [
         'placeholder' => $this->t('Enter your city name')
-        ],
+      ],
       '#states' => [
         'visible' => [
           ':input[name="country"]' => [
             'value' => 'Others'
-            ]
           ]
-        ],
+        ]
+      ],
     ];
     $form['all_state'] = [
       '#type' => 'select',
-      '#attributes' => array('class' => array('form-control')),
-'#title' => t('State'),
+      '#attributes' => ['class' => ['form-control']],
+      '#title' => $this->t('State'),
       '#options' => \Drupal::service("lab_migration_global")->_lm_list_of_states(),
       '#validated' => TRUE,
       '#states' => [
         'visible' => [
           ':input[name="country"]' => [
             'value' => 'India'
-            ]
           ]
-        ],
+        ]
+      ],
     ];
     $form['city'] = [
       '#type' => 'select',
-      '#attributes' => array('class' => array('form-control')),
-'#title' => t('City'),
+      '#attributes' => ['class' => ['form-control']],
+      '#title' => $this->t('City'),
       '#options' => \Drupal::service("lab_migration_global")->_lm_list_of_cities(),
       '#states' => [
         'visible' => [
           ':input[name="country"]' => [
             'value' => 'India'
-            ]
           ]
-        ],
+        ]
+      ],
     ];
     $form['pincode'] = [
       '#type' => 'textfield',
-      '#attributes' => array('class' => array('form-control')),
-'#title' => t('Pincode'),
+      '#attributes' => ['class' => ['form-control']],
+      '#title' => $this->t('Pincode'),
       '#size' => 30,
       '#maxlength' => 6,
       '#required' => TRUE,
       '#attributes' => [
         'placeholder' => 'Enter pincode....'
-        ],
+      ],
     ];
-    
+
     /***************************************************************************/
     $form['hr'] = [
       '#type' => 'item',
@@ -264,17 +265,17 @@ $response = new RedirectResponse(Url::fromRoute('<front>')->toString());
     ];
     $form['operating_system'] = [
       '#type' => 'textfield',
-      // '#attributes' => array('class' => array('form-control')),
-'#title' => t('Operating System'),
+      // '#attributes' => ['class' => ['form-control']],
+      '#title' => $this->t('Operating System'),
       '#size' => 30,
       '#maxlength' => 100,
       '#required' => TRUE,
     ];
     $form['version'] = [
       '#type' => 'select',
-      // '#attributes' => array('class' => array('form-control')),
-'#title' => $this->t('FreeCad Version'),
-      '#options' =>\Drupal::service("lab_migration_global")->_lm_list_of_software_version(),
+      // '#attributes' => ['class' => ['form-control']],
+      '#title' => $this->t('FreeCad Version'),
+      '#options' => \Drupal::service("lab_migration_global")->_lm_list_of_software_version(),
       '#required' => TRUE,
     ];
     $form['older'] = [
@@ -282,49 +283,49 @@ $response = new RedirectResponse(Url::fromRoute('<front>')->toString());
       '#size' => 30,
       '#maxlength' => 50,
       //'#required' => TRUE,
-        '#description' => $this->t('Specify the Older version used'),
+      '#description' => $this->t('Specify the Older version used'),
       '#states' => [
         'visible' => [
           ':input[name="version"]' => [
             'value' => 'Others'
-            ]
           ]
-        ],
+        ]
+      ],
     ];
     $form['syllabus_link'] = [
       '#type' => 'textfield',
-      
-'#title' => $this->t('Syllabus Link'),
+
+      '#title' => $this->t('Syllabus Link'),
       '#required' => TRUE,
       '#attributes' => [
         'placeholder' => 'Add the syllabus link '
-        ],
+      ],
     ];
     $form['syllabus_copy'] = [
       '#type' => 'fieldset',
-      
-'#title' => $this->t('<span class="form-required form-item" title="This field is required.">Syllabus copy (PDF) Files *</span>'),
+
+      '#title' => $this->t('<span class="form-required form-item" title="This field is required.">Syllabus copy (PDF) Files *</span>'),
       '#collapsible' => FALSE,
       '#collapsed' => FALSE,
     ];
-//     $form['syllabus_copy']['syllabus_copy_file'] = [
+    //     $form['syllabus_copy']['syllabus_copy_file'] = [
 //       '#type' => 'file',
 //       $form['#attributes']['enctype'] = "multipart/form-data",
 // '#title' => $this->t('Upload pdf file'),
 //       '#size' => 48,
-//       '#description' => $this->t('Separate filenames with underscore. No spaces or any special characters allowed in filename.') . '<br />' . t('<span style="color:red;">Allowed file extensions : ') . \Drupal::config('lab_migration.settings')->get('lab_migration_syllabus_file_extensions') . '</span>',
+//       '#description' => $this->t('Separate filenames with underscore. No spaces or any special characters allowed in filename.') . '<br />' . $this->t('<span style="color:red;">Allowed file extensions : ') . \Drupal::config('lab_migration.settings')->get('lab_migration_syllabus_file_extensions') . '</span>',
 //     ];
     $form['syllabus_copy']['syllabus_copy_file'] = [
       '#type' => 'file',
       '#title' => $this->t('Upload pdf file'),
       '#size' => 48,
-    '#description' => $this->t('Separate filenames with underscore. No spaces or any special characters allowed in filename.') . '<br />' . t('<span style="color:red;">Allowed file extensions : ') . \Drupal::config('lab_migration.settings')->get('lab_migration_syllabus_file_extensions') . '</span>',
+      '#description' => $this->t('Separate filenames with underscore. No spaces or any special characters allowed in filename.') . '<br />' . $this->t('<span style="color:red;">Allowed file extensions : ') . \Drupal::config('lab_migration.settings')->get('lab_migration_syllabus_file_extensions') . '</span>',
 
     ];
     $form['lab_title'] = [
       '#type' => 'textfield',
-      '#attributes' => array('class' => array('form-control')),
-'#title' => $this->t('Title of the Lab'),
+      '#attributes' => ['class' => ['form-control']],
+      '#title' => $this->t('Title of the Lab'),
       '#size' => 100,
       '#required' => TRUE,
     ];
@@ -333,8 +334,8 @@ $response = new RedirectResponse(Url::fromRoute('<front>')->toString());
       if ($counter <= 1) {
         $form['lab_experiment-' . $counter] = [
           '#type' => 'textfield',
-          '#attributes' => array('class' => array('form-control')),
-'#title' => $this->t('Title of the Experiment ') . $counter,
+          '#attributes' => ['class' => ['form-control']],
+          '#title' => $this->t('Title of the Experiment ') . $counter,
           '#size' => 100,
           '#required' => TRUE,
         ];
@@ -347,22 +348,21 @@ $response = new RedirectResponse(Url::fromRoute('<front>')->toString());
             'cols' => 50,
             'rows' => 4,
           ],
-          '#attributes' => array('class' => array('form-control')),
-'#title' => t('Description for Experiment ') . $counter,
+          '#attributes' => ['class' => ['form-control']],
+          '#title' => $this->t('Description for Experiment ') . $counter,
           '#states' => [
             'invisible' => [
               ':input[name=' . $namefield . ']' => [
                 'value' => ""
-                ]
               ]
-            ],
+            ]
+          ],
         ];
-      }
-      else {
+      } else {
         $form['lab_experiment-' . $counter] = [
           '#type' => 'textfield',
-          '#attributes' => array('class' => array('form-control')),
-'#title' => $this->t('Title of the Experiment ') . $counter,
+          '#attributes' => ['class' => ['form-control']],
+          '#title' => $this->t('Title of the Experiment ') . $counter,
           '#size' => 100,
           '#required' => FALSE,
         ];
@@ -375,23 +375,23 @@ $response = new RedirectResponse(Url::fromRoute('<front>')->toString());
             'cols' => 50,
             'rows' => 4,
           ],
-          '#attributes' => array('class' => array('form-control')),
-'#title' => $this->t('Description for Experiment ') . $counter,
+          '#attributes' => ['class' => ['form-control']],
+          '#title' => $this->t('Description for Experiment ') . $counter,
           '#states' => [
             'invisible' => [
               ':input[name=' . $namefield . ']' => [
                 'value' => ""
-                ]
               ]
-            ],
+            ]
+          ],
         ];
       }
       $first_experiemnt = FALSE;
     }
     $form['solution_provider_uid'] = [
       '#type' => 'radios',
-// '#attributes' => ['class' => ['form-control']],
-'#title' => $this->t('Do you want to provide the solution'),
+      // '#attributes' => ['class' => ['form-control']],
+      '#title' => $this->t('Do you want to provide the solution'),
       '#options' => [
         '1' => 'Yes',
         '2' => 'No',
@@ -402,21 +402,21 @@ $response = new RedirectResponse(Url::fromRoute('<front>')->toString());
     ];
     $form['solution_display'] = [
       '#type' => 'hidden',
-      // '#attributes' => array('class' => array('form-control')),
-'#title' => $this->t('Do you want to display the solution on the www.r.fossee.in website'),
+      // '#attributes' => ['class' => ['form-control']],
+      '#title' => $this->t('Do you want to display the solution on the www.r.fossee.in website'),
       '#options' => [
         '1' => 'Yes'
-        ],
+      ],
       '#required' => TRUE,
       '#default_value' => '1',
       '#description' => 'If yes, solutions will be made available to everyone for downloading.',
       '#disabled' => FALSE,
     ];
-//     $form['sample_syllabus_file'] = [
+    //     $form['sample_syllabus_file'] = [
 //       '#type' => 'item',
-//       // '#attributes' => array('class' => array('form-control')),
+//       // '#attributes' => ['class' => ['form-control']],
 // '#title' => $this->t('<h5>Ideal Sample Lab Migration Submission</h5>'),
-//       '#markup' => $this->t('Kindly refer to the ') . t('<a href= "https://r.fossee.in/lab-migration/lab-migration-run/12" target="_blank">Sample Lab Migration (Statistical Quality Control using R)</a> and <a href= "https://r.fossee.in/lab-migration/lab-migration-run/6" target="_blank">Sample Lab Migration (Analysis using R)</a>') . '' . t(' to know the ideal submission.'),
+//       '#markup' => $this->t('Kindly refer to the ') . $this->t('<a href= "https://r.fossee.in/lab-migration/lab-migration-run/12" target="_blank">Sample Lab Migration (Statistical Quality Control using R)</a> and <a href= "https://r.fossee.in/lab-migration/lab-migration-run/6" target="_blank">Sample Lab Migration (Analysis using R)</a>') . '' . $this->t(' to know the ideal submission.'),
 //     ];
     $form['submit'] = [
       '#type' => 'submit',
@@ -425,7 +425,8 @@ $response = new RedirectResponse(Url::fromRoute('<front>')->toString());
     return $form;
   }
 
-  public function validateForm(array &$form, \Drupal\Core\Form\FormStateInterface $form_state) {
+  public function validateForm(array &$form, \Drupal\Core\Form\FormStateInterface $form_state)
+  {
     if (!preg_match('/^[0-9\ \+]{0,15}$/', $form_state->getValue(['contact_ph']))) {
       $form_state->setErrorByName('contact_ph', $this->t('Invalid contact phone number'));
     }
@@ -433,30 +434,26 @@ $response = new RedirectResponse(Url::fromRoute('<front>')->toString());
       if ($form_state->getValue(['other_country']) == '') {
         $form_state->setErrorByName('other_country', $this->t('Enter country name'));
         // $form_state['values']['country'] = $form_state['values']['other_country'];
-      }
-      else {
+      } else {
         $form_state->setValue(['country'], $form_state->getValue([
           'other_country'
-          ]));
+        ]));
       }
       if ($form_state->getValue(['other_state']) == '') {
         $form_state->setErrorByName('other_state', $this->t('Enter state name'));
         // $form_state['values']['country'] = $form_state['values']['other_country'];
-      }
-      else {
+      } else {
         $form_state->setValue(['all_state'], $form_state->getValue([
           'other_state'
-          ]));
+        ]));
       }
       if ($form_state->getValue(['other_city']) == '') {
         $form_state->setErrorByName('other_city', $this->t('Enter city name'));
         // $form_state['values']['country'] = $form_state['values']['other_country'];
-      }
-      else {
+      } else {
         $form_state->setValue(['city'], $form_state->getValue(['other_city']));
       }
-    }
-    else {
+    } else {
       if ($form_state->getValue(['country']) == '') {
         $form_state->setErrorByName('country', $this->t('Select country name'));
         // $form_state['values']['country'] = $form_state['values']['other_country'];
@@ -496,8 +493,7 @@ $response = new RedirectResponse(Url::fromRoute('<front>')->toString());
           /* checking file type */
           if (strstr($file_form_name, 'syllabus')) {
             $file_type = 'S';
-          }
-          else {
+          } else {
             $file_type = 'U';
           }
           $allowed_extensions_str = '';
@@ -511,10 +507,10 @@ $response = new RedirectResponse(Url::fromRoute('<front>')->toString());
           $allowd_files = explode('.', $allowd_file);
           $temp_extension = end($allowd_files);
           if (!in_array($temp_extension, $allowed_extensions)) {
-            $form_state->setErrorByName($file_form_name, t('Only file with ' . $allowed_extensions_str . ' extensions can be uploaded.'));
+            $form_state->setErrorByName($file_form_name, $this->t('Only file with ' . $allowed_extensions_str . ' extensions can be uploaded.'));
           }
           if ($_FILES['files']['size'][$file_form_name] <= 0) {
-            $form_state->setErrorByName($file_form_name, t('File size cannot be zero.'));
+            $form_state->setErrorByName($file_form_name, $this->t('File size cannot be zero.'));
           }
           // check if valid file name 
           // if (!lab_migration_check_valid_filename($_FILES['files']['name'][$file_form_name])) {
@@ -527,10 +523,11 @@ $response = new RedirectResponse(Url::fromRoute('<front>')->toString());
     return;
   }
 
-  public function submitForm(array &$form, \Drupal\Core\Form\FormStateInterface $form_state) {
+  public function submitForm(array &$form, \Drupal\Core\Form\FormStateInterface $form_state)
+  {
     $user = \Drupal::currentUser();
     if (!$user->id()) {
-      \Drupal::messenger()->addmessage('It is mandatory to login on this website to access the proposal form');
+      \Drupal::messenger()->addStatus('It is mandatory to login on this website to access the proposal form');
       return;
     }
     $solution_provider_uid = 0;
@@ -549,15 +546,13 @@ $response = new RedirectResponse(Url::fromRoute('<front>')->toString());
       $solution_provider_contact_ph = $form_state->getValue(['contact_ph']);
       $solution_provider_department = $form_state->getValue(['department']);
       $solution_provider_university = $form_state->getValue(['university']);
-    }
-    else {
+    } else {
       $solution_provider_uid = 0;
     }
     $solution_display = 0;
     if ($form_state->getValue(['solution_display']) == "1") {
       $solution_display = 1;
-    }
-    else {
+    } else {
       $solution_display = 1;
     }
     if ($form_state->getValue(['version']) == 'olderversion') {
@@ -575,45 +570,45 @@ $response = new RedirectResponse(Url::fromRoute('<front>')->toString());
      :version, :syllabus_link, :lab_title, :approval_status, :solution_status, :solution_provider_uid, :solution_display, :creation_date, 
      :approval_date, :solution_date, :solution_provider_name_title, :solution_provider_name,
       :solution_provider_contact_ph, :solution_provider_department, :solution_provider_university, :directory_name,:syllabus_copy_file_path)";
-   $args = [
-    'uid' => $this->currentUser()->id(),
-    'approver_uid' => 0,
-    'name_title' => $v['name_title'],
-    'name' => $v['name'],
-    'contact_ph' => $v['contact_ph'],
-    'department' => $v['department'],
-    'university' => $v['university'],
-    'city' => $v['city'],
-    'pincode' => $v['pincode'],
-    'state' => $v['all_state'],
-    'country' => $v['country'],
-    'operating_system' => $v['operating_system'],
-    'version' => $form_state->getValue(['version']),
-    'syllabus_link' => $v['syllabus_link'],
-    'lab_title' => $v['lab_title'],
-    'approval_status' => 0,
-    'solution_status' => $solution_status,
-    'solution_provider_uid' => $solution_provider_uid,
-    'solution_display' => $solution_display,
-    'creation_date' => time(),
-    'approval_date' => 0,
-    'solution_date' => 0,
-    'solution_provider_name_title' => $solution_provider_name_title,
-    'solution_provider_name' => $solution_provider_name,
-    'solution_provider_contact_ph' => $solution_provider_contact_ph,
-    'solution_provider_department' => $solution_provider_department,
-    'solution_provider_university' => $solution_provider_university,
-    'directory_name' => $directory_name,
-    'syllabus_copy_file_path' => "",
-  ];
-    
+    $args = [
+      'uid' => $this->currentUser()->id(),
+      'approver_uid' => 0,
+      'name_title' => $v['name_title'],
+      'name' => $v['name'],
+      'contact_ph' => $v['contact_ph'],
+      'department' => $v['department'],
+      'university' => $v['university'],
+      'city' => $v['city'],
+      'pincode' => $v['pincode'],
+      'state' => $v['all_state'],
+      'country' => $v['country'],
+      'operating_system' => $v['operating_system'],
+      'version' => $form_state->getValue(['version']),
+      'syllabus_link' => $v['syllabus_link'],
+      'lab_title' => $v['lab_title'],
+      'approval_status' => 0,
+      'solution_status' => $solution_status,
+      'solution_provider_uid' => $solution_provider_uid,
+      'solution_display' => $solution_display,
+      'creation_date' => time(),
+      'approval_date' => 0,
+      'solution_date' => 0,
+      'solution_provider_name_title' => $solution_provider_name_title,
+      'solution_provider_name' => $solution_provider_name,
+      'solution_provider_contact_ph' => $solution_provider_contact_ph,
+      'solution_provider_department' => $solution_provider_department,
+      'solution_provider_university' => $solution_provider_university,
+      'directory_name' => $directory_name,
+      'syllabus_copy_file_path' => "",
+    ];
+
     // $connection = \Drupal::database();
 // $proposal_id = $connection->insert('lab_migration_proposal');
-$connection = Database::getConnection();
-$proposal_id= $connection->insert('lab_migration_proposal')->fields($args)->execute();
+    $connection = Database::getConnection();
+    $proposal_id = $connection->insert('lab_migration_proposal')->fields($args)->execute();
     // $proposal_insert = \Drupal::database()->query($result, $args);
     //  $proposal_id= $connection->lastInsertId('lab_migration_proposal');
-    
+
     $root_path = \Drupal::service("lab_migration_global")->lab_migration_path();
     $dest_path = $proposal_id . '/';
     if (!is_dir($root_path . $dest_path)) {
@@ -625,12 +620,12 @@ $proposal_id= $connection->insert('lab_migration_proposal')->fields($args)->exec
         /* checking file type */
         $file_type = 'S';
         if (file_exists($root_path . $dest_path . $_FILES['files']['name'][$file_form_name])) {
-          \Drupal::messenger()->addError(t("Error uploading file. File !filename already exists.", [
+          \Drupal::messenger()->addError($this->t("Error uploading file. File !filename already exists.", [
             '!filename' => $_FILES['files']['name'][$file_form_name]
-            ]));
+          ]));
           return;
         } //file_exists($root_path . $dest_path . $_FILES['files']['name'][$file_form_name])
-            /* uploading file */
+        /* uploading file */
         if (move_uploaded_file($_FILES['files']['tmp_name'][$file_form_name], $root_path . $dest_path . $_FILES['files']['name'][$file_form_name])) {
           $query = "UPDATE {lab_migration_proposal} SET syllabus_copy_file_path = :syllabus_copy_file_path WHERE id = :id";
           $args = [
@@ -662,7 +657,7 @@ $proposal_id= $connection->insert('lab_migration_proposal')->fields($args)->exec
         $args = [
           ":proposal_id" => $proposal_id,
           // ":directory_name" => $directory_name,
-                ":number" => $number,
+          ":number" => $number,
           ":experiment_field_name" => trim($form_state->getValue([$experiment_field_name])),
           ":description" => trim($form_state->getValue([$experiment_description])),
         ];
@@ -678,46 +673,45 @@ $proposal_id= $connection->insert('lab_migration_proposal')->fields($args)->exec
         try {
           $connection = \Drupal::database();
           $result = $connection->query($query, $args);
-      
+
           if ($result) {
-              $number++;
+            $number++;
+          } else {
+            \Drupal::messenger()->addError($this->t('Could not insert Title of the Experiment: ') . trim($form_state->getValue($experiment_field_name)));
           }
-          else {
-              \Drupal::messenger()->addError($this->t('Could not insert Title of the Experiment: ') . trim($form_state->getValue($experiment_field_name)));
-          }
-      }
-      catch (\Exception $e) {
+        } catch (\Exception $e) {
           \Drupal::messenger()->addError($this->t('Database query failed: ') . $e->getMessage());
-      }
-      
+        }
+
       }
     }
-    
-/* sending email */
-$email_to = $user->getEmail();
-$form = \Drupal::config('lab_migration.settings')->get('lab_migration_from_email');
-$bcc = \Drupal::config('lab_migration.settings')->get('lab_migration_emails');
-$cc = \Drupal::config('lab_migration.settings')->get('lab_migration_cc_emails');
-$params['proposal_received']['proposal_id'] = $proposal_id;
-$params['proposal_received']['user_id'] = $user->id();
-$params['proposal_received']['headers'] = [
-  'From' => $form,
-  'MIME-Version' => '1.0',
-  'Content-Type' => 'text/plain; charset=UTF-8; format=flowed; delsp=yes',
-  'Content-Transfer-Encoding' => '8Bit',
-  'X-Mailer' => 'Drupal',
-  'Cc' => $cc,
-  'Bcc' => $bcc,
-];
+
+    /* sending email */
+    $email_to = $user->getEmail();
+    $form = \Drupal::config('lab_migration.settings')->get('lab_migration_from_email');
+    $bcc = \Drupal::config('lab_migration.settings')->get('lab_migration_emails');
+    $cc = \Drupal::config('lab_migration.settings')->get('lab_migration_cc_emails');
+    $params['proposal_received']['proposal_id'] = $proposal_id;
+    $params['proposal_received']['user_id'] = $user->id();
+    $params['proposal_received']['headers'] = [
+      'From' => $form,
+      'MIME-Version' => '1.0',
+      'Content-Type' => 'text/plain; charset=UTF-8; format=flowed; delsp=yes',
+      'Content-Transfer-Encoding' => '8Bit',
+      'X-Mailer' => 'Drupal',
+      'Cc' => $cc,
+      'Bcc' => $bcc,
+    ];
     $langcode = $user->getPreferredLangcode();
-if (!\Drupal::service('plugin.manager.mail')->mail('lab_migration', 'proposal_received', $email_to, 'en', $params, $form, TRUE));
- { \Drupal::messenger()->addError('Error sending email message.');
-}
-    \Drupal::messenger()->addmessage($this->t('We have received you Lab migration proposal. We will get back to you soon.'));
-     $response = new RedirectResponse(Url::fromRoute('<front>')->toString());
-  
-// //   // Send the redirect response
-  $response->send();
+    if (!\Drupal::service('plugin.manager.mail')->mail('lab_migration', 'proposal_received', $email_to, 'en', $params, $form, TRUE))
+      ; {
+      \Drupal::messenger()->addError('Error sending email message.');
+    }
+    \Drupal::messenger()->addStatus($this->t('We have received you Lab migration proposal. We will get back to you soon.'));
+    $response = new RedirectResponse(Url::fromRoute('<front>')->toString());
+
+    // //   // Send the redirect response
+    $response->send();
   }
 
 }

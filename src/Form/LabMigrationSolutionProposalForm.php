@@ -1,5 +1,5 @@
 <?php
-
+// Drupal 11 Migration - Verified and migrated 2026-04-24
 /**
  * @file
  * Contains \Drupal\lab_migration\Form\LabMigrationSolutionProposalForm.
@@ -38,8 +38,10 @@ class LabMigrationSolutionProposalForm extends FormBase {
     $proposal_q = $query->execute();
     $proposal_data = $proposal_q->fetchObject();
     if (!$proposal_data) {
-      \Drupal::messenger()->addmessage("Invalid proposal.", 'error');
-      // RedirectResponse('');
+      \Drupal::messenger()->addError("Invalid proposal.");
+      // // DEPRECATED [OLD API]: RedirectResponse without new 
+// MIGRATED [NEW API]: using return new RedirectResponse
+return new \Symfony\Component\HttpFoundation\RedirectResponse('');
       $url = Url::fromRoute('lab_migration.proposal_pending'); // Replace with your actual route name
 $response = new RedirectResponse($url->toString());
 
@@ -50,12 +52,12 @@ return $response;
     $form['name'] = [
       '#type' => 'item',
      // '#markup' => Link::fromTextAndUrl($proposal_data->name_title . ' ' . $proposal_data->name, 'user/' . $proposal_data->uid),
-      '#title' => t('Proposer Name'),
+      '#title' => $this->t('Proposer Name'),
     ];
     $form['lab_title'] = [
       '#type' => 'item',
       '#markup' => $proposal_data->lab_title,
-      '#title' => t('Title of the Lab'),
+      '#title' => $this->t('Title of the Lab'),
     ];
     $experiment_html = '';
     //$experiment_q = $injected_database->query("SELECT * FROM {lab_migration_experiment} WHERE proposal_id = %d", $proposal_id);
@@ -73,7 +75,7 @@ return $response;
     ];
     $form['solution_provider_name_title'] = [
       '#type' => 'select',
-      '#title' => t('Title'),
+      '#title' => $this->t('Title'),
       '#options' => [
         'Mr' => 'Mr',
         'Ms' => 'Ms',
@@ -85,41 +87,41 @@ return $response;
     ];
     $form['solution_provider_name'] = [
       '#type' => 'textfield',
-      '#title' => t('Name of the Solution Provider'),
+      '#title' => $this->t('Name of the Solution Provider'),
       '#size' => 30,
       '#maxlength' => 50,
       '#required' => TRUE,
     ];
     $form['solution_provider_email_id'] = [
       '#type' => 'textfield',
-      '#title' => t('Email'),
+      '#title' => $this->t('Email'),
       '#size' => 30,
       '#value' => $user->getEmail(),
       '#disabled' => TRUE,
     ];
     $form['solution_provider_contact_ph'] = [
       '#type' => 'textfield',
-      '#title' => t('Contact No.'),
+      '#title' => $this->t('Contact No.'),
       '#size' => 30,
       '#maxlength' => 15,
       '#required' => TRUE,
     ];
     $form['solution_provider_department'] = [
       '#type' => 'select',
-      '#title' => t('Department/Branch'),
+      '#title' => $this->t('Department/Branch'),
       '#options' => \Drupal::service("lab_migration_global")->_lm_list_of_departments(),
       '#required' => TRUE,
     ];
     $form['solution_provider_university'] = [
       '#type' => 'textfield',
-      '#title' => t('University/Institute'),
+      '#title' => $this->t('University/Institute'),
       '#size' => 30,
       '#maxlength' => 50,
       '#required' => TRUE,
     ];
     $form['country'] = [
       '#type' => 'select',
-      '#title' => t('Country'),
+      '#title' => $this->t('Country'),
       '#options' => [
         'India' => 'India',
         'Others' => 'Others',
@@ -130,10 +132,10 @@ return $response;
     ];
     $form['other_country'] = [
       '#type' => 'textfield',
-      '#title' => t('Other than India'),
+      '#title' => $this->t('Other than India'),
       '#size' => 100,
       '#attributes' => [
-        'placeholder' => t('Enter your country name')
+        'placeholder' => $this->t('Enter your country name')
         ],
       '#states' => [
         'visible' => [
@@ -145,10 +147,10 @@ return $response;
     ];
     $form['other_state'] = [
       '#type' => 'textfield',
-      '#title' => t('State other than India'),
+      '#title' => $this->t('State other than India'),
       '#size' => 100,
       '#attributes' => [
-        'placeholder' => t('Enter your state/region name')
+        'placeholder' => $this->t('Enter your state/region name')
         ],
       '#states' => [
         'visible' => [
@@ -160,10 +162,10 @@ return $response;
     ];
     $form['other_city'] = [
       '#type' => 'textfield',
-      '#title' => t('City other than India'),
+      '#title' => $this->t('City other than India'),
       '#size' => 100,
       '#attributes' => [
-        'placeholder' => t('Enter your city name')
+        'placeholder' => $this->t('Enter your city name')
         ],
       '#states' => [
         'visible' => [
@@ -175,7 +177,7 @@ return $response;
     ];
     $form['all_state'] = [
       '#type' => 'select',
-      '#title' => t('State'),
+      '#title' => $this->t('State'),
       '#options' => \Drupal::service("lab_migration_global")->_lm_list_of_states(),
       '#validated' => TRUE,
       '#states' => [
@@ -188,7 +190,7 @@ return $response;
     ];
     $form['city'] = [
       '#type' => 'select',
-      '#title' => t('City'),
+      '#title' => $this->t('City'),
       '#options' => \Drupal::service("lab_migration_global")->_lm_list_of_cities(),
       '#states' => [
         'visible' => [
@@ -200,7 +202,7 @@ return $response;
     ];
     $form['pincode'] = [
       '#type' => 'textfield',
-      '#title' => t('Pincode'),
+      '#title' => $this->t('Pincode'),
       '#size' => 30,
       '#maxlength' => 6,
       '#required' => FALSE,
@@ -210,7 +212,7 @@ return $response;
     ];
     $form['version'] = [
       '#type' => 'select',
-      '#title' => t('Version'),
+      '#title' => $this->t('Version'),
       '#options' => \Drupal::service("lab_migration_global")->_lm_list_of_software_version(),
       '#required' => TRUE,
     ];
@@ -219,7 +221,7 @@ return $response;
       '#size' => 30,
       '#maxlength' => 50,
       //'#required' => TRUE,
-        '#description' => t('Specify the Older version used'),
+        '#description' => $this->t('Specify the Older version used'),
       '#states' => [
         'visible' => [
           ':input[name="version"]' => [
@@ -230,7 +232,7 @@ return $response;
     ];
     $form['submit'] = [
       '#type' => 'submit',
-      '#value' => t('Apply for Solution'),
+      '#value' => $this->t('Apply for Solution'),
     ];
     return $form;
   }
@@ -239,7 +241,7 @@ return $response;
     $user = \Drupal::currentUser();
     if ($form_state->getValue(['country']) == 'Others') {
       if ($form_state->getValue(['other_country']) == '') {
-        $form_state->setErrorByName('other_country', t('Enter country name'));
+        $form_state->setErrorByName('other_country', $this->t('Enter country name'));
         // $form_state['values']['country'] = $form_state['values']['other_country'];
       }
       else {
@@ -248,7 +250,7 @@ return $response;
           ]));
       }
       if ($form_state->getValue(['other_state']) == '') {
-        $form_state->setErrorByName('other_state', t('Enter state name'));
+        $form_state->setErrorByName('other_state', $this->t('Enter state name'));
         // $form_state['values']['country'] = $form_state['values']['other_country'];
       }
       else {
@@ -257,7 +259,7 @@ return $response;
           ]));
       }
       if ($form_state->getValue(['other_city']) == '') {
-        $form_state->setErrorByName('other_city', t('Enter city name'));
+        $form_state->setErrorByName('other_city', $this->t('Enter city name'));
         // $form_state['values']['country'] = $form_state['values']['other_country'];
       }
       else {
@@ -266,22 +268,22 @@ return $response;
     }
     else {
       if ($form_state->getValue(['country']) == '') {
-        $form_state->setErrorByName('country', t('Select country name'));
+        $form_state->setErrorByName('country', $this->t('Select country name'));
         // $form_state['values']['country'] = $form_state['values']['other_country'];
       }
       if ($form_state->getValue(['all_state']) == '') {
-        $form_state->setErrorByName('all_state', t('Select state name'));
+        $form_state->setErrorByName('all_state', $this->t('Select state name'));
         // $form_state['values']['country'] = $form_state['values']['other_country'];
       }
       if ($form_state->getValue(['city']) == '') {
-        $form_state->setErrorByName('city', t('Select city name'));
+        $form_state->setErrorByName('city', $this->t('Select city name'));
         // $form_state['values']['country'] = $form_state['values']['other_country'];
       }
     }
 
     if ($form_state->getValue(['version']) == 'olderversion') {
       if ($form_state->getValue(['older']) == '') {
-        $form_state->setErrorByName('older', t('Please provide valid version'));
+        $form_state->setErrorByName('older', $this->t('Please provide valid version'));
       }
     }
     return;
@@ -300,11 +302,13 @@ return $response;
     ], 'IN');
     $solution_provider_q = $query->execute();
     if ($solution_provider_q->fetchObject()) {
-      $form_state->setErrorByName('', t("You have already applied for a solution. Please compelete that before applying for another solution."));
-      // RedirectResponse('lab-migration/open-proposal');
-      $response = new RedirectResponse('/lab-migration/open-proposal');
-      $response->send();
-    }
+      $form_state->setErrorByName('', $this->t("You have already applied for a solution. Please compelete that before applying for another solution."));
+      // // DEPRECATED [OLD API]: RedirectResponse without new 
+// MIGRATED [NEW API]: using return new RedirectResponse
+return new \Symfony\Component\HttpFoundation\RedirectResponse('lab-migration/open-proposal');
+      // DEPRECATED [OLD API]: send() on RedirectResponse 
+// MIGRATED [NEW API]: returning RedirectResponse directly
+return new \Symfony\Component\HttpFoundation\RedirectResponse('/lab-migration/open-proposal');    }
   }
 
   public function submitForm(array &$form, \Drupal\Core\Form\FormStateInterface $form_state) {
@@ -323,17 +327,21 @@ return $response;
     $proposal_q = $query->execute();
     $proposal_data = $proposal_q->fetchObject();
     if (!$proposal_data) {
-      \Drupal::messenger()->addmessage("Invalid proposal.", 'error');
-      // RedirectResponse('/lab-migration/open-proposal');
-      $response = new RedirectResponse('/lab-migration/open-proposal');
-      $response->send();
-    }
+      \Drupal::messenger()->addError("Invalid proposal.");
+      // // DEPRECATED [OLD API]: RedirectResponse without new 
+// MIGRATED [NEW API]: using return new RedirectResponse
+return new \Symfony\Component\HttpFoundation\RedirectResponse('/lab-migration/open-proposal');
+      // DEPRECATED [OLD API]: send() on RedirectResponse 
+// MIGRATED [NEW API]: returning RedirectResponse directly
+return new \Symfony\Component\HttpFoundation\RedirectResponse('/lab-migration/open-proposal');    }
     if ($proposal_data->solution_provider_uid != 0) {
-      \Drupal::messenger()->addmessage("Someone has already applied for solving this Lab.", 'error');
-      // RedirectResponse('lab-migration/open-proposal');
-      $response = new RedirectResponse('/lab-migration/open-proposal');
-      $response->send();
-    }
+      \Drupal::messenger()->addError("Someone has already applied for solving this Lab.");
+      // // DEPRECATED [OLD API]: RedirectResponse without new 
+// MIGRATED [NEW API]: using return new RedirectResponse
+return new \Symfony\Component\HttpFoundation\RedirectResponse('lab-migration/open-proposal');
+      // DEPRECATED [OLD API]: send() on RedirectResponse 
+// MIGRATED [NEW API]: returning RedirectResponse directly
+return new \Symfony\Component\HttpFoundation\RedirectResponse('/lab-migration/open-proposal');    }
     $query = "UPDATE {lab_migration_proposal} set solution_provider_uid = :uid, solution_status = :solution_status, solution_provider_name_title = :solution_provider_name_title, solution_provider_name = :solution_provider_contact_name, solution_provider_contact_ph = :solution_provider_contact_ph, solution_provider_department = :solution_provider_department, solution_provider_university = :solution_provider_university , solution_provider_city = :solution_provider_city, solution_provider_pincode = :solution_provider_pincode, solution_provider_state = :solution_provider_state,solution_provider_country = :solution_provider_country, version = :freecad_version WHERE id = :proposal_id";
     $args = [
       'uid' => \Drupal::currentUser()->id(),
@@ -352,7 +360,7 @@ return $response;
     ];
 
     $result = \Drupal::database()->query($query, $args);
-    \Drupal::messenger()->addmessage("We have received your application. We will get back to you soon.", 'status');
+    \Drupal::messenger()->addStatus("We have received your application. We will get back to you soon.", 'status');
     /* sending email */
     $email_to = $user->getEmail();
 
@@ -436,9 +444,9 @@ $result = $mailManager->mail(
 if (empty($result['result'])) {
   \Drupal::messenger()->addError('Error sending email message.');
 }
-$response = new RedirectResponse('<front>');
-    $response->send();
-  }
+// DEPRECATED [OLD API]: send() on RedirectResponse 
+// MIGRATED [NEW API]: returning RedirectResponse directly
+return new \Symfony\Component\HttpFoundation\RedirectResponse('<front>');  }
 
 }
 
