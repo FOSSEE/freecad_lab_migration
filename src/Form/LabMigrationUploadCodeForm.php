@@ -562,42 +562,14 @@ return new \Symfony\Component\HttpFoundation\RedirectResponse('lab-migration/cod
     }
     \Drupal::messenger()->addStatus('Solution uploaded successfully.', 'status');
 
-    /* sending email */
-     $user_data = \Drupal::entityTypeManager()->getStorage('user')->load($proposal_data->uid);
-$email_to = $user_data->getEmail();
-    $from = \Drupal::config('lab_migration.settings')->get('lab_migration_from_email');
-$bcc = \Drupal::config('lab_migration.settings')->get('lab_migration_emails');
-$cc = \Drupal::config('lab_migration.settings')->get('lab_migration_cc_emails');
-
+    /* Sending solution-uploaded notification via centralised mail service */
+    $user_data = \Drupal::entityTypeManager()->getStorage('user')->load($proposal_data->uid);
+    $email_to  = $user_data->getEmail();
     $params['solution_uploaded']['solution_id'] = $solution_id;
-$params['solution_uploaded']['user_id'] = $user->uid;
+    $params['solution_uploaded']['user_id']     = $user->id();
+    // Headers are built automatically by LabMigrationMailService::send().
+    \Drupal::service('lab_migration.mail_service')->send('solution_uploaded', $email_to, $params);
 
-$params['solution_uploaded']['headers'] = [
-  'From' => $from,
-  'MIME-Version' => '1.0',
-  'Content-Type' => 'text/plain; charset=UTF-8; format=flowed; delsp=yes',
-  'Content-Transfer-Encoding' => '8Bit',
-  'X-Mailer' => 'Drupal',
-  'Cc' => $cc,
-  'Bcc' => $bcc,
-];
-
-$langcode = \Drupal::languageManager()->getDefaultLanguage()->getId();
-$mail_manager = \Drupal::service('plugin.manager.mail');
-
-$result = $mail_manager->mail(
-  'lab_migration',
-  'solution_uploaded',
-  $email_to,
-  $langcode,
-  $params,
-  NULL,
-  TRUE
-);
-
-if (!$result['result']) {
-  \Drupal::messenger()->addError('Error sending email message.');
-}
 
 
 
