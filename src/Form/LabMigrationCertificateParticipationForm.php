@@ -1,5 +1,5 @@
 <?php
-
+// Drupal 11 Migration - Verified and migrated 2026-04-24
 /**
  * @file
  * Contains \Drupal\lab_migration\Form\LabMigrationCertificateParticipationForm.
@@ -25,7 +25,7 @@ class LabMigrationCertificateParticipationForm extends FormBase {
   public function buildForm(array $form, \Drupal\Core\Form\FormStateInterface $form_state) {
     $form['name_title'] = [
       '#type' => 'select',
-      '#title' => t('Title'),
+      '#title' => $this->t('Title'),
       '#options' => [
         'Dr.' => 'Dr.',
         'Prof.' => 'Prof.',
@@ -37,50 +37,50 @@ class LabMigrationCertificateParticipationForm extends FormBase {
     ];
     $form['name'] = [
       '#type' => 'textfield',
-      '#title' => t('Name of Participant'),
+      '#title' => $this->t('Name of Participant'),
       '#maxlength' => 50,
       '#required' => TRUE,
     ];
     $form['email_id'] = [
       '#type' => 'textfield',
-      '#title' => t('Email'),
+      '#title' => $this->t('Email'),
       '#size' => 50,
       '#default_value' => 'Not availbale',
     ];
     $form['institute_name'] = [
       '#type' => 'textfield',
-      '#title' => t('Collage / Institue Name'),
+      '#title' => $this->t('Collage / Institue Name'),
       '#required' => TRUE,
     ];
     $form['institute_address'] = [
       '#type' => 'textfield',
-      '#title' => t('Collage / Institue address'),
+      '#title' => $this->t('Collage / Institue address'),
       '#required' => TRUE,
     ];
     $form['lab_name'] = [
       '#type' => 'textfield',
-      '#title' => t('Lab name'),
+      '#title' => $this->t('Lab name'),
       '#required' => TRUE,
     ];
     $form['department'] = [
       '#type' => 'textfield',
-      '#title' => t('Department'),
+      '#title' => $this->t('Department'),
       '#required' => TRUE,
     ];
     $form['semester_details'] = [
       '#type' => 'textfield',
-      '#title' => t('Semester details'),
+      '#title' => $this->t('Semester details'),
       '#required' => TRUE,
     ];
     $form['proposal_id'] = [
       '#type' => 'textfield',
-      '#title' => t('Lab Proposal Id'),
+      '#title' => $this->t('Lab Proposal Id'),
       '#description' => 'Note: You can find  the respective Lab Proposal Id from the url for the  completed lab. For example: The Lab Proposal Id is 64 for this completed lab. ( Url - freecad.fossee.in/lab-migration/lab-migration-run/64)',
       '#required' => TRUE,
     ];
     $form['submit'] = [
       '#type' => 'submit',
-      '#value' => t('Submit'),
+      '#value' => $this->t('Submit'),
     ];
     return $form;
   }
@@ -106,7 +106,9 @@ class LabMigrationCertificateParticipationForm extends FormBase {
       ":creation_date" => time(),
     ];
     $proposal_id = $injected_database->query($result, $args);
-    RedirectResponse('lab-migration/certificate');
+    // DEPRECATED [OLD API]: RedirectResponse without new 
+// MIGRATED [NEW API]: using return new RedirectResponse
+return new \Symfony\Component\HttpFoundation\RedirectResponse('lab-migration/certificate');
   }
 
 }

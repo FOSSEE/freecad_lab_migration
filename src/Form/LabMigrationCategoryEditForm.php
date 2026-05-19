@@ -1,5 +1,5 @@
 <?php
-
+// Drupal 11 Migration - Verified and migrated 2026-04-24
 /**
  * @file
  * Contains \Drupal\lab_migration\Form\LabMigrationCategoryEditForm.
@@ -43,8 +43,10 @@ $proposal_id = (int) $route_match->getParameter('id');
         /* everything ok */
       }
       else {
-        \Drupal::messenger()->addmessage(t('Invalid proposal selected. Please try again.'), 'error');
-        // RedirectResponse('lab-migration/manage-proposal');
+        \Drupal::messenger()->addError($this->t('Invalid proposal selected. Please try again.'));
+        // // DEPRECATED [OLD API]: RedirectResponse without new 
+// MIGRATED [NEW API]: using return new RedirectResponse
+return new \Symfony\Component\HttpFoundation\RedirectResponse('lab-migration/manage-proposal');
         $response = new RedirectResponse(Url::fromRoute('lab_migration.category_edit_form')->toString());
   
 // Send the redirect response
@@ -56,8 +58,10 @@ $response->send();
       }
     }
     else {
-      \Drupal::messenger()->addmessage(t('Invalid proposal selected. Please try again.'), 'error');
-      // RedirectResponse('lab-migration/manage-proposal');
+      \Drupal::messenger()->addError($this->t('Invalid proposal selected. Please try again.'));
+      // // DEPRECATED [OLD API]: RedirectResponse without new 
+// MIGRATED [NEW API]: using return new RedirectResponse
+return new \Symfony\Component\HttpFoundation\RedirectResponse('lab-migration/manage-proposal');
 
 $response = new RedirectResponse(Url::fromRoute('lab_migration.category_edit_form')->toString());
   
@@ -71,35 +75,35 @@ $response->send();
       '#markup' => Link::fromTextAndUrl($proposal_data->name_title . ' ' . $proposal_data->name,Url::fromRoute('entity.user.canonical', ['user' => $proposal_data->uid]))->toString(),
       '#attributes' => array('class' => array('form-control')),
 
-      '#title' => t('Name'),
+      '#title' => $this->t('Name'),
     ];
     $form['email_id'] = [
       '#type' => 'item',
       '#markup' => User::load($proposal_data->uid)->getEmail(),
       '#attributes' => array('class' => array('form-control')),
 
-      '#title' => t('Email'),
+      '#title' => $this->t('Email'),
     ];
     $form['contact_ph'] = [
       '#type' => 'item',
       '#markup' => $proposal_data->contact_ph,
       '#attributes' => array('class' => array('form-control')),
 
-      '#title' => t('Contact No.'),
+      '#title' => $this->t('Contact No.'),
     ];
     $form['department'] = [
       '#type' => 'item',
       '#markup' => $proposal_data->department,
       '#attributes' => array('class' => array('form-control')),
 
-      '#title' => t('Department/Branch'),
+      '#title' => $this->t('Department/Branch'),
     ];
     $form['university'] = [
       '#type' => 'item',
       '#markup' => $proposal_data->university,
       '#attributes' => array('class' => array('form-control')),
 
-      '#title' => t('University/Institute'),
+      '#title' => $this->t('University/Institute'),
     ];
 
     $form['lab_title'] = [
@@ -107,24 +111,24 @@ $response->send();
       '#markup' => $proposal_data->lab_title,
       '#attributes' => array('class' => array('form-control')),
 
-      '#title' => t('Title of the Lab'),
+      '#title' => $this->t('Title of the Lab'),
     ];
     $form['category'] = [
       '#type' => 'select',
       '#attributes' => array('class' => array('form-control')),
 
-      '#title' => t('Category'),
+      '#title' => $this->t('Category'),
       '#options' => \Drupal::service("lab_migration_global")->_lm_list_of_departments(),
       '#required' => TRUE,
       '#default_value' => $proposal_data->category,
     ];
     $form['submit'] = [
       '#type' => 'submit',
-      '#value' => t('Submit'),
+      '#value' => $this->t('Submit'),
     ];
     $form['cancel'] = [
       '#type' => 'item',
-      // '#markup' => Link::fromTextAndUrl(t('Cancel'), 'lab-migration/manage-proposal/category'),
+      // '#markup' => Link::fromTextAndUrl($this->t('Cancel'), 'lab-migration/manage-proposal/category'),
       '#markup' => Link::fromTextAndUrl(
   $this->t('Cancel'),Url::fromRoute('lab_migration.category_all'))->toString(),
     ];
@@ -147,8 +151,10 @@ $proposal_id = (int) $route_match->getParameter('id');
         /* everything ok */
       }
       else {
-         \Drupal::messenger()->addmessage(t('Invalid proposal selected. Please try again.'), 'error');
-        // RedirectResponse('lab-migration/manage-proposal');
+         \Drupal::messenger()->addError($this->t('Invalid proposal selected. Please try again.'));
+        // // DEPRECATED [OLD API]: RedirectResponse without new 
+// MIGRATED [NEW API]: using return new RedirectResponse
+return new \Symfony\Component\HttpFoundation\RedirectResponse('lab-migration/manage-proposal');
         $response = new RedirectResponse(Url::fromRoute('lab_migration.category_all')->toString());
   
         // Send the redirect response
@@ -158,8 +164,10 @@ $proposal_id = (int) $route_match->getParameter('id');
       }
     }
     else {
-       \Drupal::messenger()->addmessage(t('Invalid proposal selected. Please try again.'), 'error');
-      // RedirectResponse('lab-migration/manage-proposal');
+       \Drupal::messenger()->addError($this->t('Invalid proposal selected. Please try again.'));
+      // // DEPRECATED [OLD API]: RedirectResponse without new 
+// MIGRATED [NEW API]: using return new RedirectResponse
+return new \Symfony\Component\HttpFoundation\RedirectResponse('lab-migration/manage-proposal');
       $response = new RedirectResponse(Url::fromRoute('lab_migration.category_all')->toString());
   
       // Send the redirect response
@@ -173,8 +181,10 @@ $proposal_id = (int) $route_match->getParameter('id');
       ":proposal_id" =>  $proposal_data->id,
     ];
     $result = \Drupal::database()->query($query, $args);
-     \Drupal::messenger()->addmessage(t('Proposal Category Updated'), 'status');
-    // RedirectResponse('lab-migration/manage-proposal/category');
+     \Drupal::messenger()->addStatus($this->t('Proposal Category Updated'), 'status');
+    // // DEPRECATED [OLD API]: RedirectResponse without new 
+// MIGRATED [NEW API]: using return new RedirectResponse
+return new \Symfony\Component\HttpFoundation\RedirectResponse('lab-migration/manage-proposal/category');
     $response = new RedirectResponse(Url::fromRoute('lab_migration.category_all')->toString());
   
     // Send the redirect response

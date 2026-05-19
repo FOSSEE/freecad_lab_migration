@@ -44,3 +44,8 @@ lab_migration.list_experiments:
 #   title: 'Approve Proposal'
 #   weight: 2
 #   base_route: lab_migration.proposal_approval
+lab_migration.export_csv:
+  route_name: lab_migration.export_csv
+  title: 'Export CSV'
+  weight: 6
+  base_route: lab_migration.proposal_pending
