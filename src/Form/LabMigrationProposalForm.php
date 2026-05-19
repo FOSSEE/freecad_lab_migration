@@ -686,31 +686,16 @@ class LabMigrationProposalForm extends FormBase
       }
     }
 
-    /* sending email */
+
+    /* Sending confirmation email via the centralised mail service */
     $email_to = $user->getEmail();
-    $form = \Drupal::config('lab_migration.settings')->get('lab_migration_from_email');
-    $bcc = \Drupal::config('lab_migration.settings')->get('lab_migration_emails');
-    $cc = \Drupal::config('lab_migration.settings')->get('lab_migration_cc_emails');
     $params['proposal_received']['proposal_id'] = $proposal_id;
-    $params['proposal_received']['user_id'] = $user->id();
-    $params['proposal_received']['headers'] = [
-      'From' => $form,
-      'MIME-Version' => '1.0',
-      'Content-Type' => 'text/plain; charset=UTF-8; format=flowed; delsp=yes',
-      'Content-Transfer-Encoding' => '8Bit',
-      'X-Mailer' => 'Drupal',
-      'Cc' => $cc,
-      'Bcc' => $bcc,
-    ];
-    $langcode = $user->getPreferredLangcode();
-    if (!\Drupal::service('plugin.manager.mail')->mail('lab_migration', 'proposal_received', $email_to, 'en', $params, $form, TRUE))
-      ; {
-      \Drupal::messenger()->addError('Error sending email message.');
-    }
+    $params['proposal_received']['user_id']     = $user->id();
+    // Headers are built automatically by LabMigrationMailService::send().
+    \Drupal::service('lab_migration.mail_service')->send('proposal_received', $email_to, $params);
+
     \Drupal::messenger()->addStatus($this->t('We have received you Lab migration proposal. We will get back to you soon.'));
     $response = new RedirectResponse(Url::fromRoute('<front>')->toString());
-
-    // //   // Send the redirect response
     $response->send();
   }
 

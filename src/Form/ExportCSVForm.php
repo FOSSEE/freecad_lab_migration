@@ -13,9 +13,7 @@ class ExportCSVForm extends FormBase
     return 'lab_migration_export_csv_form';
   }
 
-  public function ajaxTableCallback(array &$form, FormStateInterface $form_state) {
-    return $form['preview_table_wrapper'];
-  }
+  // Removed local ajaxTableCallback - replaced by LabMigrationAjaxHelper::getPreviewTableWrapper.
 
   public function buildForm(array $form, FormStateInterface $form_state)
   {
@@ -30,7 +28,7 @@ class ExportCSVForm extends FormBase
         '3' => 'Solved',
       ],
       '#ajax' => [
-        'callback' => '::ajaxTableCallback',
+        'callback' => ['\Drupal\lab_migration\Services\LabMigrationAjaxHelper', 'getPreviewTableWrapper'],
         'wrapper' => 'export-preview-table-wrapper',
         'event' => 'change',
       ],
@@ -48,7 +46,7 @@ class ExportCSVForm extends FormBase
       '#title' => $this->t('Year of Submission'),
       '#options' => $year_options,
       '#ajax' => [
-        'callback' => '::ajaxTableCallback',
+        'callback' => ['\Drupal\lab_migration\Services\LabMigrationAjaxHelper', 'getPreviewTableWrapper'],
         'wrapper' => 'export-preview-table-wrapper',
         'event' => 'change',
       ],

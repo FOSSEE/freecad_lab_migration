@@ -787,24 +787,17 @@ public function lab_migration_delete_experiment($experiment_id)
           $status = FALSE;
           \Drupal::messenger()->addmessage(t('Error deleting !file', array('!file' => $dir_path)), 'error');
 
-          /* sending email to admins */
-            $email_to = \Drupal::config('lab_migration.settings')->get('lab_migration_emails');
-            $from = \Drupal::config('lab_migration.settings')->get('lab_migration_from_email');
-            $bcc="";
-            $cc=\Drupal::config('lab_migration.settings')->get('lab_migration_cc_emails');
-            $param['standard']['subject'] = "[ERROR] Error deleting example file";
-            $param['standard']['body'] = "Error deleting solution files by " . $user->uid . " at " . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] . " :
-                solution id : " . $solution_id . "
-                file id : " .  $solution_files_data->id . "
-                file path : " . $solution_files_data->filepath."
-            PDF path : " . $PdfStatus;
-            $param['standard']['headers']=array('From'=>$from,'MIME-Version'=> '1.0',
-                        'Content-Type'=> 'text/plain; charset=UTF-8; format=flowed; delsp=yes',
-                        'Content-Transfer-Encoding' => '8Bit',
-                        'X-Mailer'=> 'Drupal','Cc' => $cc, 'Bcc' => $bcc);
-    
-            if (!drupal_mail('lab_migration', 'standard', $email_to, language_default(), $param, $from, TRUE))
-            \Drupal::messenger()->addmessage('Error sending email message.', 'error');
+          /* Send admin error notification via centralised mail service */
+          $admin_email = \Drupal::config('lab_migration.settings')->get('lab_migration_emails');
+          \Drupal::service('lab_migration.mail_service')->sendStandard(
+            $admin_email,
+            '[ERROR] Error deleting example file',
+            'Error deleting solution files at ' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'] . "\n"
+              . '  solution id : ' . $solution_id . "\n"
+              . '  file id     : ' . $solution_files_data->id . "\n"
+              . '  file path   : ' . $solution_files_data->filepath
+          );
+
         } 
         else {
           /* deleting example files database entries */     
@@ -841,22 +834,13 @@ public function lab_migration_delete_experiment($experiment_id)
         {
             \Drupal::messenger()->addmessage(t('Error deleting folder !folder', array('!folder' => $dir_path)), 'error');
 
-          /* sending email to admins */
-            $email_to = \Drupal::config('lab_migration.settings')->get('lab_migration_emails');
-            $from = \Drupal::config('lab_migration.settings')->get('lab_migration_from_email');
-            $bcc="";
-            $cc=\Drupal::config('lab_migration.settings')->get('lab_migration_cc_emails');
-
-
-            $param['standard']['subject'] = "[ERROR] Error deleting folder";
-            $param['standard']['body'] = "Error deleting folder " . $dir_path . " by " . $user->uid . " at " . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
-            $param['standard']['headers']=array('From'=>$from,'MIME-Version'=> '1.0',
-                        'Content-Type'=> 'text/plain; charset=UTF-8; format=flowed; delsp=yes',
-                        'Content-Transfer-Encoding' => '8Bit',
-                        'X-Mailer'=> 'Drupal','Cc' => $cc, 'Bcc' => $bcc);
-        
-            if (!drupal_mail('lab_migration', 'standard', $email_to, language_default(), $param, $from, TRUE))
-                \Drupal::messenger()->addmessage('Error sending email message.', 'error');
+          /* Send admin error notification via centralised mail service */
+          $admin_email = \Drupal::config('lab_migration.settings')->get('lab_migration_emails');
+          \Drupal::service('lab_migration.mail_service')->sendStandard(
+            $admin_email,
+            '[ERROR] Error deleting folder',
+            'Error deleting folder ' . $dir_path . ' at ' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI']
+          );
           return FALSE;
         }
     } 
