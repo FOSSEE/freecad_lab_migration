@@ -65,7 +65,7 @@ class LabMigrationBulkApprovalForm extends FormBase {
       '#options' => $options_first,
       '#default_value' => $selected,
       '#ajax' => [
-        'callback' => '::ajax_experiment_list_callback',
+        'callback' => ['\Drupal\lab_migration\Services\LabMigrationAjaxHelper', 'getDownloadLabWrapper'],
         'wrapper' => 'ajax_selected_lab',
       ],
       
@@ -109,7 +109,7 @@ class LabMigrationBulkApprovalForm extends FormBase {
       '#options' => $this->_ajax_bulk_get_experiment_list($lab_default_value),
       '#default_value' => $form_state->getValue('lab_experiment_list', ''),
       '#ajax' => [
-          'callback' => '::ajax_solution_list_callback',
+          'callback' => ['\Drupal\lab_migration\Services\LabMigrationAjaxHelper', 'getDownloadExperimentWrapper'],
           'wrapper'  => 'ajax_download_experiments'
         ],
       '#prefix' => '<div id="ajax_selected_experiment">',
@@ -152,7 +152,7 @@ $form['download_experiment_wrapper']['solution_list'] = [
     '#title' => $this->t('Title of the solution'),
     '#options' => $this->_ajax_bulk_get_solution_list($form_state->getValue('lab_experiment_list')),
     '#ajax' => [
-        'callback' => '::ajax_solution_file_callback',
+        'callback' => ['\Drupal\lab_migration\Services\LabMigrationAjaxHelper', 'getDownloadSolutionWrapper'],
         'wrapper'  => 'ajax_download_solution_file'
       ],
 ];
@@ -307,18 +307,8 @@ $form['submit'] = [
 ];
      return $form;
   }
-  public function ajax_experiment_list_callback(array &$form, FormStateInterface $form_state) {
-    return $form['download_lab_wrapper'];
-
-  }
-  public function ajax_solution_list_callback(array &$form, FormStateInterface $form_state) {
-    return $form['download_experiment_wrapper'];
-
-  }
-  public function ajax_solution_file_callback(array &$form, FormStateInterface $form_state) {
-    return $form['download_solution_wrapper'];
-
-  }
+  // Local AJAX callbacks removed - now handled by LabMigrationAjaxHelper service.
+  // getDownloadLabWrapper, getDownloadExperimentWrapper, getDownloadSolutionWrapper.
 
  public function _ajax_bulk_get_experiment_list($lab_default_value = '') {
    // return $form['download_lab_wrapper'];
