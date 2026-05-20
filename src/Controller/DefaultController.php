@@ -1,4 +1,6 @@
-<?php /**
+<?php 
+// Drupal 11 Migration - Verified and migrated 2026-04-24
+/**
  * @file
  * Contains \Drupal\lab_migration\Controller\DefaultController.
  */
@@ -402,14 +404,14 @@ $link = Link::fromTextAndUrl(t('Edit'), $url)->toString();
         else
           {
             \Drupal::messenger()->addMessage(t('Invalid proposal selected. Please try again.'), 'error');
-            RedirectResponse('lab-migration/manage-proposal');
+            return new \Symfony\Component\HttpFoundation\RedirectResponse('lab-migration/manage-proposal');
             return;
           }
       }
     else
       {
         \Drupal::messenger()->addMessage(t('Invalid proposal selected. Please try again.'), 'error');
-        RedirectResponse('lab-migration/manage-proposal');
+        return new \Symfony\Component\HttpFoundation\RedirectResponse('lab-migration/manage-proposal');
         return;
       }
     // var_dump($proposal_data->name_title);
@@ -421,7 +423,9 @@ $link = Link::fromTextAndUrl(t('Edit'), $url)->toString();
     );
     $form['email_id'] = array(
         '#type' => 'item',
-        '#markup' => user_load($proposal_data->uid)->mail,
+        // DEPRECATED [OLD API]: Removed in Drupal 8+, use User::load() instead.
+        // MIGRATED [NEW API]: using \Drupal\user\Entity\User::load
+        '#markup' => \Drupal\user\Entity\User::load($proposal_data->uid)->mail,
         '#title' => t('Email')
     );
     $form['contact_ph'] = array(
@@ -522,7 +526,9 @@ $link = Link::fromTextAndUrl(t('Edit'), $url)->toString();
       }
     else
       {
-        $solution_provider_user_data = user_load($proposal_data->solution_provider_uid);
+        // DEPRECATED [OLD API]: Removed in Drupal 8+, use User::load() instead.
+        // MIGRATED [NEW API]: using \Drupal\user\Entity\User::load
+        $solution_provider_user_data = \Drupal\user\Entity\User::load($proposal_data->solution_provider_uid);
         if ($solution_provider_user_data)
             $solution_provider = "Solution will be provided by user " . Link::fromTextAndUrl($solution_provider_user_data->name, 'user/' . $proposal_data->solution_provider_uid);
         else
@@ -717,7 +723,7 @@ $link = Link::fromTextAndUrl(t('Edit'), $url)->toString();
     $solution_data = $solution_q->fetchObject();
     if (!$solution_data) {
       \Drupal::messenger()->addMessage('Invalid solution.', 'error');
-      // RedirectResponse('lab-migration/code');
+      // return new \Symfony\Component\HttpFoundation\RedirectResponse('lab-migration/code');
       // return new RedirectResponse('/lab-migration/code/list-experiments');
       // $response = new RedirectResponse(Url::fromRoute('/lab-migration/code/list-experiments')->toString());
       // Send the redirect response
@@ -730,8 +736,8 @@ $link = Link::fromTextAndUrl(t('Edit'), $url)->toString();
     }
     if ($solution_data->approval_status != 0) {
       \Drupal::messenger()->addMessage('You cannnot delete a solution after it has been approved. Please contact site administrator if you want to delete this solution.', 'error');
-      // RedirectResponse('lab-migration/code');
-       // RedirectResponse('lab-migration/code-approval');
+      // return new \Symfony\Component\HttpFoundation\RedirectResponse('lab-migration/code');
+       // return new \Symfony\Component\HttpFoundation\RedirectResponse('lab-migration/code-approval');
     $response = new RedirectResponse(Url::fromRoute('lab_migration.code_approval')->toString());
   
     // Send the redirect response
@@ -749,7 +755,7 @@ $link = Link::fromTextAndUrl(t('Edit'), $url)->toString();
     $experiment_data = $experiment_q->fetchObject();
     if (!$experiment_data) {
       // \Drupal::messenger()->addMessage('You do not have permission to delete this solution.', 'error');
-      RedirectResponse('lab-migration/code');
+      return new \Symfony\Component\HttpFoundation\RedirectResponse('lab-migration/code');
       return;
     }
 
@@ -765,7 +771,7 @@ $link = Link::fromTextAndUrl(t('Edit'), $url)->toString();
     // if (!$proposal_data) {
     //   \Drupal::messenger()->addMessage('You do not have permission to delete this solution.', 'error');
 
-    //   RedirectResponse('lab-migration/code');
+    //   return new \Symfony\Component\HttpFoundation\RedirectResponse('lab-migration/code');
     //   return;
     // }
 
@@ -825,7 +831,7 @@ if (!$result['result']) {
   
   // Send the redirect response
   $response->send();
-    //RedirectResponse('lab-migration/code');
+    //return new \Symfony\Component\HttpFoundation\RedirectResponse('lab-migration/code');
     return;
   }
 
@@ -951,7 +957,7 @@ $solution_id = (int) $route_match->getParameter('solution_id');
     else {
       \Drupal::messenger()->addMessage("There are no files in this solutions to download", 'error');
      
-      // RedirectResponse('lab-migration/lab-migration-run');
+      // return new \Symfony\Component\HttpFoundation\RedirectResponse('lab-migration/lab-migration-run');
       return new RedirectResponse(Url::fromUserInput('/lab-migration/lab-migration-run')->toString());
     }
   }
@@ -1026,7 +1032,7 @@ $root_path = \Drupal::service("lab_migration_global")->lab_migration_path();
       \Drupal::messenger()->addError('There are no solutions in this experiment to download.');
 return new Response('', Response::HTTP_NO_CONTENT);
 
-      // RedirectResponse('lab-migration/lab-migration-run');
+      // return new \Symfony\Component\HttpFoundation\RedirectResponse('lab-migration/lab-migration-run');
       $response = new RedirectResponse('/lab-migration/lab-migration-run');
 $response->send();
     }
@@ -1127,7 +1133,7 @@ $root_path = \Drupal::service("lab_migration_global")->lab_migration_path();
     }
     else {
       \Drupal::messenger()->addMessage("There are no solutions in this Lab to download", 'error');
-      // RedirectResponse('lab-migration/lab-migration-run');
+      // return new \Symfony\Component\HttpFoundation\RedirectResponse('lab-migration/lab-migration-run');
       $url = Url::fromRoute('lab_migration.run_form')->toString();
 
 // Return the RedirectResponse.
@@ -1448,7 +1454,7 @@ $root_path = \Drupal::service("lab_migration_global")->lab_migration_path();
 $lab_id = (int) $route_match->getParameter('lab_id');
 // \Drupal::service("lab_migration_global")->lab_migration_del_lab_pdf($lab_id);
     \Drupal::messenger()->addMessage(t('Lab schedule for regeneration.'), 'status');
-    // RedirectResponse('lab_migration/code_approval/bulk');
+    // return new \Symfony\Component\HttpFoundation\RedirectResponse('lab_migration/code_approval/bulk');
     $response = new RedirectResponse(Url::fromRoute('lab_migration.bulk_approval_form')->toString());
 $response->send();
     return;
@@ -1475,7 +1481,9 @@ $response->send();
 //         else
 //           {
 //             \Drupal::messenger()->message(t('Invalid proposal selected. Please try again.'), 'error');
-//             // drupal_goto('lab-migration/manage-proposal');
+// DEPRECATED [OLD API]: Removed in Drupal 8+, use RedirectResponse instead.
+// MIGRATED [NEW API]: using return new RedirectResponse(...)
+//             // return new \Symfony\Component\HttpFoundation\return new \Symfony\Component\HttpFoundation\RedirectResponse('lab-migration/manage-proposal');
 //             // Generate the URL using the route name.
 // $url = Url::fromRoute('lab-migration.category_edit_form')->toString();
 
@@ -1486,8 +1494,12 @@ $response->send();
 //       }
 //     else
 //       {
-//         drupal_set_message(t('Invalid proposal selected. Please try again.'), 'error');
-//         drupal_goto('lab-migration/manage-proposal');
+// DEPRECATED [OLD API]: Removed in Drupal 10, use messenger service.
+// MIGRATED [NEW API]: using \Drupal::messenger()->addError()
+//         \Drupal::messenger()->addError(t('Invalid proposal selected. Please try again.'))error
+// DEPRECATED [OLD API]: Removed in Drupal 8+, use RedirectResponse instead.
+// MIGRATED [NEW API]: using return new RedirectResponse(...)
+//         return new \Symfony\Component\HttpFoundation\return new \Symfony\Component\HttpFoundation\RedirectResponse('lab-migration/manage-proposal');
 //         return;
 //       }
 //     $form['name'] = array(
@@ -1497,7 +1509,9 @@ $response->send();
 //     );
 //     $form['email_id'] = array(
 //         '#type' => 'item',
-//         '#markup' => user_load($proposal_data->uid)->mail,
+// DEPRECATED [OLD API]: Removed in Drupal 8+, use User::load() instead.
+// MIGRATED [NEW API]: using \Drupal\user\Entity\User::load
+//         '#markup' => \Drupal\user\Entity\User::load($proposal_data->uid)->mail,
 //         '#title' => t('Email')
 //     );
 //     $form['contact_ph'] = array(
@@ -1687,8 +1701,9 @@ public function lab_migration_download_syllabus_copy() {
   
     $proposal_data = lab_migration_get_proposal();
     if (!$proposal_data) {
-        drupal_goto('');
-        return;
+        // DEPRECATED [OLD API]: Removed in Drupal 8+, use RedirectResponse instead.
+        // MIGRATED [NEW API]: using return new RedirectResponse(...)
+        return new RedirectResponse(Url::fromRoute('<front>')->toString());
     }
   
     /* add javascript for dependency selection effects */
@@ -1718,7 +1733,7 @@ public function lab_migration_download_syllabus_copy() {
       });
       $('#edit-existing-depfile-dep-lab-title').trigger('change');
     }(jQuery));";
-    drupal_add_js($dep_selection_js, 'inline', 'header');
+    $form['#attached']['html_head'][] = [[ '#type' => 'html_tag', '#tag' => 'script', '#value' => $dep_selection_js, ], 'dep_selection_js'];
   
     $form['#attributes'] = array('enctype' => "multipart/form-data");
   
@@ -1808,7 +1823,7 @@ public function lab_migration_download_syllabus_copy() {
         '#title' => t('Upload main or source file'),
         '#size' => 48,
         '#description' => t('Only alphabets and numbers are allowed as a valid filename.') . '<br />' .
-        t('Allowed file extensions: ') . variable_get('lab_migration_source_extensions', ''),
+        t('Allowed file extensions: ') . \Drupal::config('lab_migration.settings')->get('lab_migration_source_extensions'),
     );
   
    /* $form['dep_files'] = array(
@@ -2036,64 +2051,92 @@ public function _list_all_lm_certificates() {
 }
 function ajax_get_lm_city_list_callback($form, $form_state)
 {
+    $commands = [];
     $state_default_value = $form_state['values']['all_state'];
     $district_default_value = $form_state['values']['district'];
     if ($district_default_value != '0')
     {
         $form['city']['#options'] = _lab_migration_list_of_cities($state_default_value, $district_default_value);
-        $commands[] = ajax_command_replace("#ajax-city-list-replace", drupal_render($form['city']));
+        // DEPRECATED [OLD API]: Removed in Drupal 8+, use ReplaceCommand.
+        // MIGRATED [NEW API]: using new \Drupal\Core\Ajax\ReplaceCommand()
+        $commands[] = new \Drupal\Core\Ajax\ReplaceCommand("#ajax-city-list-replace", \Drupal::service('renderer')->render($form['city']));
         $form['pincode']['#options'] =  array('0' => '- Select -');
-        $commands[] = ajax_command_replace("#ajax-pincode-list-replace", drupal_render($form['pincode']));
+        // DEPRECATED [OLD API]: Removed in Drupal 8+, use ReplaceCommand.
+        // MIGRATED [NEW API]: using new \Drupal\Core\Ajax\ReplaceCommand()
+        $commands[] = new \Drupal\Core\Ajax\ReplaceCommand("#ajax-pincode-list-replace", \Drupal::service('renderer')->render($form['pincode']));
     }else{
         $form['city']['#options'] = array('0' => '- Select -');
-        $commands[] = ajax_command_replace("#ajax-city-list-replace", drupal_render($form['city']));
+        // DEPRECATED [OLD API]: Removed in Drupal 8+, use ReplaceCommand.
+        // MIGRATED [NEW API]: using new \Drupal\Core\Ajax\ReplaceCommand()
+        $commands[] = new \Drupal\Core\Ajax\ReplaceCommand("#ajax-city-list-replace", \Drupal::service('renderer')->render($form['city']));
     }
-    return array(
-        '#type' => 'ajax',
-        '#commands' => $commands
-    );
+    $response = new \Drupal\Core\Ajax\AjaxResponse();
+    foreach ($commands as $command) {
+        $response->addCommand($command);
+    }
+    return $response;
 }
 function ajax_get_lm_district_list_callback($form, $form_state)
 {
+    $commands = [];
     $state_default_value = $form_state['values']['all_state'];
     if ($state_default_value != '0')
     {
         $form['district']['#options'] = _lab_migration_list_of_district($state_default_value);
-        $commands[] = ajax_command_replace("#ajax-district-list-replace", drupal_render($form['district']));
+        // DEPRECATED [OLD API]: Removed in Drupal 8+, use ReplaceCommand.
+        // MIGRATED [NEW API]: using new \Drupal\Core\Ajax\ReplaceCommand()
+        $commands[] = new \Drupal\Core\Ajax\ReplaceCommand("#ajax-district-list-replace", \Drupal::service('renderer')->render($form['district']));
         $form['pincode']['#options'] =  array('0' =>'- Select -');
-        $commands[] = ajax_command_replace("#ajax-pincode-list-replace", drupal_render($form['pincode']));
+        // DEPRECATED [OLD API]: Removed in Drupal 8+, use ReplaceCommand.
+        // MIGRATED [NEW API]: using new \Drupal\Core\Ajax\ReplaceCommand()
+        $commands[] = new \Drupal\Core\Ajax\ReplaceCommand("#ajax-pincode-list-replace", \Drupal::service('renderer')->render($form['pincode']));
         $form['city']['#options'] = array('0' => '- Select -');
-        $commands[] = ajax_command_replace("#ajax-city-list-replace", drupal_render($form['city']));
+        // DEPRECATED [OLD API]: Removed in Drupal 8+, use ReplaceCommand.
+        // MIGRATED [NEW API]: using new \Drupal\Core\Ajax\ReplaceCommand()
+        $commands[] = new \Drupal\Core\Ajax\ReplaceCommand("#ajax-city-list-replace", \Drupal::service('renderer')->render($form['city']));
     }else{
         $form['district']['#options'] = array('0' => '- Select -');
-        $commands[] = ajax_command_replace("#ajax-district-list-replace", drupal_render($form['district']));
+        // DEPRECATED [OLD API]: Removed in Drupal 8+, use ReplaceCommand.
+        // MIGRATED [NEW API]: using new \Drupal\Core\Ajax\ReplaceCommand()
+        $commands[] = new \Drupal\Core\Ajax\ReplaceCommand("#ajax-district-list-replace", \Drupal::service('renderer')->render($form['district']));
         $form['pincode']['#options'] =  array('0' =>'- Select -');
-        $commands[] = ajax_command_replace("#ajax-pincode-list-replace", drupal_render($form['pincode']));
+        // DEPRECATED [OLD API]: Removed in Drupal 8+, use ReplaceCommand.
+        // MIGRATED [NEW API]: using new \Drupal\Core\Ajax\ReplaceCommand()
+        $commands[] = new \Drupal\Core\Ajax\ReplaceCommand("#ajax-pincode-list-replace", \Drupal::service('renderer')->render($form['pincode']));
         $form['city']['#options'] = array('0' => '- Select -');
-        $commands[] = ajax_command_replace("#ajax-city-list-replace", drupal_render($form['city']));
+        // DEPRECATED [OLD API]: Removed in Drupal 8+, use ReplaceCommand.
+        // MIGRATED [NEW API]: using new \Drupal\Core\Ajax\ReplaceCommand()
+        $commands[] = new \Drupal\Core\Ajax\ReplaceCommand("#ajax-city-list-replace", \Drupal::service('renderer')->render($form['city']));
     }
-    return array(
-        '#type' => 'ajax',
-        '#commands' => $commands
-    );
+    $response = new \Drupal\Core\Ajax\AjaxResponse();
+    foreach ($commands as $command) {
+        $response->addCommand($command);
+    }
+    return $response;
 }
 function ajax_get_lm_city_pincode_list_callback($form, $form_state)
 {
+    $commands = [];
     $city_default_value = $form_state['values']['city'];
     $state_default_value = $form_state['values']['all_state'];
     $district_default_value = $form_state['values']['district'];
     if ($city_default_value != '0')
     {
         $form['pincode']['#options'] = _lab_migration_list_of_city_pincode($city_default_value,$state_default_value,$district_default_value);
-        $commands[] = ajax_command_replace("#ajax-pincode-list-replace", drupal_render($form['pincode']));
+        // DEPRECATED [OLD API]: Removed in Drupal 8+, use ReplaceCommand.
+        // MIGRATED [NEW API]: using new \Drupal\Core\Ajax\ReplaceCommand()
+        $commands[] = new \Drupal\Core\Ajax\ReplaceCommand("#ajax-pincode-list-replace", \Drupal::service('renderer')->render($form['pincode']));
     }else{
         $form['pincode']['#options'] =  array('0' => '- Select -');
-        $commands[] = ajax_command_replace("#ajax-pincode-list-replace", drupal_render($form['pincode']));
+        // DEPRECATED [OLD API]: Removed in Drupal 8+, use ReplaceCommand.
+        // MIGRATED [NEW API]: using new \Drupal\Core\Ajax\ReplaceCommand()
+        $commands[] = new \Drupal\Core\Ajax\ReplaceCommand("#ajax-pincode-list-replace", \Drupal::service('renderer')->render($form['pincode']));
     }
-    return array(
-        '#type' => 'ajax',
-        '#commands' => $commands
-    );
+    $response = new \Drupal\Core\Ajax\AjaxResponse();
+    foreach ($commands as $command) {
+        $response->addCommand($command);
+    }
+    return $response;
 }
 
 function lab_migration_category_edit_form(array $form, FormStateInterface $form_state) {

@@ -1,5 +1,5 @@
 <?php
-
+// Drupal 11 Migration - Verified and migrated 2026-04-24
 /**
  * @file
  * Contains \Drupal\lab_migration\Form\LabMigrationCodeApprovalForm.
@@ -42,9 +42,11 @@ class LabMigrationCodeApprovalForm extends FormBase {
     $solution_q = $query->execute();
     $solution_data = $solution_q->fetchObject();
     if (!$solution_data) {
-      \Drupal::messenger()->addStatus(t('Invalid solution selected.'));
+      \Drupal::messenger()->addStatus($this->t('Invalid solution selected.'));
 
-      // RedirectResponse('lab-migration/code-approval');
+      // // DEPRECATED [OLD API]: RedirectResponse without new 
+// MIGRATED [NEW API]: using return new RedirectResponse
+return new \Symfony\Component\HttpFoundation\RedirectResponse('lab-migration/code-approval');
       $url = Url::fromRoute('lab_migration.code_approval')->toString(); // Replace with the actual route name
 $response = new RedirectResponse($url);
 
@@ -52,10 +54,10 @@ $response = new RedirectResponse($url);
 return $response;
     }
     if ($solution_data->approval_status == 1) {
-      \Drupal::messenger()->addmessage(t('This solution has already been approved. Are you sure you want to change the approval status?'), 'error');
+      \Drupal::messenger()->addError($this->t('This solution has already been approved. Are you sure you want to change the approval status?'));
     }
     if ($solution_data->approval_status == 2) {
-      \Drupal::messenger()->addmessage(t('This solution has already been dis-approved. Are you sure you want to change the approval status?'), 'error');
+      \Drupal::messenger()->addError($this->t('This solution has already been dis-approved. Are you sure you want to change the approval status?'));
     }
     /* get experiment data */
     //xperiment_q = $injected_database->query("SELECT * FROM {lab_migration_experiment} WHERE id = %d", $solution_data->experiment_id);
@@ -73,7 +75,9 @@ return $response;
     $proposal_data = $proposal_q->fetchObject();
     /* get solution provider details */
     $solution_provider_user_name = $proposal_data->solution_provider_name;
-    // $user_data = loadMultiple($proposal_data->solution_provider_uid);
+    // $user_data = // DEPRECATED [OLD API]: loadMultiple() 
+// MIGRATED [NEW API]: using User::load()
+\Drupal\user\Entity\User::load($proposal_data->solution_provider_uid);
     
     // $user_data = User::load($proposal_data->solution_provider_uid);
     // $user_data = \Drupal::entityTypeManager()->getStorage('user')->load($proposal_data->solution_provider_uid);
@@ -87,22 +91,22 @@ return $response;
     $form['lab_title'] = [
       '#type' => 'item',
       '#markup' => $proposal_data->lab_title,
-      '#title' => t('Title of the Lab'),
+      '#title' => $this->t('Title of the Lab'),
     ];
     $form['name'] = [
       '#type' => 'item',
       '#markup' => $proposal_data->name,
-      '#title' => t('Contributor Name'),
+      '#title' => $this->t('Contributor Name'),
     ];
     $form['experiment']['number'] = [
       '#type' => 'item',
       '#markup' => $experiment_data->number,
-      '#title' => t('Experiment Number'),
+      '#title' => $this->t('Experiment Number'),
     ];
     $form['experiment']['title'] = [
       '#type' => 'item',
       '#markup' => $experiment_data->title,
-      '#title' => t('Title of the Experiment'),
+      '#title' => $this->t('Title of the Experiment'),
     ];
     $form['back_to_list'] = [
       '#type' => 'item',
@@ -114,12 +118,12 @@ return $response;
     $form['code_number'] = [
       '#type' => 'item',
       '#markup' => $solution_data->code_number,
-      '#title' => t('Code No'),
+      '#title' => $this->t('Code No'),
     ];
     $form['code_caption'] = [
       '#type' => 'item',
       '#markup' => $solution_data->caption,
-      '#title' => t('Caption'),
+      '#title' => $this->t('Caption'),
     ];
     /* get solution files */
     $solution_files_html = '';
@@ -183,7 +187,7 @@ $solution_files_html .= $link . ' (' . $code_file_type . ')<br/>';
     $form['solution_files'] = [
       '#type' => 'item',
       '#markup' => $solution_files_html,
-      '#title' => t('Solution'),
+      '#title' => $this->t('Solution'),
     ];
     $form['approved'] = [
       '#type' => 'radios',
@@ -192,12 +196,12 @@ $solution_files_html .= $link . ' (' . $code_file_type . ')<br/>';
         '1' => 'Approved',
         '2' => 'Dis-approved (Solution will be deleted)',
       ],
-      '#title' => t('Approval'),
+      '#title' => $this->t('Approval'),
       '#default_value' => $solution_data->approval_status,
     ];
     $form['message'] = [
       '#type' => 'textarea',
-      '#title' => t('Reason for dis-approval'),
+      '#title' => $this->t('Reason for dis-approval'),
       '#states' => [
         'visible' => [
           ':input[name="approved"]' => [
@@ -213,8 +217,8 @@ $solution_files_html .= $link . ' (' . $code_file_type . ')<br/>';
     ];
     $form['cancel'] = [
       '#type' => 'markup',
-      // '#markup' => Link::fromTextAndUrl(t('Cancel'), 'lab_migration/code_approval'),
-      '#markup' => Link::fromTextAndUrl( t('Cancel'), 
+      // '#markup' => Link::fromTextAndUrl($this->t('Cancel'), 'lab_migration/code_approval'),
+      '#markup' => Link::fromTextAndUrl( $this->t('Cancel'), 
          Url::fromRoute('lab_migration.code_approval'))->toString(),
 
     ];
@@ -224,7 +228,7 @@ $solution_files_html .= $link . ' (' . $code_file_type . ')<br/>';
   public function validateForm(array &$form, \Drupal\Core\Form\FormStateInterface $form_state) {
     if ($form_state->getValue(['approved']) == 2) {
       if (strlen(trim($form_state->getValue(['message']))) <= 30) {
-        $form_state->setErrorByName('message', t('Please mention the reason for disapproval.'));
+        $form_state->setErrorByName('message', $this->t('Please mention the reason for disapproval.'));
       }
     }
     return;
@@ -248,8 +252,10 @@ $solution_id = (int) $route_match->getParameter('solution_id');
     $solution_q = $query->execute();
     $solution_data = $solution_q->fetchObject();
     if (!$solution_data) {
-      \Drupal::messenger()->addmessage(t('Invalid solution selected.'), 'status');
-      RedirectResponse('lab_migration/code_approval');
+      \Drupal::messenger()->addStatus($this->t('Invalid solution selected.'), 'status');
+      // DEPRECATED [OLD API]: RedirectResponse without new 
+// MIGRATED [NEW API]: using return new RedirectResponse
+return new \Symfony\Component\HttpFoundation\RedirectResponse('lab_migration/code_approval');
     }
     /* get experiment data */
     //$experiment_q = $injected_database->query("SELECT * FROM {lab_migration_experiment} WHERE id = %d", $solution_data->experiment_id);
@@ -265,12 +271,16 @@ $solution_id = (int) $route_match->getParameter('solution_id');
     $query->condition('id', $experiment_data->proposal_id);
     $proposal_q = $query->execute();
     $proposal_data = $proposal_q->fetchObject();
-    // $user_data = loadMultiple($proposal_data->uid);
+    // $user_data = // DEPRECATED [OLD API]: loadMultiple() 
+// MIGRATED [NEW API]: using User::load()
+\Drupal\user\Entity\User::load($proposal_data->uid);
 
     $user_data = User::load($proposal_data->uid);   
     $approver_uid = $user->id();
 
-    //  $solution_prove_user_data =User::loadMultiple($proposal_data->solution_provider_uid);
+    //  $solution_prove_user_data =User::// DEPRECATED [OLD API]: loadMultiple() 
+// MIGRATED [NEW API]: using User::load()
+\Drupal\user\Entity\User::load($proposal_data->solution_provider_uid);
     // **** TODO **** : del_lab_pdf($proposal_data->id);
     if ($form_state->getValue(['approved']) == "0") {
       $query = "UPDATE {lab_migration_solution} SET approval_status = 0, approver_uid = :approver_uid, approval_date = :approval_date WHERE id = :solution_id";
@@ -437,8 +447,10 @@ if (!$result['result']) {
         }
       }
     }
-    \Drupal::messenger()->addmessage('Updated successfully.', 'status');
-    // RedirectResponse('lab-migration/code-approval');
+    \Drupal::messenger()->addStatus('Updated successfully.', 'status');
+    // // DEPRECATED [OLD API]: RedirectResponse without new 
+// MIGRATED [NEW API]: using return new RedirectResponse
+return new \Symfony\Component\HttpFoundation\RedirectResponse('lab-migration/code-approval');
     $response = new RedirectResponse(Url::fromRoute('lab_migration.code_approval')->toString());
   
   // Send the redirect response

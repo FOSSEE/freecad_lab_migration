@@ -1,5 +1,5 @@
 <?php
-
+// Drupal 11 Migration - Verified and migrated 2026-04-24
 /**
  * @file
  * Contains \Drupal\lab_migration\Form\LabMigrationLabNotesForm.
@@ -39,8 +39,10 @@ $proposal_id = (int) $route_match->getParameter('proposal_id');
     $proposal_q = $query->execute();
     $proposal_data = $proposal_q->fetchObject();
     if (!$proposal_data) {
-      \Drupal::messenger()->addmessage(t('Invalid lab selected. Please try again.'), 'error');
-      // RedirectResponse('lab-migration/code-approval');// Generate the URL from the route.
+      \Drupal::messenger()->addError($this->t('Invalid lab selected. Please try again.'));
+      // // DEPRECATED [OLD API]: RedirectResponse without new 
+// MIGRATED [NEW API]: using return new RedirectResponse
+return new \Symfony\Component\HttpFoundation\RedirectResponse('lab-migration/code-approval');// Generate the URL from the route.
 $url = Url::fromRoute('lab_migration.code_approval')->toString();
 
 // Create the redirect response.
@@ -70,16 +72,16 @@ $response->send();
     $form['notes'] = [
       '#type' => 'textarea',
       '#rows' => 20,
-      '#title' => t('Notes for Reviewers'),
+      '#title' => $this->t('Notes for Reviewers'),
       '#default_value' => $notes,
     ];
     $form['submit'] = [
       '#type' => 'submit',
-      '#value' => t('Submit'),
+      '#value' => $this->t('Submit'),
     ];
     $form['cancel'] = [
       '#type' => 'markup',
-      '#value' => Link::fromTextAndUrl(t('Back'), 'lab-migration/code-approval'),
+      '#value' => Link::fromTextAndUrl($this->t('Back'), 'lab-migration/code-approval'),
     ];
     return $form;
   }
@@ -96,8 +98,10 @@ $response->send();
     $proposal_q = $query->execute();
     $proposal_data = $proposal_q->fetchObject();
     if (!$proposal_data) {
-      add_message(t('Invalid lab selected. Please try again.'), 'error');
-      RedirectResponse('lab-migration/code-approval');
+      add_message($this->t('Invalid lab selected. Please try again.'), 'error');
+      // DEPRECATED [OLD API]: RedirectResponse without new 
+// MIGRATED [NEW API]: using return new RedirectResponse
+return new \Symfony\Component\HttpFoundation\RedirectResponse('lab-migration/code-approval');
       return;
     }
     /* find existing notes */

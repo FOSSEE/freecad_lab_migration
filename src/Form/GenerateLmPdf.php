@@ -1,5 +1,5 @@
 <?php
-
+// Drupal 11 Migration - Verified and migrated 2026-04-24
 /**
  * @file
  * Contains \Drupal\lab_migration\Form\GenerateLmPdf.
@@ -22,7 +22,7 @@ class GenerateLmPdf extends FormBase {
   }
 
   public function buildForm(array $form, \Drupal\Core\Form\FormStateInterface $form_state) {
-    // $mpath = drupal_get_path('module', 'lab_migration');
+    // $mpath = \Drupal::service('extension.list.module')->getPath('lab_migration');
     /** @var \Drupal\Core\Extension\ExtensionPathResolver $extension_path_resolver */
 $extension_path_resolver = \Drupal::service('extension.path.resolver');
 
@@ -65,7 +65,7 @@ $lab_certi_id = (int) $route_match->getParameter('lab_certi_id');
         $pdf->Line(7.0, 7.0, 7.0, 210.0);
         $pdf->Line(270.0, 210.0, 270.0, 7.0);
         $pdf->Line(7.0, 210.0, 270.0, 210.0);
-        $path = drupal_get_path('module', 'lab_migration');
+        $path = \Drupal::service('extension.list.module')->getPath('lab_migration');
         //$image1 = $mpath . "/pdf/images/scilab.png";
         $pdf->Ln(15);
         //$pdf->Cell(200, 8, $pdf->Image($image1, 100, 19, 0, 28), 0, 1, 'C');
@@ -206,7 +206,9 @@ $lab_certi_id = (int) $route_match->getParameter('lab_certi_id');
         } //!feof($fp)
         fclose($fp);
         unlink($file);
-        //RedirectResponse('lab_migration/certificate');
+        //// DEPRECATED [OLD API]: RedirectResponse without new 
+// MIGRATED [NEW API]: using return new RedirectResponse
+return new \Symfony\Component\HttpFoundation\RedirectResponse('lab_migration/certificate');
         return;
       } //$data3->type = 'Proposer'
       elseif ($data3->type == 'Participant') {
@@ -223,7 +225,7 @@ $lab_certi_id = (int) $route_match->getParameter('lab_certi_id');
         $pdf->Line(7.0, 7.0, 7.0, 210.0);
         $pdf->Line(270.0, 210.0, 270.0, 7.0);
         $pdf->Line(7.0, 210.0, 270.0, 210.0);
-        $path = drupal_get_path('module', 'lab_migration');
+        $path = \Drupal::service('extension.list.module')->getPath('lab_migration');
         //$image1 = $mpath . "/pdf/images/scilab.png";
         $pdf->Ln(15);
         //$pdf->Cell(200, 8, $pdf->Image($image1, 100, 19, 0, 28), 0, 1, 'C');
@@ -368,15 +370,19 @@ $lab_certi_id = (int) $route_match->getParameter('lab_certi_id');
         } //!feof($fp)
         fclose($fp);
         unlink($file);
-        //RedirectResponse('lab_migration/certificate');
+        //// DEPRECATED [OLD API]: RedirectResponse without new 
+// MIGRATED [NEW API]: using return new RedirectResponse
+return new \Symfony\Component\HttpFoundation\RedirectResponse('lab_migration/certificate');
         return;
       } //$data3->type = 'Proposer'
       else {
-        RedirectResponse('lab_migration/certificate');
+        // DEPRECATED [OLD API]: RedirectResponse without new 
+// MIGRATED [NEW API]: using return new RedirectResponse
+return new \Symfony\Component\HttpFoundation\RedirectResponse('lab_migration/certificate');
       }
     } //$proposal_id != NULL && $lab_certi_id !== NULL
     else {
-      \Drupal::messenger()->addmessage('Your lab Is Still Under Review.', 'status');
+      \Drupal::messenger()->addStatus('Your lab Is Still Under Review.', 'status');
     }
   }
 

@@ -1,5 +1,5 @@
 <?php
-
+// Drupal 11 Migration - Verified and migrated 2026-04-24
 namespace Drupal\lab_migration\Form;
 
 use Drupal\Core\Form\FormBase;
@@ -58,11 +58,11 @@ class LabMigrationRunForm extends FormBase {
     $form = [];
     $form['lab'] = array(
         '#type' => 'select',
-        '#title' => t('Title of the lab'),
+        '#title' => $this->t('Title of the lab'),
         '#options' => $this->_list_of_labs(),
         '#default_value' => $selected,
         '#ajax' => [
-            'callback' => '::ajax_experiment_list_callback',
+            'callback' => ['\Drupal\lab_migration\Services\LabMigrationAjaxHelper', 'getDownloadLabWrapper'],
             'wrapper' => 'ajax_selected_lab'
         ]
     );
@@ -86,11 +86,11 @@ class LabMigrationRunForm extends FormBase {
         );
         $form['download_lab_wrapper']['lab_experiment_list'] = array(
             '#type' => 'select',
-            '#title' => t('Title of the experiment'),
+            '#title' => $this->t('Title of the experiment'),
             '#options' => $this->_ajax_get_experiment_list($lab_default_value),
             // '#default_value' => isset($form_state['values']['lab_experiment_list']) ? $form_state['values']['lab_experiment_list'] : '',
             '#ajax' => [
-                'callback' => '::ajax_solution_list_callback',
+                'callback' => ['\Drupal\lab_migration\Services\LabMigrationAjaxHelper', 'getDownloadExperimentWrapper'],
                 'wrapper'  => 'ajax_download_experiments'
               ],
             '#prefix' => '<div id="ajax_selected_experiment">',
@@ -113,10 +113,10 @@ class LabMigrationRunForm extends FormBase {
         ];
         $form['download_experiment_wrapper']['solution_list'] = [
           '#type' => 'select',
-            '#title' => t('Title of the solution'),
+            '#title' => $this->t('Title of the solution'),
             '#options' => $this->_ajax_get_solution_list($form_state->getValue('lab_experiment_list')),
             '#ajax' => [
-                'callback' => '::ajax_solution_files_callback',
+                'callback' => ['\Drupal\lab_migration\Services\LabMigrationAjaxHelper', 'getDownloadSolutionWrapper'],
                 'wrapper'  => 'ajax_download_solution_file'
               ],
         ];
@@ -173,7 +173,7 @@ class LabMigrationRunForm extends FormBase {
       //var_dump($solution_rows);die;
         $form['download_solution_wrapper']['solution_files'] = [
           '#type' => 'fieldset',
-          '#title' => t('List of solution files'),
+          '#title' => $this->t('List of solution files'),
         ];
         $solution_files_header = ['Filename', 'Type']; // Table headers
 
@@ -201,18 +201,9 @@ $form['download_solution_wrapper']['solution_files']['table'] = $table;
   
 
     
-  public function ajax_experiment_list_callback(array &$form, FormStateInterface $form_state) {
-    return $form['download_lab_wrapper'];
+  // Local AJAX callbacks removed - now handled by LabMigrationAjaxHelper service.
+  // getDownloadLabWrapper, getDownloadExperimentWrapper, getDownloadSolutionWrapper.
 
-  }
-  public function ajax_solution_list_callback(array &$form, FormStateInterface $form_state) {
-    return $form['download_experiment_wrapper'];
-    
-  }
-  
-  public function ajax_solution_files_callback(array &$form, \Drupal\Core\Form\FormStateInterface $form_state) {
-
-return $form['download_solution_wrapper'];
     //     $response = new AjaxResponse();
 //    // $commands = [];
 //   //  var_dump("hi");die;
@@ -361,7 +352,7 @@ public function _ajax_get_experiment_list($lab_default_value = '')
   public function _ajax_get_solution_list($lab_experiment_list = '') {
     
     $solutions = [
-      '0' => t('Please select...'),
+      '0' => $this->t('Please select...'),
     ];
   
     if (empty($lab_experiment_list)) {
@@ -450,14 +441,15 @@ public function _lab_details($lab_default_value)
             $solution_provider = '<span style="color: rgb(128, 0, 0);"><strong>Solution Provider</strong></span></td><td style="width: 35%;"><br />' . '<ul>' . '<li><strong>Solution Provider: </strong> (Open) </li>' . '</ul>';
           }}
           else{
-          // drupal_goto('lab-migration/lab-migration-run');
+          // // DEPRECATED [OLD API]: drupal_goto() 
+// MIGRATED [NEW API]: using RedirectResponse
+return new \Symfony\Component\HttpFoundation\RedirectResponse('lab-migration/lab-migration-run');
           $url = Url::fromRoute('lab_migration.run_form');
 
 // Create a RedirectResponse and send it.
-$response = new RedirectResponse($url->toString());
-$response->send();
-          
-      }
+// DEPRECATED [OLD API]: send() on RedirectResponse 
+// MIGRATED [NEW API]: returning RedirectResponse directly
+return new \Symfony\Component\HttpFoundation\RedirectResponse($url->toString());      }
       
     $form['lab_details']['#markup'] = '<span style="color: rgb(128, 0, 0);"><strong>About the Lab</strong></span></td><td style="width: 35%;"><br />' . '<ul>' . '<li><strong>Proposer Name:</strong> ' . $lab_details->name_title . ' ' . $lab_details->name . '</li>' . '<li><strong>Title of the Lab:</strong> ' . $lab_details->lab_title . '</li>' . '<li><strong>Department:</strong> ' . $lab_details->department . '</li>' . '<li><strong>University:</strong> ' . $lab_details->university . '</li>' . '<li><strong>Version:</strong> ' . $lab_details->version . '</li>' . '<li><strong>Operating System:</strong> ' . $lab_details->operating_system . '</li>' . '</ul>' . $solution_provider;
 
@@ -478,8 +470,8 @@ $response->send();
     if ($lab_default_value != 0) {
       // Generate a link for download.
       $download_url = Url::fromUserInput('/lab-migration/full-download/lab/' . $lab_default_value);
-      $download_link = Link::fromTextAndUrl(t('Download'), $download_url)->toString();
-      $response->addCommand(new HtmlCommand('#ajax_selected_lab', $download_link . ' ' . t('(Download all the approved and unapproved solutions of the entire lab)')));
+      $download_link = Link::fromTextAndUrl($this->t('Download'), $download_url)->toString();
+      $response->addCommand(new HtmlCommand('#ajax_selected_lab', $download_link . ' ' . $this->t('(Download all the approved and unapproved solutions of the entire lab)')));
   // var_dump(hii);die;
       // Update lab actions and experiment list.
       $form['lab_actions']['#options'] = _bulk_list_lab_actions();

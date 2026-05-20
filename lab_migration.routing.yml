@@ -292,3 +292,12 @@ lab_migration.download_syllabus_copy:
     _controller: '\Drupal\lab_migration\Controller\DefaultController::lab_migration_download_syllabus_copy'
   requirements:
     _permission: 'lab migration bulk manage code'
+
+#ExportCSV
+lab_migration.export_csv:
+  path: /lab-migration/manage-proposal/export
+  defaults:
+    _form: \Drupal\lab_migration\Form\ExportCSVForm
+    _title: 'Export CSV'
+  requirements:
+    _permission: 'lab migration manage proposal'

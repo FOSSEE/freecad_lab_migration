@@ -1,5 +1,5 @@
 <?php
-
+// Drupal 11 Migration - Verified and migrated 2026-04-24
 /**
  * @file
  * Contains \Drupal\lab_migration\Form\LabMigrationCertificateEditForm.
@@ -50,7 +50,7 @@ $certi_id = (int) $route_match->getParameter('certi_id');
       if ($details_list->type == "Proposer") {
         $form['name_title'] = [
           '#type' => 'select',
-          '#title' => t('Title'),
+          '#title' => $this->t('Title'),
           '#options' => [
             'Dr.' => 'Dr.',
             'Prof.' => 'Prof.',
@@ -62,44 +62,44 @@ $certi_id = (int) $route_match->getParameter('certi_id');
         ];
         $form['name'] = [
           '#type' => 'textfield',
-          '#title' => t('Name of Proposer'),
+          '#title' => $this->t('Name of Proposer'),
           '#maxlength' => 50,
           '#default_value' => $details_list->name,
         ];
         $form['email_id'] = [
           '#type' => 'textfield',
-          '#title' => t('Email'),
+          '#title' => $this->t('Email'),
           '#size' => 50,
           '#default_value' => $details_list->email_id,
         ];
         $form['institute_name'] = [
           '#type' => 'textfield',
-          '#title' => t('Collage / Institue Name'),
+          '#title' => $this->t('Collage / Institue Name'),
           '#default_value' => $details_list->institute_name,
         ];
         $form['institute_address'] = [
           '#type' => 'textfield',
-          '#title' => t('Collage / Institue address'),
+          '#title' => $this->t('Collage / Institue address'),
           '#default_value' => $details_list->institute_address,
         ];
         $form['lab_name'] = [
           '#type' => 'textfield',
-          '#title' => t('Lab name'),
+          '#title' => $this->t('Lab name'),
           '#default_value' => $details_list->lab_name,
         ];
         $form['department'] = [
           '#type' => 'textfield',
-          '#title' => t('Department'),
+          '#title' => $this->t('Department'),
           '#default_value' => $details_list->department,
         ];
         $form['semester_details'] = [
           '#type' => 'textfield',
-          '#title' => t('Semester details'),
+          '#title' => $this->t('Semester details'),
           '#default_value' => $details_list->semester_details,
         ];
         $form['proposal_id'] = [
           '#type' => 'textfield',
-          '#title' => t('Lab Proposal Id'),
+          '#title' => $this->t('Lab Proposal Id'),
           '#description' => 'Note: You can find it in respective completed labs url -> freecad.fossee.in/lab-migration/lab-migration-run/64 <- this number is the proposal id for respective lab',
           '#default_value' => $details_list->proposal_id,
         ];
@@ -109,13 +109,13 @@ $certi_id = (int) $route_match->getParameter('certi_id');
         ];
         $form['submit'] = [
           '#type' => 'submit',
-          '#value' => t('Submit'),
+          '#value' => $this->t('Submit'),
         ];
       } //$details_list->type == "Proposer"
       else {
         $form['err_message'] = [
           '#type' => 'item',
-          '#title' => t('Message'),
+          '#title' => $this->t('Message'),
           '#markup' => 'Invalid information',
         ];
       }
@@ -123,7 +123,7 @@ $certi_id = (int) $route_match->getParameter('certi_id');
     else {
       $form['err_message'] = [
         '#type' => 'item',
-        '#title' => t('Message'),
+        '#title' => $this->t('Message'),
         '#markup' => 'Invalid information',
       ];
     }
@@ -163,7 +163,9 @@ $certi_id = (int) $route_match->getParameter('certi_id');
       ":certi_id" => $v['certi_id'],
     ];
     $proposal_id = \Drupal::database()->query($result, $args);
-    RedirectResponse('lab-migration/certificate');
+    // DEPRECATED [OLD API]: RedirectResponse without new 
+// MIGRATED [NEW API]: using return new RedirectResponse
+return new \Symfony\Component\HttpFoundation\RedirectResponse('lab-migration/certificate');
   }
 
 }
